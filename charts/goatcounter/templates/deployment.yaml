@@ -43,6 +43,9 @@ spec:
             - -db
             - {{ . }}
             {{- end }}
+            {{- range .Values.args }}
+            - {{ . | quote }}
+            {{- end }}
           env:
             {{- range $key, $val := .Values.env }}
             - name: {{ $key }}

@@ -76,3 +76,4 @@ affinity: {}
 
 db: postgres
 automigrate: true
+args: []
