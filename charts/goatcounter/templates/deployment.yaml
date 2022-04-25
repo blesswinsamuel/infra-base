@@ -29,6 +29,21 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["goatcounter"]
+          args:
+            - serve
+            - -listen
+            - 0.0.0.0:80
+            - -automigrate
+            - -tls
+            - none
+            - -db
+            - postgresql://
+          env:
+            {{- range $key, $val := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $val }}
+            {{- end}}
           ports:
             - name: http
               containerPort: 80
