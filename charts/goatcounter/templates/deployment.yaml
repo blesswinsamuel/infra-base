@@ -65,13 +65,13 @@ spec:
           {{- if .Values.probes.liveness.enabled }}
           livenessProbe:
             httpGet:
-              path: /
+              path: /status
               port: http
           {{- end }}
           {{- if .Values.probes.readiness.enabled }}
           readinessProbe:
             httpGet:
-              path: /
+              path: /status
               port: http
           {{- end }}
           resources:

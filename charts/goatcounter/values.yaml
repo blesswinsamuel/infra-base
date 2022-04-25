@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: blesswinsamuel/docker-goatcounter
-  tag: 2.2.0
+  tag: 2.2.3
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
