@@ -77,3 +77,8 @@ affinity: {}
 db: postgres
 automigrate: true
 args: []
+probes:
+  liveness:
+    enabled: true
+  readiness: 
+    enabled: true
