@@ -8,4 +8,4 @@ maintainers:
 name: goatcounter
 sources:
   - https://github.com/arp242/goatcounter
-version: 0.0.14
+version: 0.0.15
