@@ -34,16 +34,27 @@ spec:
             - serve
             - -listen
             - 0.0.0.0:80
+            {{- if .Values.automigrate }}
             - -automigrate
+            {{- end }}
             - -tls
             - none
+            {{- with .Values.db }}
             - -db
-            - postgresql://
+            - {{ . }}
+            {{- end }}
           env:
             {{- range $key, $val := .Values.env }}
             - name: {{ $key }}
               value: {{ $val | quote }}
             {{- end}}
+            {{- range $key, $val := .Values.envFromSecret }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $val.name }}
+                  key: {{ $val.key }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 80
