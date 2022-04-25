@@ -14,6 +14,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 env: []
+envFromSecret: []
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -72,3 +73,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+db: postgres
+automigrate: true
