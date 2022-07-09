@@ -1,0 +1,19 @@
+# https://github.com/argoproj/argo-helm/tree/main/charts/argo-cd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    name: argocd
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  repo: https://argoproj.github.io/argo-helm
+  chart: argo-cd
+  version: "4.8.0"
+  targetNamespace: argocd
