@@ -6,7 +6,7 @@ kind: Namespace
 metadata:
   name: doppler-operator-system
   labels:
-    name: doppler-operator-system
+    control-plane: controller-manager
 ---
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
@@ -19,4 +19,4 @@ spec:
   version: "1.0.0"
   targetNamespace: doppler-operator-system
   set:
-    installCRDs: true
+    installCRDs: "true"
