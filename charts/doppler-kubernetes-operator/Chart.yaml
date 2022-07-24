@@ -1,6 +1,6 @@
 apiVersion: v2
 name: doppler-kubernetes-operator
-version: 1.0.0
+version: 1.0.1
 description: Automatically sync secrets from Doppler to Kubernetes and auto-reload deployments when secrets change.
 keywords:
   - Doppler
