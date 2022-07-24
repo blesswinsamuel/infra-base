@@ -1,1 +1,1 @@
-createCRDs: false
+installCRDs: false
