@@ -15,6 +15,7 @@ fullnameOverride: ""
 
 env: []
 envFromSecret: []
+envFromSecretRef: []
 
 serviceAccount:
   # Specifies whether a service account should be created
