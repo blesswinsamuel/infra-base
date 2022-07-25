@@ -58,6 +58,11 @@ spec:
                   name: {{ $val.name }}
                   key: {{ $val.key }}
             {{- end }}
+          envFrom:
+          {{- range $n, $val := .Values.envFromSecretRef }}
+          - secretRef:
+              name: {{ $val.name }}
+          {{- end }}
           ports:
             - name: http
               containerPort: 80
