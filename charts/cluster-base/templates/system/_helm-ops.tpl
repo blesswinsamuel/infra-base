@@ -9,7 +9,7 @@ metadata:
 spec:
   repo: https://blesswinsamuel.github.io/helm-charts
   chart: helm-ops
-  version: "0.0.2"
+  version: "0.0.3"
   targetNamespace: '{{ tpl .namespace $ }}'
   valuesContent: |-
     deployment:
@@ -24,8 +24,8 @@ spec:
     scripts:
       predeploy: |
         helm repo add blesswinsamuel https://blesswinsamuel.github.io/helm-charts
-        yq e -i '.dependencies[0].repository="https://blesswinsamuel.github.io/helm-charts"' Chart.yaml
-        yq e -i '.dependencies[0].repository="https://blesswinsamuel.github.io/helm-charts"' Chart.lock
+        yq e -i '.dependencies[0].repository="https://blesswinsamuel.github.io/helm-charts"' $HELM_CHART_DIR/Chart.yaml
+        yq e -i '.dependencies[0].repository="https://blesswinsamuel.github.io/helm-charts"' $HELM_CHART_DIR/Chart.lock
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
