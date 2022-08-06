@@ -9,6 +9,9 @@ helmReleaseName: ""
 helmReleaseNamespace: default
 
 webhook:
+  image:
+    repository: blesswinsamuel/docker-helm
+    tag: v1.0.0
   env: []
   envFromSecret: []
 
