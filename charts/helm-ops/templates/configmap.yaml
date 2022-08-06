@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: '{{ include "helm-ops.fullname" . }}'
+data:
+  hooks.yaml: |
+    - id: redeploy-webhook
+      execute-command: "/config/redeploy.sh"
+      command-working-directory: "/config"
+  redeploy.sh: |
+    #!/bin/bash
+    set -ex
+
+    HELM_CHART_DIR=$GIT_REPO_PATH/{{ .Values.helmChartPath }}
+
+    helm repo add blesswinsamuel https://blesswinsamuel.github.io/helm-charts
+    yq -yi '.dependencies[0].repository="https://blesswinsamuel.github.io/helm-charts"' Chart.yaml
+    yq -yi '.dependencies[0].repository="https://blesswinsamuel.github.io/helm-charts"' Chart.lock
+
+    helm -n {{ .Values.helmReleaseNamespace }} dependency build $HELM_CHART_DIR
+
+    helm -n {{ .Values.helmReleaseNamespace }} diff upgrade {{ .Values.helmReleaseName }} $HELM_CHART_DIR --three-way-merge
+    helm -n {{ .Values.helmReleaseNamespace }} upgrade --install {{ .Values.helmReleaseName }} $HELM_CHART_DIR
