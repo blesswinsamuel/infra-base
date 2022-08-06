@@ -1,0 +1,15 @@
+deployment:
+  annotations: {}
+
+gitRepo:
+  url: ""
+  branch: ""
+helmChartPath: ""
+helmReleaseName: ""
+helmReleaseNamespace: default
+
+webhook:
+  env: []
+  envFromSecret: []
+
+secretName: helm-ops

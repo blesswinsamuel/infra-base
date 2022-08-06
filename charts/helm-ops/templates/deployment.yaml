@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: '{{ include "helm-ops.fullname" . }}'
+  {{- with .Values.deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "helm-ops.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "helm-ops.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ include "helm-ops.fullname" . }}
+      volumes:
+        - name: helm-chart-git
+          emptyDir: {}
+        - name: config
+          configMap:
+            defaultMode: 0755
+            name: helm-ops
+        - name: git-ssh-key
+          secret:
+            secretName: {{ .Values.secretName }}
+            defaultMode: 0600
+      containers:
+        - name: webhook
+          image: blesswinsamuel/docker-helm:main
+          ports:
+            - containerPort: 80
+          command:
+            - webhook 
+            - -hooks=/config/hooks.yaml
+            - -verbose
+            - -port=80
+            - -hotreload
+          env:
+            {{- range $key, $val := .Values.webhook.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end}}
+            {{- range $key, $val := .Values.webhook.envFromSecret }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $val.name }}
+                  key: {{ $val.key }}
+            {{- end }}
+            - name: GIT_REPO_PATH
+              value: /repo/helm-chart-git/current
+          volumeMounts:
+            - name: helm-chart-git
+              mountPath: /repo
+              # readOnly: true
+            - name: config
+              mountPath: /config
+              readOnly: true
+        - name: git-sync
+          image: blesswinsamuel/git-sync:main
+          # imagePullPolicy: Always
+          # command: ['sleep', '1000000']
+          args:
+            - --repo={{ tpl .Values.gitRepo.url $ }}
+            - --branch={{ .Values.gitRepo.branch }}
+            - --ssh=true
+            - --ssh-key-file=/ssh-key/git-private-key
+            - --ssh-known-hosts=false
+            - --ssh-known-hosts-file=/ssh-key/known_hosts
+            - --depth=1
+            - --max-sync-failures=200
+            - --wait=30  # --period=60s
+            - --dest=current
+            - --root=/repo/helm-chart-git
+            - --webhook-url=http://localhost/hooks/redeploy-webhook
+            - --webhook-timeout=120s
+          volumeMounts:
+            - name: helm-chart-git
+              mountPath: /repo
+            - name: git-ssh-key
+              mountPath: /ssh-key
