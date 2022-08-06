@@ -32,7 +32,7 @@ spec:
             defaultMode: 0600
       containers:
         - name: webhook
-          image: blesswinsamuel/docker-helm:main
+          image: "{{ .Values.webhook.image.repository }}:{{ .Values.webhook.image.tag }}"
           ports:
             - containerPort: 80
           command:
