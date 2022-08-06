@@ -17,7 +17,12 @@ data:
 
     HELM_CHART_DIR=$GIT_REPO_PATH/{{ .helmChartPath }}
 
-    helm -n {{ .helmReleaseNamespace }} dependency build $HELM_CHART_DIR
+    helm repo add blesswinsamuel https://blesswinsamuel.github.io/helm-charts
+    yq -yi '.dependencies[0].repository="https://blesswinsamuel.github.io/helm-charts"' Chart.yaml
+    yq -yi '.dependencies[0].repository="https://blesswinsamuel.github.io/helm-charts"' Chart.lock
+
+    helm -n {{ .helmReleaseNamespace }} dependency update $HELM_CHART_DIR
+    
     helm -n {{ .helmReleaseNamespace }} diff upgrade {{ .helmReleaseName }} $HELM_CHART_DIR --three-way-merge
     helm -n {{ .helmReleaseNamespace }} upgrade --install {{ .helmReleaseName }} $HELM_CHART_DIR
 ---
@@ -94,8 +99,8 @@ spec:
             - --ssh-known-hosts=false
             - --ssh-known-hosts-file=/ssh-key/known_hosts
             - --depth=1
-            # - --max-sync-failures=5
-            # - --wait=60  # --period=60s
+            - --max-sync-failures=200
+            - --wait=30  # --period=60s
             - --dest=current
             - --root=/repo/helm-chart-git
             - --webhook-url=http://localhost/hooks/redeploy-webhook
