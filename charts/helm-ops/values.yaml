@@ -16,3 +16,6 @@ webhook:
   envFromSecret: []
 
 secretName: helm-ops
+
+scripts:
+  predeploy: ''
