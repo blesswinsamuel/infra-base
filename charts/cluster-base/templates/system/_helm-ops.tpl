@@ -27,7 +27,7 @@ spec:
         yq e -i '.dependencies[0].repository="https://blesswinsamuel.github.io/helm-charts"' $HELM_CHART_DIR/Chart.yaml
         yq e -i '.dependencies[0].repository="https://blesswinsamuel.github.io/helm-charts"' $HELM_CHART_DIR/Chart.lock
 
-        helm -n {{ .Values.helmReleaseNamespace }} dependency update $HELM_CHART_DIR
+        helm dependency update $HELM_CHART_DIR
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
