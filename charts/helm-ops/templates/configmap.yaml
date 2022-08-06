@@ -15,7 +15,5 @@ data:
 
     {{- .Values.scripts.predeploy | nindent 4 }}
 
-    helm -n {{ .Values.helmReleaseNamespace }} dependency build $HELM_CHART_DIR
-
     helm -n {{ .Values.helmReleaseNamespace }} diff upgrade {{ .Values.helmReleaseName }} $HELM_CHART_DIR --three-way-merge
     helm -n {{ .Values.helmReleaseNamespace }} upgrade --install {{ .Values.helmReleaseName }} $HELM_CHART_DIR
