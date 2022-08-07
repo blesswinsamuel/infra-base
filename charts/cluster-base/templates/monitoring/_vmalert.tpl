@@ -24,8 +24,8 @@ spec:
       ingress:
         enabled: {{ .ingress.enabled }}
         annotations:
-          {{ include "commons.annotation.cert-issuer" $ }}
-          {{ include "commons.annotation.router-middlewares" $ }}
+          {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
+          {{ include "cluster-base.ingress.annotation.router-middlewares" $ }}
         hosts:
         - name: {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
           path: /
@@ -73,8 +73,8 @@ spec:
       ingress:
         enabled: {{ .ingress.enabled }}
         annotations:
-          {{ include "commons.annotation.cert-issuer" $ }}
-          {{ include "commons.annotation.router-middlewares" $ }}
+          {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
+          {{ include "cluster-base.ingress.annotation.router-middlewares" $ }}
         hosts:
         - name: {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
           path: /

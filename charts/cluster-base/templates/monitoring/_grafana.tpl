@@ -39,8 +39,8 @@ spec:
     ingress:
       enabled: true
       annotations:
-        {{ include "commons.annotation.cert-issuer" $ }}
-        {{ include "commons.annotation.router-middlewares" $ }}
+        {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
+        {{ include "cluster-base.ingress.annotation.router-middlewares" $ }}
       hosts:
         - {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
       tls:

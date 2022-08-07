@@ -2,7 +2,7 @@
 {{- with .Values.certIssuer }}
 ---
 apiVersion: cert-manager.io/v1
-kind: {{ $.Values.global.certIssuerKind }}
+kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
   {{- with .namespace }}
@@ -30,7 +30,7 @@ spec:
       {{- end }}
 ---
 apiVersion: cert-manager.io/v1
-kind: {{ $.Values.global.certIssuerKind }}
+kind: ClusterIssuer
 metadata:
   name: letsencrypt-staging
   {{- with .namespace }}
@@ -67,14 +67,14 @@ metadata:
 spec:
   refreshInterval: 2m
   secretStoreRef:
-    name: secretstore
+    name: '{{ tpl $.Values.global.clusterExternalSecretStoreName $ }}'
     kind: ClusterSecretStore
   target:
     name: cloudflare-api-token
   data:
   - secretKey: api-token
     remoteRef:
-      key: doppler-secrets
+      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
       property: CLOUDFLARE_API_TOKEN
 {{- end }}
 {{- end }}

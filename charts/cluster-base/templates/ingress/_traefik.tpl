@@ -53,8 +53,8 @@ spec:
     - "{{ .subDomain }}.{{ tpl $.Values.global.domain $ }}"
   secretName: traefik-dashboard-tls
   issuerRef:
-    name: "{{ $.Values.global.certIssuer }}"
-    kind: "{{ $.Values.global.certIssuerKind }}"
+    name: "{{ $.Values.global.clusterCertIssuerName }}"
+    kind: ClusterIssuer
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
