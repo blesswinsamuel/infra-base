@@ -45,7 +45,7 @@ spec:
     name: helm-ops
   data:
     - secretKey: git-private-key
-      remoteRef: { key: doppler-secrets, property: BLESS_STACK_DEPLOY_KEY }
+      remoteRef: { key: doppler-secrets, property: GITHUB_DEPLOY_KEY }
     - secretKey: known_hosts
       remoteRef: { key: doppler-secrets, property: GITHUB_KNOWN_HOSTS }
 {{- end }}
