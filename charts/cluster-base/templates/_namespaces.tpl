@@ -8,10 +8,6 @@ metadata:
     name: "{{ . }}"
 {{ end }}
 
-{{ define "cluster-base.namespace.helm-chart" -}}
-{{ tpl $.Values.global.helmChartsNamespace $ }}
-{{- end }}
-
 {{ define "cluster-base.namespaces" }}
   {{- if .Values.global.helmChartsNamespaceCreate }}
     {{- include "cluster-base.namespace.create" (include "cluster-base.namespace.helm-chart" $) }}
