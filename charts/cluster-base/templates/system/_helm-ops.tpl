@@ -10,7 +10,7 @@ spec:
   repo: https://blesswinsamuel.github.io/helm-charts
   chart: helm-ops
   version: "0.0.4"
-  targetNamespace: '{{ tpl .namespace $ }}'
+  targetNamespace: '{{ tpl $.Values.system.namespace $ }}'
   valuesContent: |-
     deployment:
       annotations:
@@ -33,7 +33,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: helm-ops
-  namespace: "{{ tpl .namespace $ }}"
+  namespace: '{{ tpl $.Values.system.namespace $ }}'
   annotations:
     reloader.stakater.com/match: "true"
 spec:
