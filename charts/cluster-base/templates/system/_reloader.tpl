@@ -11,7 +11,7 @@ spec:
   repo: https://stakater.github.io/stakater-charts
   chart: reloader
   version: "v0.0.118"
-  targetNamespace: '{{ tpl .namespace $ }}'
+  targetNamespace: '{{ tpl $.Values.system.namespace $ }}'
   valuesContent: |-
     # reloader:
     #   custom_annotations:

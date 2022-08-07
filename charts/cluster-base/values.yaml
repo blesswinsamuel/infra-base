@@ -149,15 +149,19 @@ traefikForwardAuth:
   whilelist: ''  # email address
 
 system:
+  namespace: system
   reloader:
     enabled: false
-    namespace: system
   helmOps:
     enabled: false
-    namespace: system
     # gitRepo:
     #   url: ""
     #   branch: ""
     # helmChartPath: ""
     # helmReleaseName: ""
     helmReleaseNamespace: default
+  kubernetesDashboard:
+    enabled: false
+    ingress:
+      enabled: false
+      subDomain: kube-dashboard
