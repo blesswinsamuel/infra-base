@@ -9,7 +9,7 @@ metadata:
 spec:
   refreshInterval: 2m
   secretStoreRef:
-    name: secretstore
+    name: '{{ tpl $.Values.global.clusterExternalSecretStoreName $ }}'
     kind: ClusterSecretStore
   target:
     template:
@@ -28,15 +28,15 @@ spec:
   data:
   - secretKey: registry
     remoteRef:
-      key: doppler-secrets
+      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
       property: {{ .keyPrefix }}CONTAINER_REGISTRY_URL
   - secretKey: username
     remoteRef:
-      key: doppler-secrets
+      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
       property: {{ .keyPrefix }}CONTAINER_REGISTRY_USERNAME
   - secretKey: password
     remoteRef:
-      key: doppler-secrets
+      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
       property: {{ .keyPrefix }}CONTAINER_REGISTRY_PASSWORD
 {{- end -}}
 {{- end -}}

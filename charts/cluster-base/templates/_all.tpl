@@ -1,5 +1,4 @@
 {{- define "cluster-base.all" }}
-
   {{- /* Merge the local chart values and the common chart defaults */ -}}
   {{- include "cluster-base.values.setup" . }}
 

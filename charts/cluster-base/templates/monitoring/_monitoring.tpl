@@ -6,7 +6,7 @@
       {{- include "cluster-base.monitoring.default-rules" . }}
     {{- end }}
 
-    {{- if .Values.monitoring.grafana.dashboards.monitoring.enabled }}
+    {{- if .Values.monitoring.defaultDashboards.enabled }}
       {{- include "cluster-base.monitoring.grafana-dashboards" . }}
     {{- end }}
 

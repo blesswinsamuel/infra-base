@@ -23,7 +23,7 @@ spec:
       main:
         enabled: true
         annotations:
-          {{ include "commons.annotation.cert-issuer" $ }}
+          {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
           traefik.ingress.kubernetes.io/router.middlewares: kube-system-traefik-redirect-https@kubernetescrd,auth-traefik-forward-auth@kubernetescrd
         hosts:
         - host: {{ .ingress.subDomain }}.{{ $.Values.global.domain }}
@@ -77,22 +77,22 @@ metadata:
 spec:
   refreshInterval: 2m
   secretStoreRef:
-    name: secretstore
+    name: '{{ tpl $.Values.global.clusterExternalSecretStoreName $ }}'
     kind: ClusterSecretStore
   target:
     name: traefik-forward-auth-secret
   data:
   - secretKey: PROVIDERS_GOOGLE_CLIENT_SECRET
     remoteRef:
-      key: doppler-secrets
+      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
       property: AUTH_GOOGLE_CLIENT_SECRET
   - secretKey: PROVIDERS_GOOGLE_CLIENT_ID
     remoteRef:
-      key: doppler-secrets
+      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
       property: AUTH_GOOGLE_CLIENT_ID
   - secretKey: SECRET
     remoteRef:
-      key: doppler-secrets
+      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
       property: AUTH_COOKIE_SECRET
 {{- end }}
 {{ end }}

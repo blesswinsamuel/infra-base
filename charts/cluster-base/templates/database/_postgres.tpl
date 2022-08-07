@@ -39,16 +39,16 @@ metadata:
 spec:
   refreshInterval: 2m
   secretStoreRef:
-    name: secretstore
+    name: '{{ tpl $.Values.global.clusterExternalSecretStoreName $ }}'
     kind: ClusterSecretStore
   target:
     name: postgres-passwords
   data:
   - secretKey: postgres-password
-    remoteRef: { key: doppler-secrets, property: POSTGRES_ADMIN_PASSWORD }
+    remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: POSTGRES_ADMIN_PASSWORD }
   - secretKey: password
-    remoteRef: { key: doppler-secrets, property: POSTGRES_USER_PASSWORD }
+    remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: POSTGRES_USER_PASSWORD }
   - secretKey: replication-password
-    remoteRef: { key: doppler-secrets, property: POSTGRES_REPLICATION_PASSWORD }
+    remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: POSTGRES_REPLICATION_PASSWORD }
 {{- end }}
 {{- end }}

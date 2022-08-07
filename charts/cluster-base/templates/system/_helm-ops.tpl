@@ -39,14 +39,14 @@ metadata:
 spec:
   refreshInterval: 2m
   secretStoreRef:
-    name: secretstore
+    name: '{{ tpl $.Values.global.clusterExternalSecretStoreName $ }}'
     kind: ClusterSecretStore
   target:
     name: helm-ops
   data:
     - secretKey: git-private-key
-      remoteRef: { key: doppler-secrets, property: GITHUB_DEPLOY_KEY }
+      remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: GITHUB_DEPLOY_KEY }
     - secretKey: known_hosts
-      remoteRef: { key: doppler-secrets, property: GITHUB_KNOWN_HOSTS }
+      remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: GITHUB_KNOWN_HOSTS }
 {{- end }}
 {{- end }}

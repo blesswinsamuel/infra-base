@@ -1,11 +1,17 @@
 global:
   domain: ""
-  certIssuerKind: ClusterIssuer
-  certIssuer: letsencrypt-prod
+  clusterCertIssuerName: letsencrypt-prod
+  clusterExternalSecretStoreName: secretstore
+  externalSecretRemoteRefKey: doppler-secrets
   internetAuthType: traefik-forward-auth
   helmChartsNamespace: kube-system
   helmChartsNamespaceCreate: false
   dopplerServiceToken: ''
+
+secrets:
+  doppler:
+    managedSecretName: doppler-secrets  # same as externalSecretRemoteRefKey
+    managedSecretNamespace: default
 
 certIssuer:
   enabled: false
@@ -32,9 +38,9 @@ traefik:
 monitoring:
   enabled: false
   kubeStateMetrics:
-    enabled: false
+    enabled: true
   grafana:
-    enabled: false
+    enabled: true
     namespaced: false
     authProxyEnabled: true
     anonymousAuthEnabled: false
@@ -44,16 +50,13 @@ monitoring:
     dashboardLabelValue: null
     ingress:
       subDomain: "grafana"
-    dashboards:
-      monitoring:
-        enabled: false
     datasources:
       loki:
         enabled: false
       victoriametrics:
         enabled: false
   vmagent:
-    enabled: false
+    enabled: true
     ingress:
       subDomain: "vmagent"
     resources:
@@ -64,14 +67,16 @@ monitoring:
         memory: "512Mi"
         cpu: "500m"
   defaultRules:
-    enabled: false
+    enabled: true
+  defaultDashboards:
+    enabled: true
   vmalert:
-    enabled: false
+    enabled: true
     ingress:
       enabled: true
       subDomain: "vmalert"
   alertmanager:
-    enabled: false
+    enabled: true
     ingress:
       enabled: true
       subDomain: "alertmanager"
@@ -103,9 +108,9 @@ monitoring:
         {{ end }}
       slackApiUrl: https://hooks.slack.com/services/xxx/xxx/xxx
   nodeExporter:
-    enabled: false
+    enabled: true
   victoriametrics:
-    enabled: false
+    enabled: true
     retentionPeriod: 1
     resources:
       requests:
@@ -115,9 +120,9 @@ monitoring:
         memory: "512Mi"
         cpu: "500m"
   loki:
-    enabled: false
+    enabled: true
   vector:
-    enabled: false
+    enabled: true
 
 databases:
   enabled: false
@@ -144,9 +149,6 @@ traefikForwardAuth:
   whilelist: ''  # email address
 
 system:
-  keel:
-    enabled: false
-    namespace: system
   reloader:
     enabled: false
     namespace: system

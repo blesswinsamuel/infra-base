@@ -5,7 +5,7 @@
 apiVersion: external-secrets.io/v1beta1
 kind: ClusterSecretStore
 metadata:
-  name: secretstore
+  name: '{{ .Values.global.clusterExternalSecretStoreName }}'
 spec:
   provider:
     kubernetes:

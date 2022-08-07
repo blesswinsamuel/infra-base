@@ -9,8 +9,8 @@ spec:
   tokenSecret: # Kubernetes service token secret (namespace defaults to doppler-operator-system)
     name: doppler-service-token
   managedSecret: # Kubernetes managed secret (will be created if does not exist)
-    name: doppler-secrets
-    namespace: default # Should match the namespace of deployments that will use the secret
+    name: '{{ tpl .Values.secrets.doppler.managedSecretName $ }}'
+    namespace: '{{ tpl .Values.secrets.doppler.managedSecretNamespace $ }}' # Should match the namespace of deployments that will use the secret
 ---
 apiVersion: v1
 kind: Secret
@@ -18,5 +18,5 @@ metadata:
   name: doppler-service-token
   namespace: doppler-operator-system
 data:
-  serviceToken: {{ .Values.global.dopplerServiceToken }}
+  serviceToken: '{{ .Values.global.dopplerServiceToken }}'
 {{- end }}
