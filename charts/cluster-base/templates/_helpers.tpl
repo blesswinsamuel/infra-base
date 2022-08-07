@@ -37,3 +37,9 @@ auth-traefik-forward-auth@kubernetescrd
     {{- $_ := set . "Values" (deepCopy $mergedValues) -}}
   {{- end -}}
 {{- end -}}
+
+{{/* HelmChart namespace */}}
+{{- define "cluster-base.namespace.helm-chart" -}}
+{{- include "cluster-base.values.setup" . -}}
+{{- tpl $.Values.global.helmChartsNamespace $ -}}
+{{- end -}}
