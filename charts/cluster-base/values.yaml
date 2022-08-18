@@ -123,6 +123,11 @@ monitoring:
     enabled: true
   vector:
     enabled: true
+    syslogServer:
+      enabled: false
+    ingress:
+      enabled: false
+      subDomain: vector
 
 databases:
   enabled: false
