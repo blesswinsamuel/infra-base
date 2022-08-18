@@ -10,17 +10,48 @@ metadata:
 spec:
   repo: https://helm.vector.dev
   chart: vector
-  version: "0.10.3"
+  version: "0.15.1"
   targetNamespace: monitoring
   valuesContent: |-
     role: Agent
+    # Prometheus scrape is disabled because it's creating duplicate metrics. Also, there is a peer_addr which blows up the cardinality
+    # service:
+    #   annotations:
+    #     prometheus.io/port: "9090"
+    #     prometheus.io/scrape: "true"
+    {{- if .ingress.enabled }}
+    ingress:
+      enabled: {{ .ingress.enabled }}
+      annotations:
+        {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
+        {{ include "cluster-base.ingress.annotation.router-middlewares" $ }}
+      hosts:
+        - host: {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
+          paths:
+            - path: /
+              pathType: ImplementationSpecific
+              port:
+                name: api
+      tls:
+        - secretName: vector-tls
+          hosts:
+            - {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
+    {{- end }}
     customConfig:
       data_dir: /vector-data-dir
       api:
         enabled: true
-        address: 127.0.0.1:8686
+        address: 0.0.0.0:8686
         playground: false
       sources:
+        {{- if .syslogServer.enabled }}
+        syslog_server:
+          type: syslog
+          address: 0.0.0.0:514
+          max_length: 102400
+          mode: tcp
+          path: /syslog-socket
+        {{- end }}
         kubernetes_logs:
           type: kubernetes_logs
         # vector_logs:
@@ -37,7 +68,20 @@ spec:
         internal_metrics:
           type: internal_metrics
       transforms:
-        parse_and_merge_log_message:
+        {{- if .syslogServer.enabled }}
+        syslog_transform:
+          type: "remap"
+          inputs:
+            - syslog_server
+          source: |
+            .kubernetes = {}
+            .kubernetes.container_name = .appname
+            .kubernetes.pod_name = .appname
+            .kubernetes.pod_node_name = .host
+            .kubernetes.pod_namespace = "syslog"
+            .level = .severity
+        {{- end }}
+        kubernetes_parse_and_merge_log_message:
           type: "remap"
           inputs:
             - kubernetes_logs
@@ -50,10 +94,10 @@ spec:
                 log("Failed to merge message into log: " + err, level: "error")
               }
             }
-        log_transform:
+        kubernetes_log_transform:
           type: "remap"
           inputs:
-            - parse_and_merge_log_message
+            - kubernetes_parse_and_merge_log_message
           source: |
             # .@timestamp = del(.timestamp)
             del(.kubernetes.pod_labels)
@@ -71,7 +115,11 @@ spec:
           address: 0.0.0.0:9090
         loki_sink:
           type: loki
-          inputs: [log_transform]
+          inputs:
+            - kubernetes_log_transform
+          {{- if .syslogServer.enabled }}
+            - syslog_transform
+          {{- end }}
           endpoint: "http://loki:3100"
           labels:
             container_name: '{{`{{ print "{{ kubernetes.container_name }}" }}`}}'
@@ -82,9 +130,35 @@ spec:
           encoding:
             codec: json
             timestamp_format: rfc3339
+        # debug_sink:
+        #   type: console
+        #   inputs:
+        #     - syslog_server
+        #   target: stdout
+        #   encoding:
+        #     codec: json
           # healthcheck:
           #   enabled: true
-
+{{- if .syslogServer.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vector-syslog-server
+  namespace: monitoring
+spec:
+  type: NodePort
+  ports:
+  - name: syslog-server
+    port: 514
+    protocol: TCP
+    targetPort: 514
+    nodePort: 30514
+  selector:
+    app.kubernetes.io/component: Agent
+    app.kubernetes.io/instance: vector
+    app.kubernetes.io/name: vector
+{{- end }}
 # Debug command:
 # yq e '.spec.valuesContent' vector.yaml | helm template --namespace monitoring --repo https://helm.vector.dev --version 0.10.3 vector vector --values - --debug
 {{- end }}
