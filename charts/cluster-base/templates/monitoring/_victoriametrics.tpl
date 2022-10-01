@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://victoriametrics.github.io/helm-charts
   chart: victoria-metrics-single
-  version: "0.8.33"
+  version: "0.8.37"
   targetNamespace: monitoring
   valuesContent: |-
     server:
@@ -32,5 +32,20 @@ spec:
       persistentVolume:
         {{- . | toYaml | nindent 8 }}
       {{- end }}
+
+      ingress:
+        enabled: {{ .ingress.enabled }}
+        annotations:
+          {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
+          {{ include "cluster-base.ingress.annotation.router-middlewares" $ }}
+        hosts:
+        - name: {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
+          path: /
+          port: http
+        tls:
+        - secretName: victoriametrics-tls
+          hosts:
+            - {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
+        pathType: Prefix
 {{- end }}
 {{- end }}
