@@ -55,17 +55,6 @@ monitoring:
         enabled: false
       victoriametrics:
         enabled: false
-  vmagent:
-    enabled: true
-    ingress:
-      subDomain: "vmagent"
-    resources:
-      requests:
-        memory: "128Mi"
-        cpu: "250m"
-      limits:
-        memory: "512Mi"
-        cpu: "500m"
   defaultRules:
     enabled: true
   defaultDashboards:

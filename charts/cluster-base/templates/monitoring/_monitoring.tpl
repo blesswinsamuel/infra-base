@@ -36,9 +36,6 @@
     {{- if .Values.monitoring.vector.enabled }}
       {{- include "cluster-base.monitoring.vector" . }}
     {{- end }}
-    {{- if .Values.monitoring.vmagent.enabled }}
-      {{- include "cluster-base.monitoring.vmagent" . }}
-    {{- end }}
     {{- if .Values.monitoring.vmalert.enabled }}
       {{- include "cluster-base.monitoring.vmalert" . }}
     {{- end }}
