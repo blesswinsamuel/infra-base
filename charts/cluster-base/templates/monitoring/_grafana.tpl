@@ -9,11 +9,9 @@ metadata:
 spec:
   repo: https://grafana.github.io/helm-charts
   chart: grafana
-  version: "6.29.11"
+  version: "6.40.0"
   targetNamespace: monitoring
   valuesContent: |-
-    image:
-      tag: 9.0.0
     env:
       GF_SERVER_ENABLE_GZIP: true
 
