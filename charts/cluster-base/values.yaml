@@ -111,6 +111,9 @@ monitoring:
     enabled: true
   victoriametrics:
     enabled: true
+    ingress:
+      enabled: true
+      subDomain: "victoriametrics"
     retentionPeriod: 1
     resources:
       requests:
