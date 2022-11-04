@@ -25,9 +25,10 @@ dashboards = [
     dict(name='monitoring/k8s-views-nodes', title='Kubernetes / Views / Nodes', id=15759, revision=8),
     dict(name='monitoring/k8s-views-pods', title='Kubernetes / Views / Pods', id=15760, revision=10),
     
-    dict(name='monitoring/victoriametrics-single', title='VictoriaMetrics / single', id=10229, revision=23),
-    dict(name='monitoring/victoriametrics-vmagent', title='VictoriaMetrics / vmagent', id=12683, revision=8),
-    dict(name='monitoring/victoriametrics-vmalert', title='VictoriaMetrics / vmalert', id=14950, revision=1),
+    # VictoriaMetrics - https://grafana.com/VictoriaMetrics
+    dict(name='monitoring/victoriametrics-single', title='VictoriaMetrics / single', id=10229, revision=24),
+    dict(name='monitoring/victoriametrics-vmagent', title='VictoriaMetrics / vmagent', id=12683, revision=10),
+    dict(name='monitoring/victoriametrics-vmalert', title='VictoriaMetrics / vmalert', id=14950, revision=2),
 ]
 # [x] alertmanager-overview.json - "Alertmanager / Overview"
 # [x] apiserver.json - "Kubernetes / API server"
@@ -51,9 +52,9 @@ dashboards = [
 # [ ] pod-total.json - "Kubernetes / Networking / Pod"
 # [ ] proxy.json - "Kubernetes / Proxy"
 # [ ] scheduler.json - "Kubernetes / Scheduler"
-# [ ] victoriametrics.json - "VictoriaMetrics"
-# [ ] vmagent.json - "vmagent"
-# [ ] vmalert.json - "vmalert"
+# [x] victoriametrics.json - "VictoriaMetrics"
+# [x] vmagent.json - "vmagent"
+# [x] vmalert.json - "vmalert"
 # [ ] workload-total.json - "Kubernetes / Networking / Workload"
 
 def write_dashboard_to_file(resource_name, content, destination: Path):
