@@ -17,6 +17,8 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "helm-ops.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       serviceAccountName: {{ include "helm-ops.fullname" . }}
       volumes:

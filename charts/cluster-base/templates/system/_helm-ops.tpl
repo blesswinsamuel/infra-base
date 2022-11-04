@@ -9,7 +9,7 @@ metadata:
 spec:
   repo: https://blesswinsamuel.github.io/helm-charts
   chart: helm-ops
-  version: "0.0.5"
+  version: "0.0.6"
   targetNamespace: '{{ tpl $.Values.system.namespace $ }}'
   valuesContent: |-
     deployment:
@@ -21,6 +21,7 @@ spec:
     helmChartPath: "{{ .helmChartPath }}"
     helmReleaseName: "{{ .helmReleaseName }}"
     helmReleaseNamespace: "{{ .helmReleaseNamespace }}"
+    helmExtraValuesFiles: ['versions.yaml']
     scripts:
       predeploy: |
         helm repo add blesswinsamuel https://blesswinsamuel.github.io/helm-charts
