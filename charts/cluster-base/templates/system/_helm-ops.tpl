@@ -21,7 +21,7 @@ spec:
     helmChartPath: "{{ .helmChartPath }}"
     helmReleaseName: "{{ .helmReleaseName }}"
     helmReleaseNamespace: "{{ .helmReleaseNamespace }}"
-    helmExtraValuesFiles: ['versions.yaml']
+    helmExtraValuesFiles: {{ .helmExtraValuesFiles | toJson }}
     scripts:
       predeploy: |
         helm repo add blesswinsamuel https://blesswinsamuel.github.io/helm-charts
