@@ -13,11 +13,9 @@ inputs:
   slack-webhook:
     description: 'Slack Webhook'
     required: true
-    default: '${{ secrets.SLACK_WEBHOOK }}'
   github-token:
     description: 'Github Token'
     required: true
-    default: '${{ secrets.GITHUB_TOKEN }}'
   docker-build-platforms:
     description: 'Docker build platforms'
     required: false
