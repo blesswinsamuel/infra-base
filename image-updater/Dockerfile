@@ -7,4 +7,4 @@ RUN yarn install --cwd /image-updater/
 
 COPY index.js /image-updater/index.js
 
-ENTRYPOINT ["node", "index.js"]
+ENTRYPOINT ["node", "/image-updater/index.js"]
