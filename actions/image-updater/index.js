@@ -83,5 +83,27 @@ async function updateImages() {
 module.exports = updateImages;
 
 if (require.main === module) {
-  updateImages();
+  async function main() {
+    const commitMessage = await updateImages();
+    const outputFile = process.env.GITHUB_OUTPUT;
+    if (outputFile) {
+      await fs.writeFile(outputFile, `commit-message=${commitMessage}`);
+    }
+    const stepSmmaryFile = process.env.GITHUB_STEP_SUMMARY;
+    if (outputFile) {
+      await fs.writeFile(
+        stepSmmaryFile,
+        `${commitMessage.split(", ").join("\n")}`
+      );
+    }
+  }
+  main()
+    .then(() => {
+      console.log("Image updater successful");
+    })
+    .catch((err) => {
+      console.error("Image updater error", err);
+      // process.exit(1);
+      process.exitCode = 1;
+    });
 }

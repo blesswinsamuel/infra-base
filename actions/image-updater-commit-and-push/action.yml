@@ -17,6 +17,7 @@ runs:
         git config --global user.name 'github-actions[bot]'
         git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
     - uses: blesswinsamuel/helm-charts/actions/image-updater@main
+      id: update-versions
       env:
         GHCR_TOKEN: ${{ inputs.github-token }}
     - name: Check for modified files
@@ -29,5 +30,5 @@ runs:
       run: |
         git status
         git diff
-        git commit -am "${{steps.update-versions.outputs.result}}"
+        git commit -am "${{steps.update-versions.outputs.commit-message}}"
         git push
