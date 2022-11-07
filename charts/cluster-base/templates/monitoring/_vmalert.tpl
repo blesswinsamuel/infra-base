@@ -39,31 +39,38 @@ spec:
       config:
         global:
           resolve_timeout: 1m
-          slack_api_url: {{ .config.slackApiUrl | quote }}
 
         route:
-          receiver: devnull
-          # receiver: 'slack-notifications'     
+          receiver: notify-main
+          repeat_interval: 2h
           routes:
+          - matchers:
+            - "alertname = Watchdog"
+            receiver: watchdog
+            repeat_interval: 1m
           # - matchers:
-          #   - "alertname = Watchdog"
-          #   receiver: Watchdog
-          - matchers:
-            - "alertname = InfoInhibitor"
-            receiver: 'devnull'
-          - matchers:
-            - "severity = critical|warning"
-            receiver: 'slack-notifications'
+          #   - "alertname = InfoInhibitor"
+          #   receiver: devnull
 
         receivers:
         - name: devnull
-        - name: 'slack-notifications'
+        - name: watchdog
+          webhook_configs:
+          - url: {{ .config.watchdog.webhookUrl }}
+        - name: notify-main
           slack_configs:
-          - channel: {{ .config.channel | quote }}
+          - channel: {{ .config.slack.channel | quote }}
             send_resolved: true
+            api_url: {{ .config.slack.apiUrl | quote }}
             icon_url: 'https://avatars3.githubusercontent.com/u/3380462'
-            title: {{ .config.title | quote }}
-            text: {{ .config.text | quote }}
+            title: {{ .config.slack.title | quote }}
+            text: {{ .config.slack.text | quote }}
+          telegram_configs:
+          - api_url: https://api.telegram.org
+            bot_token: {{ .config.telegram.botToken | quote }}
+            chat_id: {{ .config.telegram.chatID }}
+            message: {{ .config.telegram.message | quote }}
+            parse_mode: {{ .config.telegram.parseMode | quote }}
     {{- end }}
     server:
       service:
