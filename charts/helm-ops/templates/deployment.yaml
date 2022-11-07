@@ -65,7 +65,7 @@ spec:
               mountPath: /config
               readOnly: true
         - name: git-sync
-          image: blesswinsamuel/git-sync:main
+          image: blesswinsamuel/git-sync:v1.0.0
           # imagePullPolicy: Always
           # command: ['sleep', '1000000']
           args:
@@ -76,8 +76,8 @@ spec:
             - --ssh-known-hosts=false
             - --ssh-known-hosts-file=/ssh-key/known_hosts
             - --depth=1
-            - --max-sync-failures=200
-            - --wait=30  # --period=60s
+            - --max-sync-failures=200  # --max-failures=200
+            - --wait=60  # --period=60s
             - --dest=current
             - --root=/repo/helm-chart-git
             - --webhook-url=http://localhost/hooks/redeploy-webhook
