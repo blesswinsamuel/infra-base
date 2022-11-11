@@ -1,43 +1,72 @@
 {
+  "__inputs": [
+    {
+      "description": "",
+      "label": "Prometheus",
+      "name": "DS_PROMETHEUS",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus",
+      "type": "datasource"
+    }
+  ],
+  "__requires": [
+    {
+      "id": "grafana",
+      "name": "Grafana",
+      "type": "grafana",
+      "version": "7.2.1"
+    },
+    {
+      "id": "graph",
+      "name": "Graph",
+      "type": "panel",
+      "version": ""
+    },
+    {
+      "id": "prometheus",
+      "name": "Prometheus",
+      "type": "datasource",
+      "version": "1.0.0"
+    },
+    {
+      "id": "stat",
+      "name": "Stat",
+      "type": "panel",
+      "version": ""
+    },
+    {
+      "id": "table",
+      "name": "Table",
+      "type": "panel",
+      "version": ""
+    }
+  ],
   "annotations": {
     "list": [
       {
         "builtIn": 1,
-        "datasource": {
-          "type": "datasource",
-          "uid": "grafana"
-        },
+        "datasource": "-- Grafana --",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
         "limit": 100,
         "name": "Annotations & Alerts",
         "showIn": 0,
-        "target": {
-          "limit": 100,
-          "matchAny": false,
-          "tags": [],
-          "type": "dashboard"
-        },
         "type": "dashboard"
       }
     ]
   },
   "description": "Monitors all persistent volumes that exists within a Kubernetes cluster. Prometheus is used as datasource. ",
   "editable": true,
-  "fiscalYearStartMonth": 0,
   "gnetId": 13646,
   "graphTooltip": 0,
-  "id": 794,
-  "iteration": 1657425471954,
+  "id": null,
+  "iteration": 1609275169694,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
       "collapsed": false,
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -50,14 +79,13 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "custom": {},
           "decimals": 0,
           "mappings": [],
           "noValue": "--",
@@ -95,13 +123,15 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "fields": "",
           "values": false
         },
         "textMode": "auto"
       },
-      "pluginVersion": "",
+      "pluginVersion": "7.2.1",
       "targets": [
         {
           "expr": "(\n  count (\n    (kubelet_volume_stats_available_bytes{namespace=~\"${k8s_namespace}\"})\n    and\n    (predict_linear(kubelet_volume_stats_available_bytes{namespace=~\"${k8s_namespace}\"}[1d], 2 * 24 * 60 * 60) < 0)\n  )\n)\nor\nvector(0)",
@@ -111,6 +141,8 @@
           "refId": "A"
         }
       ],
+      "timeFrom": null,
+      "timeShift": null,
       "title": "PVCs Full in 2 days - Based on Daily Usage",
       "transformations": [
         {
@@ -121,14 +153,13 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "custom": {},
           "decimals": 0,
           "mappings": [],
           "noValue": "--",
@@ -166,13 +197,15 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "fields": "",
           "values": false
         },
         "textMode": "auto"
       },
-      "pluginVersion": "",
+      "pluginVersion": "7.2.1",
       "targets": [
         {
           "expr": "(\n  count (\n    (kubelet_volume_stats_available_bytes{namespace=~\"${k8s_namespace}\"})\n    and\n    (predict_linear(kubelet_volume_stats_available_bytes{namespace=~\"${k8s_namespace}\"}[1d], 5 * 24 * 60 * 60) < 0)\n  )\n)\nor\nvector(0)",
@@ -182,6 +215,8 @@
           "refId": "A"
         }
       ],
+      "timeFrom": null,
+      "timeShift": null,
       "title": "PVCs Full in 5 days - Based on Daily Usage",
       "transformations": [
         {
@@ -192,14 +227,13 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "custom": {},
           "decimals": 0,
           "mappings": [],
           "noValue": "--",
@@ -237,13 +271,15 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "fields": "",
           "values": false
         },
         "textMode": "auto"
       },
-      "pluginVersion": "",
+      "pluginVersion": "7.2.1",
       "targets": [
         {
           "expr": "(\n  count (\n    (kubelet_volume_stats_available_bytes{namespace=~\"${k8s_namespace}\"})\n    and\n    (predict_linear(kubelet_volume_stats_available_bytes{namespace=~\"${k8s_namespace}\"}[1d], 7 * 24 * 60 * 60) < 0)\n  )\n)\nor\nvector(0)",
@@ -253,6 +289,8 @@
           "refId": "A"
         }
       ],
+      "timeFrom": null,
+      "timeShift": null,
       "title": "PVCs Full in 1 Week - Based on Daily Usage",
       "transformations": [
         {
@@ -263,14 +301,13 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "custom": {},
           "mappings": [],
           "noValue": "--",
           "thresholds": {
@@ -307,13 +344,15 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "fields": "",
           "values": false
         },
         "textMode": "auto"
       },
-      "pluginVersion": "",
+      "pluginVersion": "7.2.1",
       "targets": [
         {
           "expr": "count (max by (persistentvolumeclaim,namespace) (kubelet_volume_stats_used_bytes{namespace=~\"${k8s_namespace}\"} ) and (max by (persistentvolumeclaim,namespace) (kubelet_volume_stats_used_bytes{namespace=~\"${k8s_namespace}\"} )) / (max by (persistentvolumeclaim,namespace) (kubelet_volume_stats_capacity_bytes{namespace=~\"${k8s_namespace}\"} )) >= (${warning_threshold} / 100)) or vector (0)",
@@ -323,18 +362,19 @@
           "refId": "A"
         }
       ],
+      "timeFrom": null,
+      "timeShift": null,
       "title": "PVCs Above Warning Threshold",
       "type": "stat"
     },
     {
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "custom": {},
           "decimals": 0,
           "mappings": [],
           "noValue": "--",
@@ -372,13 +412,15 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "fields": "",
           "values": false
         },
         "textMode": "auto"
       },
-      "pluginVersion": "",
+      "pluginVersion": "7.2.1",
       "targets": [
         {
           "expr": "count((kube_persistentvolumeclaim_status_phase{namespace=~\"${k8s_namespace}\",phase=\"Pending\"}==1)) or vector(0)",
@@ -388,6 +430,8 @@
           "refId": "A"
         }
       ],
+      "timeFrom": null,
+      "timeShift": null,
       "title": "PVCs in Pending State",
       "transformations": [
         {
@@ -398,14 +442,13 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "custom": {},
           "decimals": 0,
           "mappings": [],
           "noValue": "--",
@@ -443,13 +486,15 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "fields": "",
           "values": false
         },
         "textMode": "auto"
       },
-      "pluginVersion": "",
+      "pluginVersion": "7.2.1",
       "targets": [
         {
           "expr": "count((kube_persistentvolumeclaim_status_phase{namespace=~\"${k8s_namespace}\",phase=\"Lost\"}==1)) or vector(0)",
@@ -459,6 +504,8 @@
           "refId": "A"
         }
       ],
+      "timeFrom": null,
+      "timeShift": null,
       "title": "PVCs in Lost State",
       "transformations": [
         {
@@ -470,9 +517,7 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -485,18 +530,16 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
           "custom": {
+            "align": null,
             "displayMode": "auto",
-            "filterable": false,
-            "inspect": false
+            "filterable": false
           },
           "mappings": [],
           "noValue": "--",
@@ -562,18 +605,28 @@
                 "id": "mappings",
                 "value": [
                   {
-                    "options": {
-                      "0": {
-                        "text": "Bound"
-                      },
-                      "1": {
-                        "text": "Pending"
-                      },
-                      "2": {
-                        "text": "Lost"
-                      }
-                    },
-                    "type": "value"
+                    "from": "",
+                    "id": 1,
+                    "text": "Bound",
+                    "to": "",
+                    "type": 1,
+                    "value": "0"
+                  },
+                  {
+                    "from": "",
+                    "id": 2,
+                    "text": "Pending",
+                    "to": "",
+                    "type": 1,
+                    "value": "1"
+                  },
+                  {
+                    "from": "",
+                    "id": 3,
+                    "text": "Lost",
+                    "to": "",
+                    "type": 1,
+                    "value": "2"
                   }
                 ]
               },
@@ -706,11 +759,6 @@
       "id": 29,
       "interval": "",
       "options": {
-        "footer": {
-          "fields": "",
-          "reducer": ["sum"],
-          "show": false
-        },
         "frameIndex": 2,
         "showHeader": true,
         "sortBy": [
@@ -720,7 +768,7 @@
           }
         ]
       },
-      "pluginVersion": "",
+      "pluginVersion": "7.2.1",
       "targets": [
         {
           "expr": " sum by (persistentvolumeclaim,namespace,storageclass,volumename) (kube_persistentvolumeclaim_info{namespace=~\"${k8s_namespace}\"})",
@@ -771,6 +819,8 @@
           "refId": "F"
         }
       ],
+      "timeFrom": null,
+      "timeShift": null,
       "title": "Persistent Volume Claim",
       "transformations": [
         {
@@ -817,12 +867,11 @@
       "type": "table"
     },
     {
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "custom": {
+            "align": null,
             "filterable": false
           },
           "mappings": [],
@@ -830,7 +879,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               }
             ]
           }
@@ -863,6 +913,8 @@
           "refId": "A"
         }
       ],
+      "timeFrom": null,
+      "timeShift": null,
       "title": "Storage Class",
       "transformations": [
         {
@@ -932,9 +984,7 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -951,9 +1001,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -1005,7 +1053,9 @@
         }
       ],
       "thresholds": [],
+      "timeFrom": null,
       "timeRegions": [],
+      "timeShift": null,
       "title": "All Running PVCs Used Bytes",
       "tooltip": {
         "shared": true,
@@ -1014,31 +1064,38 @@
       },
       "type": "graph",
       "xaxis": {
+        "buckets": null,
         "mode": "time",
+        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "bytes",
+          "label": null,
           "logBase": 1,
+          "max": null,
+          "min": null,
           "show": true
         },
         {
           "format": "Date & time",
+          "label": null,
           "logBase": 1,
+          "max": null,
+          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false
+        "align": false,
+        "alignLevel": null
       }
     },
     {
       "collapsed": true,
-      "datasource": {
-        "uid": "${datasource}"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1052,9 +1109,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "uid": "${datasource}"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
               "custom": {}
@@ -1107,7 +1162,9 @@
             }
           ],
           "thresholds": [],
+          "timeFrom": null,
           "timeRegions": [],
+          "timeShift": null,
           "title": "Hourly Volume Usage Rate",
           "tooltip": {
             "shared": true,
@@ -1116,24 +1173,33 @@
           },
           "type": "graph",
           "xaxis": {
+            "buckets": null,
             "mode": "time",
+            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "binBps",
+              "label": null,
               "logBase": 1,
+              "max": null,
+              "min": null,
               "show": true
             },
             {
               "format": "Date & time",
+              "label": null,
               "logBase": 1,
+              "max": null,
+              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false
+            "align": false,
+            "alignLevel": null
           }
         },
         {
@@ -1141,9 +1207,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "uid": "${datasource}"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
               "custom": {}
@@ -1195,7 +1259,9 @@
             }
           ],
           "thresholds": [],
+          "timeFrom": null,
           "timeRegions": [],
+          "timeShift": null,
           "title": "Daily Volume Usage Rate",
           "tooltip": {
             "shared": true,
@@ -1204,24 +1270,33 @@
           },
           "type": "graph",
           "xaxis": {
+            "buckets": null,
             "mode": "time",
+            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "binBps",
+              "label": null,
               "logBase": 1,
+              "max": null,
+              "min": null,
               "show": true
             },
             {
               "format": "Date & time",
+              "label": null,
               "logBase": 1,
+              "max": null,
+              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false
+            "align": false,
+            "alignLevel": null
           }
         },
         {
@@ -1229,9 +1304,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "uid": "${datasource}"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
               "custom": {}
@@ -1284,7 +1357,9 @@
             }
           ],
           "thresholds": [],
+          "timeFrom": null,
           "timeRegions": [],
+          "timeShift": null,
           "title": "Weekly Volume Usage Rate",
           "tooltip": {
             "shared": true,
@@ -1293,24 +1368,33 @@
           },
           "type": "graph",
           "xaxis": {
+            "buckets": null,
             "mode": "time",
+            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "binBps",
+              "label": null,
               "logBase": 1,
+              "max": null,
+              "min": null,
               "show": true
             },
             {
               "format": "Date & time",
+              "label": null,
               "logBase": 1,
+              "max": null,
+              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false
+            "align": false,
+            "alignLevel": null
           }
         }
       ],
@@ -1319,7 +1403,7 @@
     }
   ],
   "refresh": "1m",
-  "schemaVersion": 36,
+  "schemaVersion": 26,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -1327,9 +1411,10 @@
       {
         "current": {
           "selected": false,
-          "text": "VictoriaMetrics",
-          "value": "VictoriaMetrics"
+          "text": "Prometheus",
+          "value": "Prometheus"
         },
+        "error": null,
         "hide": 0,
         "includeAll": false,
         "label": "Datasource",
@@ -1346,13 +1431,9 @@
       {
         "allValue": ".*",
         "current": {},
-        "datasource": {
-          "uid": "${datasource}"
-        },
+        "datasource": "${DS_PROMETHEUS}",
         "definition": "label_values(namespace)",
-        "error": {
-          "message": "Datasource ${datasource} was not found"
-        },
+        "error": null,
         "hide": 0,
         "includeAll": true,
         "label": "Namespace",
@@ -1365,6 +1446,7 @@
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
+        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -1399,6 +1481,5 @@
   "timezone": "",
   "title": "Kubernetes / Persistent Volumes",
   "uid": "monitoring-k8s-persistent-volumes",
-  "version": 1,
-  "weekStart": ""
+  "version": 1
 }

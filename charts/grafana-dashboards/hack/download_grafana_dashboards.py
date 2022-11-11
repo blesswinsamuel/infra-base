@@ -14,16 +14,16 @@ from yaml.representer import SafeRepresenter
 dashboards = [
     dict(name='monitoring/alertmanager-overview', title='Alertmanager / Overview', id=9578, revision=4),
     # dict(name='monitoring/cluster-total', title='Kubernetes / Networking / Cluster', id=15761, revision=7),
-    dict(name='monitoring/node-exporter', title='Node Exporter', id=1860, revision=27),
+    dict(name='monitoring/node-exporter', title='Node Exporter', id=1860, revision=29),
     dict(name='monitoring/grafana-internals', title='Grafana Internals', id=3590, revision=3),
     dict(name='monitoring/k8s-persistent-volumes', title='Kubernetes / Persistent Volumes', id=13646, revision=2),
 
-    dict(name='monitoring/k8s-system-api-server', title='Kubernetes / System / API Server', id=15761, revision=7),
-    dict(name='monitoring/k8s-system-coredns', title='Kubernetes / System / CoreDNS', id=15762, revision=6),
-    dict(name='monitoring/k8s-views-global', title='Kubernetes / Views / Global', id=15757, revision=12),
-    dict(name='monitoring/k8s-views-namespaces', title='Kubernetes / Views / Namespaces', id=15758, revision=12),
-    dict(name='monitoring/k8s-views-nodes', title='Kubernetes / Views / Nodes', id=15759, revision=8),
-    dict(name='monitoring/k8s-views-pods', title='Kubernetes / Views / Pods', id=15760, revision=10),
+    dict(name='monitoring/k8s-system-api-server', title='Kubernetes / System / API Server', id=15761, revision=10),
+    dict(name='monitoring/k8s-system-coredns', title='Kubernetes / System / CoreDNS', id=15762, revision=7),
+    dict(name='monitoring/k8s-views-global', title='Kubernetes / Views / Global', id=15757, revision=19),
+    dict(name='monitoring/k8s-views-namespaces', title='Kubernetes / Views / Namespaces', id=15758, revision=14),
+    dict(name='monitoring/k8s-views-nodes', title='Kubernetes / Views / Nodes', id=15759, revision=13),
+    dict(name='monitoring/k8s-views-pods', title='Kubernetes / Views / Pods', id=15760, revision=14),
     
     # VictoriaMetrics - https://grafana.com/VictoriaMetrics
     dict(name='monitoring/victoriametrics-single', title='VictoriaMetrics / single', id=10229, revision=24),
@@ -71,10 +71,8 @@ def write_dashboard_to_file(resource_name, content, destination: Path):
     print("Generated %s" % new_filename)
 
 
-def main():
-    destiantion_dir = Path('../dashboards/').resolve()
-
-    shutil.rmtree(destiantion_dir, ignore_errors=True)
+def download_dashboards(destination_dir):
+    shutil.rmtree(destination_dir, ignore_errors=True)
 
     # read the rules, create a new template file per group
     for dashboard in dashboards:
@@ -93,8 +91,38 @@ def main():
         dashboard_parsed['uid'] = dashboard['name'].replace('/', '-')
         dashboard_json = json.dumps(dashboard_parsed, sort_keys=True, indent=2)
 
-        write_dashboard_to_file(name, dashboard_json, destiantion_dir)
+        write_dashboard_to_file(name, dashboard_json, destination_dir)
     print("Finished")
+
+
+def check_dashboard_updates(destination_dir):
+    shutil.rmtree(destination_dir, ignore_errors=True)
+
+    # read the rules, create a new template file per group
+    for dashboard in dashboards:
+        name = dashboard['name']
+        url = f"https://grafana.com/api/dashboards/{dashboard['id']}"
+        response = requests.get(url)
+        if response.status_code != 200:
+            print('Skipping the file, response code %s not equals 200' % response.status_code)
+            continue
+        raw_text = response.text
+
+        dashboard_parsed = json.loads(raw_text)
+        if dashboard['revision'] != dashboard_parsed['revision']:
+            print(f"Dashboard '{dashboard['name']}' ({dashboard['id']}): {dashboard['revision']} -> {dashboard_parsed['revision']}")
+
+    print("Finished")
+
+
+def main():
+    destination_dir = Path('../dashboards/').resolve()
+    print('Updates Available:')
+    check_dashboard_updates(destination_dir)
+    print()
+    
+    print('Downloading dashboards')
+    download_dashboards(destination_dir)
 
 
 if __name__ == '__main__':

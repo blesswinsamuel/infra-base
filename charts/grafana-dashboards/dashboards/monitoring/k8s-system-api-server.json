@@ -55,7 +55,7 @@
       }
     ]
   },
-  "description": "This is a modern API Server dashboard for your Kubernetes cluster(s). Made for kube-prometheus-stack and take advantage of the latest Grafana features (8.x.x). GitHub repository: https://github.com/dotdc/grafana-dashboards-kubernetes",
+  "description": "This is a modern API Server dashboard for your Kubernetes cluster(s). Made for kube-prometheus-stack and take advantage of the latest Grafana features. GitHub repository: https://github.com/dotdc/grafana-dashboards-kubernetes",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "gnetId": 15761,
@@ -560,7 +560,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(rate(rest_client_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (instance)",
+          "expr": "sum(rate(apiserver_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (instance)",
           "interval": "$resolution",
           "legendFormat": "{{ instance }}",
           "refId": "A"
@@ -651,7 +651,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(rate(rest_client_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (verb)",
+          "expr": "sum(rate(apiserver_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (verb)",
           "interval": "$resolution",
           "legendFormat": "{{ verb }}",
           "refId": "A"
@@ -742,7 +742,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum by(instance) (rate(apiserver_request_total{code=\"5..\", job=\"apiserver\"}[$__rate_interval]))\n / sum by(instance) (rate(apiserver_request_total{job=\"apiserver\"}[$__rate_interval]))",
+          "expr": "sum by(instance) (rate(apiserver_request_total{code=~\"5..\", job=\"apiserver\"}[$__rate_interval]))\n / sum by(instance) (rate(apiserver_request_total{job=\"apiserver\"}[$__rate_interval]))",
           "interval": "$resolution",
           "legendFormat": "{{ instance }}",
           "refId": "A"
@@ -833,7 +833,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum by(verb) (rate(apiserver_request_total{code=\"5..\",job=\"apiserver\"}[$__rate_interval]))\n / sum by(verb) (rate(apiserver_request_total{job=\"apiserver\"}[$__rate_interval]))",
+          "expr": "sum by(verb) (rate(apiserver_request_total{code=~\"5..\",job=\"apiserver\"}[$__rate_interval]))\n / sum by(verb) (rate(apiserver_request_total{job=\"apiserver\"}[$__rate_interval]))",
           "interval": "$resolution",
           "legendFormat": "{{ verb }}",
           "refId": "A"
@@ -1293,6 +1293,6 @@
   "timezone": "",
   "title": "Kubernetes / System / API Server",
   "uid": "monitoring-k8s-system-api-server",
-  "version": 7,
+  "version": 10,
   "weekStart": ""
 }

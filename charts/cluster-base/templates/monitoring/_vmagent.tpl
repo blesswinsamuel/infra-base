@@ -260,7 +260,7 @@ metadata:
 spec:
   repo: https://victoriametrics.github.io/helm-charts
   chart: victoria-metrics-agent
-  version: "0.8.12"
+  version: "0.8.21"
   targetNamespace: monitoring
   valuesContent: |-
     remoteWriteUrls:

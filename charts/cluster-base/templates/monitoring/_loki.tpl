@@ -1,4 +1,4 @@
-# https://github.com/grafana/helm-charts/blob/main/charts/loki/values.yaml
+# https://github.com/grafana/loki/tree/main/production/helm/loki
 {{ define "cluster-base.monitoring.loki" }}
 {{- with .Values.monitoring.loki }}
 ---
@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://grafana.github.io/helm-charts
   chart: loki
-  version: "2.12.0"
+  version: "3.3.4"
   targetNamespace: monitoring
   valuesContent: |-
     config:
