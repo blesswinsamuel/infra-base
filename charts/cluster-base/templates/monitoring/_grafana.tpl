@@ -1,4 +1,4 @@
-# https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
+# https://github.com/grafana/helm-charts/blob/main/charts/grafana
 {{ define "cluster-base.monitoring.grafana" }}
 {{- with .Values.monitoring.grafana }}
 apiVersion: helm.cattle.io/v1
@@ -9,7 +9,7 @@ metadata:
 spec:
   repo: https://grafana.github.io/helm-charts
   chart: grafana
-  version: "6.40.0"
+  version: "6.43.5"
   targetNamespace: monitoring
   valuesContent: |-
     env:

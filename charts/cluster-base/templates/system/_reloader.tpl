@@ -1,4 +1,4 @@
-# https://github.com/stakater/Reloader/blob/master/deployments/kubernetes/chart/reloader/values.yaml
+# https://github.com/stakater/Reloader/blob/master/deployments/kubernetes/chart/reloader
 {{- define "cluster-base.system.reloader" -}}
 {{- with .Values.system.reloader }}
 ---
@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://stakater.github.io/stakater-charts
   chart: reloader
-  version: "v0.0.118"
+  version: "v0.0.124"
   targetNamespace: '{{ tpl $.Values.system.namespace $ }}'
   valuesContent: |-
     # reloader:

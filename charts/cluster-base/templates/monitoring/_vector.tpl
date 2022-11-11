@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://helm.vector.dev
   chart: vector
-  version: "0.15.1"
+  version: "0.17.0"
   targetNamespace: monitoring
   valuesContent: |-
     role: Agent

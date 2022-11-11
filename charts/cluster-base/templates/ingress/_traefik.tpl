@@ -1,4 +1,4 @@
-# https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
+# https://github.com/traefik/traefik-helm-chart/blob/master/traefik
 {{ define "cluster-base.ingress.traefik" }}
 ---
 apiVersion: helm.cattle.io/v1
@@ -10,7 +10,7 @@ spec:
   valuesContent: |-
     image:
       name: traefik
-      tag: v2.7.1
+      tag: v2.9.4
     ingressClass:
       enabled: true
       isDefaultClass: true
