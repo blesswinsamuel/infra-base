@@ -13,10 +13,33 @@ spec:
   version: "3.3.4"
   targetNamespace: monitoring
   valuesContent: |-
-    config:
+    monitoring:
+      serviceMonitor:
+        enabled: false
+        metricsInstance:
+          enabled: false
+      alerts:
+        enabled: false
+      rules:
+        enabled: false
+      selfMonitoring:
+        enabled: false
+        lokiCanary:
+          enabled: false
+        grafanaAgent:
+          installOperator: false
+    test:
+      enabled: false
+        
+    loki:
+      auth_enabled: false
+      commonConfig:
+        replication_factor: 1
+      storage:
+        type: 'filesystem'
       compactor:
         retention_enabled: true
-      ruler:
+      rulerConfig:
         # storage:
         #   type: local  # todo: s3
         #   local:
