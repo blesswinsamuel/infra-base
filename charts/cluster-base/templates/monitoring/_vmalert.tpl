@@ -48,15 +48,17 @@ spec:
             - "alertname = Watchdog"
             receiver: watchdog
             repeat_interval: 1m
-          # - matchers:
-          #   - "alertname = InfoInhibitor"
-          #   receiver: devnull
+          - matchers:
+            - "alertname = InfoInhibitor"
+            receiver: devnull
 
         receivers:
         - name: devnull
         - name: watchdog
           webhook_configs:
-          - url: {{ .config.watchdog.webhookUrl }}
+          {{- range .config.watchdog.webhookUrls }}
+          - url: {{ . }}
+          {{- end }}
         - name: notify-main
           slack_configs:
           - channel: {{ .config.slack.channel | quote }}
