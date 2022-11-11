@@ -1,4 +1,5 @@
 # https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector
+# https://helm.vector.dev/index.yaml
 {{ define "cluster-base.monitoring.vector" }}
 {{- with .Values.monitoring.vector }}
 ---
@@ -10,7 +11,7 @@ metadata:
 spec:
   repo: https://helm.vector.dev
   chart: vector
-  version: "0.17.0"
+  version: "0.16.3"
   targetNamespace: monitoring
   valuesContent: |-
     role: Agent
