@@ -82,7 +82,7 @@ monitoring:
       subDomain: "alertmanager"
     config:
       watchdog:
-        webhookUrl: https://betteruptime.com/api/v1/heartbeat/xxx
+        webhookUrls: [https://betteruptime.com/api/v1/heartbeat/xxx]
       slack:
         channel: '#alertmanager'
         title: |-
