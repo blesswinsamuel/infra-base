@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://charts.bitnami.com/bitnami
   chart: redis
-  version: "16.8.9"
+  version: "17.6.0"
   targetNamespace: '{{ tpl .namespace $ }}'
   valuesContent: |-
     image:
