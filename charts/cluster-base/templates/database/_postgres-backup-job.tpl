@@ -21,9 +21,9 @@ spec:
         PGPASSWORD: "{{`{{ .PGPASSWORD }}`}}"
   data:
   - secretKey: PGPASSWORD
-    remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: POSTGRES_USER_PASSWORD }
+    remoteRef: { key: POSTGRES_USER_PASSWORD }
   - secretKey: PGUSER
-    remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: POSTGRES_USERNAME }
+    remoteRef: { key: POSTGRES_USERNAME }
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
@@ -39,11 +39,11 @@ spec:
     name: minio-secrets
   data:
   - secretKey: MINIO_ENDPOINT
-    remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: S3_ENDPOINT }
+    remoteRef: { key: S3_ENDPOINT }
   - secretKey: MINIO_ACCESS_KEY
-    remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: S3_ACCESS_KEY }
+    remoteRef: { key: S3_ACCESS_KEY }
   - secretKey: MINIO_SECRET_KEY
-    remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: S3_SECRET_KEY }
+    remoteRef: { key: S3_SECRET_KEY }
 ---
 apiVersion: v1
 kind: ConfigMap

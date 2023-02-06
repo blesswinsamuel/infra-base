@@ -84,15 +84,12 @@ spec:
   data:
   - secretKey: PROVIDERS_GOOGLE_CLIENT_SECRET
     remoteRef:
-      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
-      property: AUTH_GOOGLE_CLIENT_SECRET
+      key: AUTH_GOOGLE_CLIENT_SECRET
   - secretKey: PROVIDERS_GOOGLE_CLIENT_ID
     remoteRef:
-      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
-      property: AUTH_GOOGLE_CLIENT_ID
+      key: AUTH_GOOGLE_CLIENT_ID
   - secretKey: SECRET
     remoteRef:
-      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
-      property: AUTH_COOKIE_SECRET
+      key: AUTH_COOKIE_SECRET
 {{- end }}
 {{ end }}

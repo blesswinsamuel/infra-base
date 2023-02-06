@@ -28,15 +28,12 @@ spec:
   data:
   - secretKey: registry
     remoteRef:
-      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
-      property: {{ .keyPrefix }}CONTAINER_REGISTRY_URL
+      key: {{ .keyPrefix }}CONTAINER_REGISTRY_URL
   - secretKey: username
     remoteRef:
-      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
-      property: {{ .keyPrefix }}CONTAINER_REGISTRY_USERNAME
+      key: {{ .keyPrefix }}CONTAINER_REGISTRY_USERNAME
   - secretKey: password
     remoteRef:
-      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
-      property: {{ .keyPrefix }}CONTAINER_REGISTRY_PASSWORD
+      key: {{ .keyPrefix }}CONTAINER_REGISTRY_PASSWORD
 {{- end -}}
 {{- end -}}
