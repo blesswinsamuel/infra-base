@@ -4,7 +4,6 @@ version = "0.1.0"
 description = ""
 authors = ["Blesswin Samuel <blesswinsamuel@gmail.com>"]
 readme = "README.md"
-packages = [{include = "grafana_dashboards_hack"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"

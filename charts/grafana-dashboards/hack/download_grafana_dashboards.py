@@ -12,23 +12,26 @@ from yaml.representer import SafeRepresenter
 
 
 dashboards = [
+    dict(name='monitoring/node-exporter', title='Node Exporter', id=1860, revision=30),
+    dict(name='monitoring/node-exporter-2', title='Node Exporter 11074', id=11074, revision=9),
+    dict(name='monitoring/node-exporter-3', title='Node Exporter 15172', id=15172, revision=6),
+
     dict(name='monitoring/alertmanager-overview', title='Alertmanager / Overview', id=9578, revision=4),
     # dict(name='monitoring/cluster-total', title='Kubernetes / Networking / Cluster', id=15761, revision=7),
-    dict(name='monitoring/node-exporter', title='Node Exporter', id=1860, revision=29),
     dict(name='monitoring/grafana-internals', title='Grafana Internals', id=3590, revision=3),
-    dict(name='monitoring/k8s-persistent-volumes', title='Kubernetes / Persistent Volumes', id=13646, revision=2),
+    dict(name='monitoring/k8s-persistent-volumes', title='Kubernetes / Persistent Volumes', id=13646, revision=2, replacements={'${DS_PROMETHEUS}': '${datasource}'}),
 
-    dict(name='monitoring/k8s-system-api-server', title='Kubernetes / System / API Server', id=15761, revision=10),
-    dict(name='monitoring/k8s-system-coredns', title='Kubernetes / System / CoreDNS', id=15762, revision=7),
-    dict(name='monitoring/k8s-views-global', title='Kubernetes / Views / Global', id=15757, revision=19),
-    dict(name='monitoring/k8s-views-namespaces', title='Kubernetes / Views / Namespaces', id=15758, revision=14),
-    dict(name='monitoring/k8s-views-nodes', title='Kubernetes / Views / Nodes', id=15759, revision=13),
-    dict(name='monitoring/k8s-views-pods', title='Kubernetes / Views / Pods', id=15760, revision=14),
+    dict(name='monitoring/k8s-system-api-server', title='Kubernetes / System / API Server', id=15761, revision=11),
+    dict(name='monitoring/k8s-system-coredns', title='Kubernetes / System / CoreDNS', id=15762, revision=10),
+    dict(name='monitoring/k8s-views-global', title='Kubernetes / Views / Global', id=15757, revision=22),
+    dict(name='monitoring/k8s-views-namespaces', title='Kubernetes / Views / Namespaces', id=15758, revision=15),
+    dict(name='monitoring/k8s-views-nodes', title='Kubernetes / Views / Nodes', id=15759, revision=14),
+    dict(name='monitoring/k8s-views-pods', title='Kubernetes / Views / Pods', id=15760, revision=15),
     
     # VictoriaMetrics - https://grafana.com/VictoriaMetrics
-    dict(name='monitoring/victoriametrics-single', title='VictoriaMetrics / single', id=10229, revision=24),
-    dict(name='monitoring/victoriametrics-vmagent', title='VictoriaMetrics / vmagent', id=12683, revision=10),
-    dict(name='monitoring/victoriametrics-vmalert', title='VictoriaMetrics / vmalert', id=14950, revision=2),
+    dict(name='monitoring/victoriametrics-single', title='VictoriaMetrics / single', id=10229, revision=28),
+    dict(name='monitoring/victoriametrics-vmagent', title='VictoriaMetrics / vmagent', id=12683, revision=11),
+    dict(name='monitoring/victoriametrics-vmalert', title='VictoriaMetrics / vmalert', id=14950, revision=5),
 ]
 # [x] alertmanager-overview.json - "Alertmanager / Overview"
 # [x] apiserver.json - "Kubernetes / API server"
@@ -90,7 +93,9 @@ def download_dashboards(destination_dir):
             dashboard_parsed['title'] = dashboard['title']
         dashboard_parsed['uid'] = dashboard['name'].replace('/', '-')
         dashboard_json = json.dumps(dashboard_parsed, sort_keys=True, indent=2)
-
+        if 'replacements' in dashboard:
+            for old, new in dashboard['replacements'].items():
+                dashboard_json = dashboard_json.replace(old, new)
         write_dashboard_to_file(name, dashboard_json, destination_dir)
     print("Finished")
 
