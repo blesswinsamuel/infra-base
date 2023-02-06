@@ -140,7 +140,7 @@
         },
         "showUnfilled": true
       },
-      "pluginVersion": "8.5.0",
+      "pluginVersion": "9.2.4",
       "targets": [
         {
           "datasource": {
@@ -149,7 +149,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval]))",
+          "expr": "avg(1-rate(node_cpu_seconds_total{mode=\"idle\", job=\"node-exporter\"}[$__rate_interval]))",
           "interval": "",
           "legendFormat": "Real",
           "range": true,
@@ -236,7 +236,7 @@
         "showUnfilled": true,
         "text": {}
       },
-      "pluginVersion": "8.5.0",
+      "pluginVersion": "9.2.4",
       "targets": [
         {
           "datasource": {
@@ -245,7 +245,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / sum(node_memory_MemTotal_bytes)",
+          "expr": "sum(node_memory_MemTotal_bytes{job=\"node-exporter\"} - node_memory_MemAvailable_bytes{job=\"node-exporter\"}) / sum(node_memory_MemTotal_bytes{job=\"node-exporter\"})",
           "interval": "",
           "legendFormat": "Real",
           "range": true,
@@ -322,7 +322,7 @@
         "text": {},
         "textMode": "value"
       },
-      "pluginVersion": "8.5.0",
+      "pluginVersion": "9.2.4",
       "targets": [
         {
           "datasource": {
@@ -350,6 +350,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "NB",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -410,7 +412,8 @@
             "mean"
           ],
           "displayMode": "table",
-          "placement": "right"
+          "placement": "right",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -619,7 +622,7 @@
         "text": {},
         "textMode": "value"
       },
-      "pluginVersion": "8.5.0",
+      "pluginVersion": "9.2.4",
       "targets": [
         {
           "datasource": {
@@ -679,7 +682,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.0",
+      "pluginVersion": "9.2.4",
       "targets": [
         {
           "datasource": {
@@ -688,7 +691,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(1-rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval]))",
+          "expr": "sum(1-rate(node_cpu_seconds_total{mode=\"idle\", job=\"node-exporter\"}[$__rate_interval]))",
           "interval": "",
           "legendFormat": "Real",
           "range": true,
@@ -778,7 +781,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.0",
+      "pluginVersion": "9.2.4",
       "targets": [
         {
           "datasource": {
@@ -787,7 +790,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)",
+          "expr": "sum(node_memory_MemTotal_bytes{job=\"node-exporter\"} - node_memory_MemAvailable_bytes{job=\"node-exporter\"})",
           "interval": "",
           "legendFormat": "Real",
           "range": true,
@@ -876,7 +879,7 @@
         "text": {},
         "textMode": "value"
       },
-      "pluginVersion": "8.5.0",
+      "pluginVersion": "9.2.4",
       "targets": [
         {
           "datasource": {
@@ -921,6 +924,8 @@
             "seriesBy": "last"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "CPU %",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -984,8 +989,9 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "right"
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": false
         },
         "tooltip": {
           "mode": "single",
@@ -1000,7 +1006,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval]))",
+          "expr": "avg(1-rate(node_cpu_seconds_total{mode=\"idle\", job=\"node-exporter\"}[$__rate_interval]))",
           "interval": "$resolution",
           "legendFormat": "CPU usage in %",
           "refId": "A"
@@ -1020,6 +1026,8 @@
             "mode": "continuous-GrYlRd"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "MEMORY",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1084,8 +1092,9 @@
             "max",
             "min"
           ],
-          "displayMode": "hidden",
-          "placement": "right"
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": false
         },
         "tooltip": {
           "mode": "single",
@@ -1101,7 +1110,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / sum(node_memory_MemTotal_bytes)",
+          "expr": "sum(node_memory_MemTotal_bytes{job=\"node-exporter\"} - node_memory_MemAvailable_bytes{job=\"node-exporter\"}) / sum(node_memory_MemTotal_bytes{job=\"node-exporter\"})",
           "interval": "$resolution",
           "legendFormat": "Memory usage in %",
           "range": true,
@@ -1122,6 +1131,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "CPU Cores",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1187,6 +1198,7 @@
           ],
           "displayMode": "table",
           "placement": "right",
+          "showLegend": true,
           "sortBy": "Max",
           "sortDesc": true
         },
@@ -1223,6 +1235,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "MEMORY",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1284,6 +1298,7 @@
           ],
           "displayMode": "table",
           "placement": "right",
+          "showLegend": true,
           "sortBy": "Max",
           "sortDesc": true
         },
@@ -1320,6 +1335,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "CPU %",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1382,6 +1399,7 @@
           ],
           "displayMode": "table",
           "placement": "right",
+          "showLegend": true,
           "sortBy": "Max",
           "sortDesc": true
         },
@@ -1398,13 +1416,13 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval])) by (instance)",
+          "expr": "avg(1-rate(node_cpu_seconds_total{mode=\"idle\", job=\"node-exporter\"}[$__rate_interval])) by (instance)",
           "interval": "$resolution",
           "legendFormat": "{{ node }}",
           "refId": "A"
         }
       ],
-      "title": "CPU Utilization by node",
+      "title": "CPU Utilization by instance",
       "type": "timeseries"
     },
     {
@@ -1418,6 +1436,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "MEMORY",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1479,6 +1499,7 @@
           ],
           "displayMode": "table",
           "placement": "right",
+          "showLegend": true,
           "sortBy": "Max",
           "sortDesc": true
         },
@@ -1496,14 +1517,14 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (instance)",
+          "expr": "sum(node_memory_MemTotal_bytes{job=\"node-exporter\"} - node_memory_MemAvailable_bytes{job=\"node-exporter\"}) by (instance)",
           "interval": "$resolution",
           "legendFormat": "{{ node}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Memory Utilization by node",
+      "title": "Memory Utilization by instance",
       "type": "timeseries"
     },
     {
@@ -1534,6 +1555,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "BANDWIDTH",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1589,8 +1612,9 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "bottom"
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
         "tooltip": {
           "mode": "multi",
@@ -1606,7 +1630,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(rate(container_network_receive_bytes_total[$__rate_interval]))",
+          "expr": "sum(rate(node_network_receive_bytes_total{job=\"node-exporter\"}[$__rate_interval]))",
           "interval": "$resolution",
           "legendFormat": "Total received bytes",
           "range": true,
@@ -1619,7 +1643,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "- sum(rate(container_network_transmit_bytes_total[$__rate_interval]))",
+          "expr": "- sum(rate(node_network_transmit_bytes_total{job=\"node-exporter\"}[$__rate_interval]))",
           "interval": "$resolution",
           "legendFormat": "Total transmitted bytes",
           "range": true,
@@ -1640,6 +1664,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "DROPPED PACKETS",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1695,8 +1721,9 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "bottom"
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
         "tooltip": {
           "mode": "multi",
@@ -1712,7 +1739,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(rate(container_network_receive_packets_dropped_total[$__rate_interval]))",
+          "expr": "sum(rate(node_network_receive_drop_total{job=\"node-exporter\"}[$__rate_interval]))",
           "interval": "$resolution",
           "legendFormat": "Packets dropped (receive)",
           "range": true,
@@ -1725,7 +1752,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "- sum(rate(container_network_transmit_packets_dropped_total[$__rate_interval]))",
+          "expr": "- sum(rate(node_network_transmit_drop_total{job=\"node-exporter\"}[$__rate_interval]))",
           "interval": "$resolution",
           "legendFormat": "Packets dropped (transmit)",
           "range": true,
@@ -1746,6 +1773,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "BANDWIDTH",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1801,12 +1830,13 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "bottom"
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "pluginVersion": "8.3.3",
@@ -1852,6 +1882,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "BANDWIDTH",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1907,12 +1939,13 @@
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "bottom"
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "pluginVersion": "8.3.3",
@@ -1924,9 +1957,9 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(rate(container_network_receive_bytes_total[$__rate_interval])) by (node)",
+          "expr": "sum(rate(node_network_receive_bytes_total{job=\"node-exporter\"}[$__rate_interval])) by (instance)",
           "interval": "$resolution",
-          "legendFormat": "Received bytes in {{ node }}",
+          "legendFormat": "Received bytes in {{ instance }}",
           "range": true,
           "refId": "A"
         },
@@ -1936,20 +1969,20 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "- sum(rate(container_network_transmit_bytes_total[$__rate_interval])) by (node)",
+          "expr": "- sum(rate(node_network_transmit_bytes_total{job=\"node-exporter\"}[$__rate_interval])) by (instance)",
           "hide": false,
           "interval": "$resolution",
-          "legendFormat": "Transmitted bytes in {{ node }}",
+          "legendFormat": "Transmitted bytes in {{ instance }}",
           "range": true,
           "refId": "B"
         }
       ],
-      "title": "Network Received by node",
+      "title": "Network Received by instance",
       "type": "timeseries"
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 36,
+  "schemaVersion": 37,
   "style": "dark",
   "tags": [
     "Kubernetes",
@@ -2032,6 +2065,6 @@
   "timezone": "",
   "title": "Kubernetes / Views / Global",
   "uid": "monitoring-k8s-views-global",
-  "version": 19,
+  "version": 22,
   "weekStart": ""
 }
