@@ -1,4 +1,5 @@
 # https://github.com/cert-manager/cert-manager/tree/master/deploy/charts/cert-manager
+# https://artifacthub.io/packages/helm/cert-manager/cert-manager
 ---
 apiVersion: v1
 kind: Namespace
@@ -15,7 +16,7 @@ metadata:
 spec:
   repo: https://charts.jetstack.io
   chart: cert-manager
-  version: "v1.9.1"
+  version: "1.11.0"
   targetNamespace: cert-manager
   set:
     installCRDs: "true"
