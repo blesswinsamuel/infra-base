@@ -2,22 +2,16 @@ global:
   domain: ""
   clusterCertIssuerName: letsencrypt-prod
   clusterExternalSecretStoreName: secretstore
-  externalSecretRemoteRefKey: doppler-secrets
   internetAuthType: traefik-forward-auth
   helmChartsNamespace: kube-system
   helmChartsNamespaceCreate: false
-  dopplerServiceToken: ''
-
-secrets:
-  doppler:
-    managedSecretName: doppler-secrets  # same as externalSecretRemoteRefKey
-    managedSecretNamespace: default
+  dopplerServiceToken: ""
 
 certIssuer:
   enabled: false
   # namespace: ""
   solver: dns
-  email: ''
+  email: ""
 
 externalSecrets: {}
 
@@ -84,7 +78,7 @@ monitoring:
       watchdog:
         webhookUrls: [https://betteruptime.com/api/v1/heartbeat/xxx]
       slack:
-        channel: '#alertmanager'
+        channel: "#alertmanager"
         title: |-
           [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
           {{- if gt (len .CommonLabels) (len .GroupLabels) -}}
@@ -111,7 +105,7 @@ monitoring:
           {{ end }}
         apiUrl: https://hooks.slack.com/services/xxx/xxx/xxx
       telegram:
-        botToken: 'xxx'
+        botToken: "xxx"
         chatID: 0
         parseMode: HTML
         # https://core.telegram.org/bots/update56kabdkb12ibuisabdubodbasbdaosd#html-style
@@ -167,8 +161,8 @@ databases:
     backup:
       enabled: false
       schedule: "0 */12 * * *"
-      bucket: 'testbucket'
-      path: 'path/to/backup'
+      bucket: "testbucket"
+      path: "path/to/backup"
       databases: []
   redis:
     enabled: false
@@ -179,7 +173,7 @@ traefikForwardAuth:
   namespace: auth
   ingress:
     subDomain: "auth"
-  whilelist: ''  # email address
+  whilelist: "" # email address
 
 system:
   namespace: system
@@ -193,7 +187,7 @@ system:
     # helmChartPath: ""
     # helmReleaseName: ""
     helmReleaseNamespace: default
-    helmExtraValuesFiles: ['versions.yaml']
+    helmExtraValuesFiles: ["versions.yaml"]
   kubernetesDashboard:
     enabled: false
     ingress:

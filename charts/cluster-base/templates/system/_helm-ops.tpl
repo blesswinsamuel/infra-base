@@ -46,8 +46,8 @@ spec:
     name: helm-ops
   data:
     - secretKey: git-private-key
-      remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: GITHUB_DEPLOY_KEY }
+      remoteRef: { key: GITHUB_DEPLOY_KEY }
     - secretKey: known_hosts
-      remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: GITHUB_KNOWN_HOSTS }
+      remoteRef: { key: GITHUB_KNOWN_HOSTS }
 {{- end }}
 {{- end }}

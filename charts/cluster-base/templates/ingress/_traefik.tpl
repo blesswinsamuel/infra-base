@@ -140,8 +140,7 @@ spec:
   data:
   - secretKey: users
     remoteRef:
-      key: doppler-secrets
-      property: TRAEFIK_BASIC_AUTH_USERS
+      key: TRAEFIK_BASIC_AUTH_USERS
 {{- end }}
 ---
 {{- if .Values.traefik.middlewares.stripPrefix.enabled }}

@@ -74,8 +74,7 @@ spec:
   data:
   - secretKey: api-token
     remoteRef:
-      key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}'
-      property: CLOUDFLARE_API_TOKEN
+      key: CLOUDFLARE_API_TOKEN
 {{- end }}
 {{- end }}
 {{- end }}

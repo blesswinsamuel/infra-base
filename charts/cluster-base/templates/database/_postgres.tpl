@@ -45,10 +45,10 @@ spec:
     name: postgres-passwords
   data:
   - secretKey: postgres-password
-    remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: POSTGRES_ADMIN_PASSWORD }
+    remoteRef: { key: POSTGRES_ADMIN_PASSWORD }
   - secretKey: password
-    remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: POSTGRES_USER_PASSWORD }
+    remoteRef: { key: POSTGRES_USER_PASSWORD }
   - secretKey: replication-password
-    remoteRef: { key: '{{ tpl $.Values.global.externalSecretRemoteRefKey $ }}', property: POSTGRES_REPLICATION_PASSWORD }
+    remoteRef: { key: POSTGRES_REPLICATION_PASSWORD }
 {{- end }}
 {{- end }}
