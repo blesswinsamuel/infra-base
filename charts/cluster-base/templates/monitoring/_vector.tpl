@@ -26,7 +26,7 @@ spec:
       enabled: {{ .ingress.enabled }}
       annotations:
         {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
-        {{ include "cluster-base.ingress.annotation.router-middlewares" $ }}
+        {{ include "cluster-base.ingress.annotation.router-auth-middleware-only" $ }}
       hosts:
         - host: {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
           paths:

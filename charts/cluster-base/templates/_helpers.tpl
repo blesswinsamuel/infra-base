@@ -7,13 +7,8 @@
 cert-manager.io/cluster-issuer: {{ .Values.global.clusterCertIssuerName }}
 {{- end -}}
 
-{{- define "cluster-base.ingress.annotation.router-middlewares" -}}
-traefik.ingress.kubernetes.io/router.middlewares: {{ include "cluster-base.ingress.router-middleware.https-redirect" $ }},{{ include "cluster-base.ingress.router-middleware.auth" $ }}
-{{- end -}}
-
-{{/* HTTPS redirect middleware name */}}
-{{- define "cluster-base.ingress.router-middleware.https-redirect" -}}
-kube-system-traefik-redirect-https@kubernetescrd
+{{- define "cluster-base.ingress.annotation.router-auth-middleware-only" -}}
+traefik.ingress.kubernetes.io/router.middlewares: {{ include "cluster-base.ingress.router-middleware.auth" $ }}
 {{- end -}}
 
 {{/* Auth middleware name */}}

@@ -24,8 +24,9 @@ spec:
       - --accesslog=true
       - --accesslog.format=json
       - --log.format=json
-    #   - "--entryPoints.web.proxyProtocol.insecure"
-    #   - "--entryPoints.web.forwardedHeaders.insecure"
+    ports:
+      web:
+        redirectTo: websecure
     service:
       spec:
         externalTrafficPolicy: Local  # So that traefik gets the real IP - https://github.com/k3s-io/k3s/discussions/2997#discussioncomment-413904
@@ -59,23 +60,6 @@ spec:
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: traefik-dashboard-external-http
-  namespace: kube-system
-spec:
-  entryPoints:
-    - web
-  routes:
-    - match: Host(`{{ .subDomain }}.{{ tpl $.Values.global.domain $ }}`)
-      kind: Rule
-      services:
-        - name: noop@internal
-          kind: TraefikService
-      middlewares:
-        - name: traefik-redirect-https
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
-metadata:
   name: traefik-dashboard-external
   namespace: kube-system
 spec:
@@ -103,18 +87,6 @@ spec:
     domains:
       - main: "{{ .subDomain }}.{{ tpl $.Values.global.domain $ }}"
 {{- end }}
-{{- end }}
----
-{{- if .Values.traefik.middlewares.redirectHttps.enabled }}
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: traefik-redirect-https
-  namespace: kube-system
-spec:
-  redirectScheme:
-    scheme: https
-    permanent: true
 {{- end }}
 ---
 {{- if .Values.traefik.middlewares.basicAuth.enabled }}

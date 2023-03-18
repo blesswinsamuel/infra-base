@@ -25,7 +25,7 @@ spec:
         enabled: true
         annotations:
           {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
-          traefik.ingress.kubernetes.io/router.middlewares: kube-system-traefik-redirect-https@kubernetescrd,auth-traefik-forward-auth@kubernetescrd
+          traefik.ingress.kubernetes.io/router.middlewares: auth-traefik-forward-auth@kubernetescrd
         hosts:
         - host: {{ .ingress.subDomain }}.{{ $.Values.global.domain }}
           paths:
