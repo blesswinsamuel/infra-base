@@ -2,6 +2,7 @@
 # https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common
 {{ define "cluster-base.auth.traefik-forward-auth" }}
 {{- with .Values.traefikForwardAuth }}
+{{- if .enabled }}
 ---
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
@@ -91,5 +92,6 @@ spec:
   - secretKey: SECRET
     remoteRef:
       key: AUTH_COOKIE_SECRET
+{{- end }}
 {{- end }}
 {{ end }}

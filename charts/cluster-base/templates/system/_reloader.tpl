@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://stakater.github.io/stakater-charts
   chart: reloader
-  version: "v0.0.124"
+  version: "v1.0.15"
   targetNamespace: '{{ tpl $.Values.system.namespace $ }}'
   valuesContent: |-
     # reloader:

@@ -11,7 +11,8 @@ metadata:
 spec:
   repo: https://helm.vector.dev
   chart: vector
-  version: "0.16.3"
+  # version should be one less than the one in repo
+  version: "0.20.1"
   targetNamespace: monitoring
   valuesContent: |-
     role: Agent

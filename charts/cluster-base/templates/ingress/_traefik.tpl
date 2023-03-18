@@ -10,7 +10,7 @@ spec:
   valuesContent: |-
     image:
       name: traefik
-      tag: v2.9.4
+      tag: v2.9.8
     ingressClass:
       enabled: true
       isDefaultClass: true
@@ -93,6 +93,9 @@ spec:
           namespace: kube-system
         {{- else if eq $.Values.global.internetAuthType "traefik-forward-auth" }}
         - name: traefik-forward-auth
+          namespace: auth
+        {{- else if eq $.Values.global.internetAuthType "authelia" }}
+        - name: forwardauth-authelia
           namespace: auth
         {{- end }}
   tls:

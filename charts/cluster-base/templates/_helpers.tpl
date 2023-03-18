@@ -23,6 +23,8 @@ kube-system-traefik-redirect-https@kubernetescrd
 kube-system-traefik-basic-auth@kubernetescrd
 {{- else if eq $.Values.global.internetAuthType "traefik-forward-auth" -}}
 auth-traefik-forward-auth@kubernetescrd
+{{- else if eq $.Values.global.internetAuthType "authelia" -}}
+auth-forwardauth-authelia@kubernetescrd
 {{- else -}}
 {{- .Values.global.internetAuthType | printf "Invalid global.internetAuthType: %s" | fail -}}
 {{- end -}}
