@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://prometheus-community.github.io/helm-charts
   chart: kube-state-metrics
-  version: "4.23.0"
+  version: "5.0.0"
   targetNamespace: monitoring
   valuesContent: |-
     fullnameOverride: kube-state-metrics

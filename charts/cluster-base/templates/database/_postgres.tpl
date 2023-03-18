@@ -10,13 +10,16 @@ metadata:
 spec:
   repo: https://charts.bitnami.com/bitnami
   chart: postgresql
-  version: "12.1.11"
+  version: "12.2.3"
   targetNamespace: '{{ tpl .namespace $ }}'
   valuesContent: |-
     nameOverride: postgres
     image:
-      repository: postgres
-      tag: 14.2
+      # not straightforward to upgrade to postgres 15
+      # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
+      # 2023-03-18 16:30:09.021 GMT [1] DETAIL:  The data directory was initialized by PostgreSQL version 14, which is not compatible with this version 15.2.
+      repository: bitnami/postgresql
+      tag: 14.7.0
     auth:
       {{- with .database }}
       database: {{ . }}
