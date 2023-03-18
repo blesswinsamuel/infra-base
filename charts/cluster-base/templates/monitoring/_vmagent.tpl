@@ -281,7 +281,7 @@ spec:
       enabled: true
       annotations:
         {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
-        {{ include "cluster-base.ingress.annotation.router-middlewares" $ }}
+        {{ include "cluster-base.ingress.annotation.router-auth-middleware-only" $ }}
       hosts:
       - name: {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
         path: /
