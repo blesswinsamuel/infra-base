@@ -13,67 +13,8 @@ spec:
   version: "0.5.21"
   targetNamespace: monitoring
   valuesContent: |-
-    {{- with $.Values.monitoring.alertmanager }}
     alertmanager:
-      tag: v0.24.0
-      enabled: {{ .enabled }}
-      service:
-        annotations:
-          prometheus.io/port: "9093"
-          prometheus.io/scrape: "true"
-      ingress:
-        enabled: {{ .ingress.enabled }}
-        annotations:
-          {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
-          {{ include "cluster-base.ingress.annotation.router-auth-middleware-only" $ }}
-        hosts:
-        - name: {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
-          path: /
-          port: http
-        tls:
-        - secretName: alertmanager-tls
-          hosts:
-            - {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
-        pathType: Prefix
-      baseURL: https://{{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
-      config:
-        global:
-          resolve_timeout: 1m
-
-        route:
-          receiver: notify-main
-          repeat_interval: 2h
-          routes:
-          - matchers:
-            - "alertname = Watchdog"
-            receiver: watchdog
-            repeat_interval: 1m
-          - matchers:
-            - "alertname = InfoInhibitor"
-            receiver: devnull
-
-        receivers:
-        - name: devnull
-        - name: watchdog
-          webhook_configs:
-          {{- range .config.watchdog.webhookUrls }}
-          - url: {{ . }}
-          {{- end }}
-        - name: notify-main
-          slack_configs:
-          - channel: {{ .config.slack.channel | quote }}
-            send_resolved: true
-            api_url: {{ .config.slack.apiUrl | quote }}
-            icon_url: 'https://avatars3.githubusercontent.com/u/3380462'
-            title: {{ .config.slack.title | quote }}
-            text: {{ .config.slack.text | quote }}
-          telegram_configs:
-          - api_url: https://api.telegram.org
-            bot_token: {{ .config.telegram.botToken | quote }}
-            chat_id: {{ .config.telegram.chatID }}
-            message: {{ .config.telegram.message | quote }}
-            parse_mode: {{ .config.telegram.parseMode | quote }}
-    {{- end }}
+      enabled: false
     server:
       service:
         annotations:
@@ -96,6 +37,9 @@ spec:
       configMap: alerting-rules
       datasource:
         url: http://victoriametrics-victoria-metrics-single-server:8428
+      notifier:
+        alertmanager:
+          url: http://alertmanager:9093
       remote:
         write:
           url: http://victoriametrics-victoria-metrics-single-server:8428
