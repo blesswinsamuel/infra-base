@@ -103,10 +103,7 @@ monitoring:
             {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
             {{ end }}
           {{ end }}
-        apiUrl: https://hooks.slack.com/services/xxx/xxx/xxx
       telegram:
-        botToken: "xxx"
-        chatID: 0
         parseMode: HTML
         # https://core.telegram.org/bots/update56kabdkb12ibuisabdubodbasbdaosd#html-style
         # https://github.com/prometheus/alertmanager/blob/main/docs/notifications.md

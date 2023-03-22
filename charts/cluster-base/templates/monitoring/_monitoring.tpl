@@ -42,5 +42,8 @@
     {{- if .Values.monitoring.vmalert.enabled }}
       {{- include "cluster-base.monitoring.vmalert" . }}
     {{- end }}
+    {{- if .Values.monitoring.alertmanager.enabled }}
+      {{- include "cluster-base.monitoring.alertmanager" . }}
+    {{- end }}
   {{- end }}
 {{ end }}
