@@ -60,13 +60,12 @@ spec:
           volumeMounts:
             - name: helm-chart-git
               mountPath: /repo
-              # readOnly: true
             - name: config
               mountPath: /config
               readOnly: true
         - name: git-sync
           image: blesswinsamuel/git-sync:v1.0.0
-          # imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           # command: ['sleep', '1000000']
           args:
             - --repo={{ tpl .Values.gitRepo.url $ }}

@@ -80,6 +80,8 @@ kind: CronJob
 metadata:
   name: postgres-backup
   namespace: '{{ tpl .namespace $ }}'
+  annotations:
+    secret.reloader.stakater.com/reload: "minio-secrets"
 spec:
   # Every 12 hours
   # https://crontab.guru/#0_*/12_*_*_*
@@ -184,6 +186,7 @@ data:
     createdb {{ $database }}
     echo "Restoring the database..."
     pg_restore -Fc -d {{ $database }} --no-owner < "/shared/{{ $database }}.pgdump"
+    echo "Database restored."
     {{- end }}
 ---
 apiVersion: batch/v1
@@ -191,6 +194,8 @@ kind: CronJob
 metadata:
   name: postgres-restore
   namespace: '{{ tpl .namespace $ }}'
+  annotations:
+    secret.reloader.stakater.com/reload: "minio-secrets"
 spec:
   suspend: true
   schedule: '* * 31 2 *'
@@ -241,11 +246,3 @@ spec:
           restartPolicy: OnFailure
 {{- end }}
 {{- end }}
-
-{{- /*
-kubectl create job --from=cronjob/postgres-backup postgres-backup-manual -n database
-kubectl delete job postgres-backup-manual -n database
-
-kubectl create job --from=cronjob/postgres-restore postgres-restore-manual -n database
-kubectl delete job postgres-restore-manual -n database
-*/ -}}
