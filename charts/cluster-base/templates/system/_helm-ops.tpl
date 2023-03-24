@@ -14,7 +14,7 @@ spec:
   valuesContent: |-
     deployment:
       annotations:
-        reloader.stakater.com/search: "true"
+        secret.reloader.stakater.com/reload: "helm-ops"
     gitRepo:
       url: "{{ .gitRepo.url }}"
       branch: "{{ .gitRepo.branch }}"
@@ -35,15 +35,11 @@ kind: ExternalSecret
 metadata:
   name: helm-ops
   namespace: '{{ tpl $.Values.system.namespace $ }}'
-  annotations:
-    reloader.stakater.com/match: "true"
 spec:
   refreshInterval: 2m
   secretStoreRef:
     name: '{{ tpl $.Values.global.clusterExternalSecretStoreName $ }}'
     kind: ClusterSecretStore
-  target:
-    name: helm-ops
   data:
     - secretKey: git-private-key
       remoteRef: { key: GITHUB_DEPLOY_KEY }

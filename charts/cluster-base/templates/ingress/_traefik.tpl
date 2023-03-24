@@ -27,6 +27,10 @@ spec:
     ports:
       web:
         redirectTo: websecure
+      # websecure:
+        ## Enable this entrypoint as a default entrypoint. When a service doesn't explicity set an entrypoint it will only use this entrypoint.
+        # works only from traefik v3
+        # asDefault: true
     service:
       spec:
         externalTrafficPolicy: Local  # So that traefik gets the real IP - https://github.com/k3s-io/k3s/discussions/2997#discussioncomment-413904

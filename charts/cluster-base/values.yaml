@@ -140,6 +140,7 @@ monitoring:
         cpu: "500m"
   loki:
     enabled: true
+    storage: local
   vector:
     enabled: true
     syslogServer:

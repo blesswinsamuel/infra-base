@@ -10,10 +10,14 @@ metadata:
 spec:
   repo: https://grafana.github.io/helm-charts
   chart: loki
-  version: "3.3.4"
+  version: "4.8.0"
   targetNamespace: monitoring
   valuesContent: |-
+    singleBinary:
+      replicas: 1
     monitoring:
+      dashboards:
+        enabled: false
       serviceMonitor:
         enabled: false
         metricsInstance:
@@ -22,33 +26,49 @@ spec:
         enabled: false
       rules:
         enabled: false
+        alerting: false
       selfMonitoring:
         enabled: false
-        lokiCanary:
-          enabled: false
         grafanaAgent:
           installOperator: false
+      lokiCanary:
+        enabled: false
     test:
       enabled: false
+    gateway:
+      enabled: false
         
+    memberlist:
+      service:
+        # https://github.com/grafana/loki/issues/7907#issuecomment-1445336799
+        publishNotReadyAddresses: true
+
     loki:
       auth_enabled: false
       commonConfig:
         replication_factor: 1
-      storage:
-        type: 'filesystem'
       compactor:
         retention_enabled: true
       rulerConfig:
-        # storage:
-        #   type: local  # todo: s3
-        #   local:
-        #     directory: /rules
-        # rule_path: /tmp/scratch
         alertmanager_url: http://vmalert-alertmanager:9093
-        # ring:
-        #   kvstore:
-        #     store: inmemory
-        # enable_api: true
+      {{- if eq .storage "local" }}
+      storage:
+        type: 'filesystem'
+      {{- else if eq .storage "s3" }}
+      storage:
+        type: 's3'
+        bucketNames:
+          chunks: loki-chunks
+          ruler: loki-ruler
+          admin: loki-admin  # never used
+        s3:
+          endpoint: {{ .s3.endpoint }}
+          secretAccessKey: {{ .s3.secret_access_key }}
+          accessKeyId: {{ .s3.access_key_id }}
+          s3ForcePathStyle: true
+          # insecure: true
+      {{- else }}
+      {{- fail "Invalid storage type" }}
+      {{- end }}
 {{- end }}
 {{- end }}
