@@ -11,8 +11,8 @@ metadata:
 spec:
   repo: https://helm.vector.dev
   chart: vector
-  # version should be one less than the one in repo
   version: "0.20.1"
+  # version should be one less than the one in repo
   targetNamespace: monitoring
   valuesContent: |-
     role: Agent
@@ -132,6 +132,7 @@ spec:
           encoding:
             codec: json
             timestamp_format: rfc3339
+          out_of_order_action: accept
         # debug_sink:
         #   type: console
         #   inputs:
