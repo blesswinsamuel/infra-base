@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    "group:all"
+  ],
+  "lockFileMaintenance": {
+    "enabled": false
+  },
+  "regexManagers": [
+    {
+      "fileMatch": [
+        "^charts/cluster-base/templates/.+\\.tpl$"
+      ],
+      "matchStrings": [
+        "\n\\s+repo:\\s+['\"]?(?<registryUrl>[^'\"]*?)['\"]?\n\\s+chart:\\s+['\"]?(?<depName>[^'\"]*?)['\"]?\n\\s+version:\\s+['\"]?(?<currentValue>[^'\"]*)['\"]?\n"
+      ],
+      "datasourceTemplate": "helm"
+    }
+  ]
+}
