@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://charts.bitnami.com/bitnami
   chart: postgresql
-  version: "12.2.3"
+  version: "12.2.6"
   targetNamespace: '{{ tpl .namespace $ }}'
   valuesContent: |-
     nameOverride: postgres

@@ -9,6 +9,6 @@ metadata:
 spec:
   repo: https://blesswinsamuel.github.io/helm-charts
   chart: alerting-rules
-  version: "0.0.1"
+  version: "0.0.2"
   targetNamespace: monitoring
 {{- end }}
