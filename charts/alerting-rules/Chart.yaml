@@ -3,7 +3,6 @@ appVersion: "1.0.0"
 description: A Helm chart for Kubernetes
 home: https://helm.sh/helm
 maintainers:
-  - email: blesswinsamuel@gmail.com
-    name: Blesswin Samuel
+  - name: blesswinsamuel
 name: alerting-rules
-version: 0.0.1
+version: 0.0.2
