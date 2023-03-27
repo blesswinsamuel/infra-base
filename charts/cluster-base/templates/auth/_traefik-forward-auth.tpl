@@ -12,7 +12,7 @@ metadata:
 spec:
   repo: https://k8s-at-home.com/charts/
   chart: traefik-forward-auth
-  version: "2.1.2"
+  version: "2.2.2"
   targetNamespace: {{ tpl .namespace $ }}
   valuesContent: |-
     image:

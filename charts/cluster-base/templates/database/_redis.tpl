@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://charts.bitnami.com/bitnami
   chart: redis
-  version: "17.8.5"
+  version: "17.9.2"
   targetNamespace: '{{ tpl .namespace $ }}'
   valuesContent: |-
     architecture: standalone
