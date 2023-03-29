@@ -36,8 +36,7 @@ spec:
           hosts:
             - {{ .ingress.subDomain }}.{{ $.Values.global.domain }}
     args:
-      - --rule.umami.action=allow
-      - --rule.umami.rule=Host(`umami.cloud.bless.win`)
+      {{- .args | toYaml | nindent 6 }}
     env:
       WHITELIST: {{ .whilelist }}
       LOG_FORMAT: json
