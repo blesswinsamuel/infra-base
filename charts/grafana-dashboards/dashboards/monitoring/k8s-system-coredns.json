@@ -884,7 +884,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(rate(coredns_forward_responses_total{rcode=\"SERVFAIL|REFUSED\"}[$__rate_interval])) by (rcode)",
+          "expr": "sum(rate(coredns_forward_responses_total{rcode=~\"SERVFAIL|REFUSED\"}[$__rate_interval])) by (rcode)",
           "interval": "$resolution",
           "legendFormat": "{{ rcode }}",
           "refId": "A"
@@ -1554,6 +1554,6 @@
   "timezone": "",
   "title": "Kubernetes / System / CoreDNS",
   "uid": "monitoring-k8s-system-coredns",
-  "version": 10,
+  "version": 11,
   "weekStart": ""
 }

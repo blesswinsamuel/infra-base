@@ -153,8 +153,9 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "exemplar": true,
+          "exemplar": false,
           "expr": "kube_pod_info{namespace=\"$namespace\", pod=\"$pod\"}",
+          "instant": true,
           "interval": "",
           "legendFormat": "{{ created_by_kind }}: {{ created_by_name }}",
           "refId": "A"
@@ -212,7 +213,9 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
+          "exemplar": false,
           "expr": "kube_pod_info{namespace=\"$namespace\", pod=\"$pod\"}",
+          "instant": true,
           "interval": "",
           "legendFormat": "{{ node }}",
           "refId": "A"
@@ -270,7 +273,9 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
+          "exemplar": false,
           "expr": "kube_pod_info{namespace=\"$namespace\", pod=\"$pod\"}",
+          "instant": true,
           "interval": "",
           "legendFormat": "{{ pod_ip }}",
           "refId": "A"
@@ -1897,6 +1902,6 @@
   "timezone": "",
   "title": "Kubernetes / Views / Pods",
   "uid": "monitoring-k8s-views-pods",
-  "version": 15,
+  "version": 16,
   "weekStart": ""
 }

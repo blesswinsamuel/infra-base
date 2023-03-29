@@ -61,7 +61,7 @@
       }
     ]
   },
-  "description": "\u3010English version\u3011Update 2020.10.10, add the overall resource overview! Support Grafana6&7,Support Node Exporter v0.16 and above.Optimize the main metrics display. Includes: CPU, memory, disk IO, network, temperature and other monitoring metrics\u3002https://github.com/starsliao/Prometheus",
+  "description": "(English version) Update 2020.10.10, add the overall resource overview! Support Grafana6&7,Support Node Exporter v0.16 and above.Optimize the main metrics display. Includes: CPU, memory, disk IO, network, temperature and other monitoring metrics\u3002https://github.com/starsliao/Prometheus",
   "editable": true,
   "gnetId": 11074,
   "graphTooltip": 0,
@@ -110,7 +110,7 @@
       },
       "id": 187,
       "panels": [],
-      "title": "Resource Overview (associated JOB)\uff0cHost\uff1a$show_hostname\uff0cInstance\uff1a$node",
+      "title": "Resource Overview (associated JOB), Host: $show_hostname, Instance: $node",
       "type": "row"
     },
     {
@@ -161,7 +161,7 @@
         },
         {
           "$$hashKey": "object:1601",
-          "alias": "IP\uff08Link to details\uff09",
+          "alias": "IP (Link to details)",
           "align": "auto",
           "colorMode": null,
           "colors": [
@@ -588,7 +588,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Server Resource Overview\u3010JOB\uff1a$job\uff0cTotal\uff1a$total\u3011",
+      "title": "Server Resource Overview (JOB: $job, Total: $total)",
       "transform": "table",
       "type": "table-old"
     },
@@ -716,7 +716,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "$job\uff1aOverall total 5m load & average CPU used%",
+      "title": "$job: Overall total 5m load & average CPU used%",
       "tooltip": {
         "shared": true,
         "sort": 2,
@@ -871,7 +871,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "$job\uff1aOverall total memory & average memory used%",
+      "title": "$job: Overall total memory & average memory used%",
       "tooltip": {
         "shared": true,
         "sort": 2,
@@ -1016,7 +1016,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "$job\uff1aOverall total disk & average disk used%",
+      "title": "$job: Overall total disk & average disk used%",
       "tooltip": {
         "shared": true,
         "sort": 2,
@@ -1068,7 +1068,7 @@
       },
       "id": 189,
       "panels": [],
-      "title": "Resource Details\uff1a\u3010$show_hostname\u3011",
+      "title": "Resource Details: ($show_hostname)",
       "type": "row"
     },
     {
@@ -1465,7 +1465,7 @@
           "refId": "B"
         }
       ],
-      "title": "\u3010$show_hostname\u3011\uff1aDisk Space Used Basic(EXT?/XFS)",
+      "title": "($show_hostname): Disk Space Used Basic(EXT?/XFS)",
       "transform": "table",
       "type": "table-old"
     },
@@ -1665,7 +1665,7 @@
         {
           "$$hashKey": "object:2977",
           "format": "bytes",
-          "label": "transmit\uff08-\uff09/receive\uff08+\uff09",
+          "label": "transmit (-) /receive (+)",
           "logBase": 1,
           "max": null,
           "min": null,
@@ -2251,7 +2251,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "node_memory_MemTotal_bytes{instance=~\"$node\"}",
+          "expr": "node_memory_MemTotal_bytes{instance=~\"$node\"} or node_memory_total_bytes{instance=~\"$node\"} ",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -2262,7 +2262,7 @@
           "step": 4
         },
         {
-          "expr": "node_memory_MemTotal_bytes{instance=~\"$node\"} - node_memory_MemAvailable_bytes{instance=~\"$node\"}",
+          "expr": "(node_memory_MemTotal_bytes{instance=~\"$node\"} or node_memory_total_bytes{instance=~\"$node\"}) - (node_memory_MemAvailable_bytes{instance=~\"$node\"} or node_memory_free_bytes{instance=~\"$node\"})",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -2272,7 +2272,7 @@
           "step": 4
         },
         {
-          "expr": "node_memory_MemAvailable_bytes{instance=~\"$node\"}",
+          "expr": "node_memory_MemAvailable_bytes{instance=~\"$node\"} or node_memory_free_bytes{instance=~\"$node\"}",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -2292,7 +2292,7 @@
           "step": 4
         },
         {
-          "expr": "node_memory_MemFree_bytes{instance=~\"$node\"}",
+          "expr": "node_memory_MemFree_bytes{instance=~\"$node\"} or node_memory_free_bytes{instance=~\"$node\"}",
           "format": "time_series",
           "hide": true,
           "intervalFactor": 1,
@@ -2317,7 +2317,7 @@
           "refId": "G"
         },
         {
-          "expr": "(1 - (node_memory_MemAvailable_bytes{instance=~\"$node\"} / (node_memory_MemTotal_bytes{instance=~\"$node\"})))* 100",
+          "expr": "(1 - (node_memory_MemAvailable_bytes{instance=~\"$node\"} or node_memory_free_bytes{instance=~\"$node\"} / (node_memory_MemTotal_bytes{instance=~\"$node\"} or node_memory_total_bytes{instance=~\"$node\"})))* 100",
           "format": "time_series",
           "hide": false,
           "interval": "30m",
@@ -2476,7 +2476,7 @@
         {
           "$$hashKey": "object:3315",
           "format": "bps",
-          "label": "transmit\uff08-\uff09/receive\uff08+\uff09",
+          "label": "transmit (-) /receive (+)",
           "logBase": 1,
           "max": null,
           "min": null,
@@ -2860,7 +2860,7 @@
           "expr": "node_filesystem_files_free{instance=~'$node',fstype=~\"ext.?|xfs\"} / node_filesystem_files{instance=~'$node',fstype=~\"ext.?|xfs\"}",
           "hide": true,
           "interval": "",
-          "legendFormat": "Inodes\uff1a{{instance}}\uff1a{{mountpoint}}",
+          "legendFormat": "Inodes: {{instance}}: {{mountpoint}}",
           "refId": "B"
         }
       ],
@@ -3008,7 +3008,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Disk IOps Completed\uff08IOPS\uff09",
+      "title": "Disk IOps Completed (IOPS)",
       "tooltip": {
         "shared": true,
         "sort": 2,
@@ -3068,7 +3068,7 @@
       "dashes": false,
       "datasource": "${DS__VICTORIAMETRICS}",
       "decimals": null,
-      "description": "The time spent on I/O in the natural time of each second.\uff08wall-clock time\uff09",
+      "description": "The time spent on I/O in the natural time of each second. (wall-clock time)",
       "fieldConfig": {
         "defaults": {
           "custom": {},
@@ -3670,8 +3670,7 @@
   "style": "dark",
   "tags": [
     "Prometheus",
-    "node_exporter",
-    "StarsL.cn"
+    "node_exporter"
   ],
   "templating": {
     "list": [
@@ -3940,7 +3939,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Node Exporter 11074",
+  "title": "Node Exporter 2",
   "uid": "monitoring-node-exporter-2",
   "version": 2
 }
