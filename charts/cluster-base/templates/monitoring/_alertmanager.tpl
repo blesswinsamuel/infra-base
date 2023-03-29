@@ -14,7 +14,6 @@ spec:
   version: "0.27.0"
   targetNamespace: monitoring
   valuesContent: |-
-    tag: v0.24.0
     service:
       annotations:
         prometheus.io/port: "9093"
@@ -26,7 +25,6 @@ spec:
       enabled: {{ .ingress.enabled }}
       annotations:
         {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
-        {{ include "cluster-base.ingress.annotation.router-auth-middleware-only" $ }}
       hosts:
       - host: {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}
         paths:

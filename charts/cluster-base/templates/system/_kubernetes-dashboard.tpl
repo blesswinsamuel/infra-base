@@ -31,7 +31,6 @@ spec:
       enabled: {{ .ingress.enabled }}
       annotations:
         {{ include "cluster-base.ingress.annotation.cert-issuer" $ }}
-        {{ include "cluster-base.ingress.annotation.router-auth-middleware-only" $ }}
         # traefik.ingress.kubernetes.io/service.serversscheme: https
       hosts:
         - {{ .ingress.subDomain }}.{{ tpl $.Values.global.domain $ }}

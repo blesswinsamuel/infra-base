@@ -21,6 +21,9 @@ traefik:
   dashboardIngress:
     enabled: false
     subDomain: traefik
+  trustedIPs:
+    # https://docs.k3s.io/helm#customizing-packaged-components-with-helmchartconfig
+    - "10.0.0.0/8"
   middlewares:
     redirectHttps:
       enabled: false

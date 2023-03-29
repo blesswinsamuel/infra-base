@@ -1,5 +1,6 @@
 # https://github.com/k8s-at-home/charts/tree/master/charts/stable/traefik-forward-auth
 # https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common
+# https://github.com/thomseddon/traefik-forward-auth
 {{ define "cluster-base.auth.traefik-forward-auth" }}
 {{- with .Values.traefikForwardAuth }}
 {{- if .enabled }}
@@ -34,36 +35,31 @@ spec:
         - secretName: traefik-forward-auth-tls
           hosts:
             - {{ .ingress.subDomain }}.{{ $.Values.global.domain }}
+    args:
+      - --rule.umami.action=allow
+      - --rule.umami.rule=Host(`umami.cloud.bless.win`)
     env:
       WHITELIST: {{ .whilelist }}
       LOG_FORMAT: json
       LOG_LEVEL: info
       AUTH_HOST: {{ .ingress.subDomain }}.{{ $.Values.global.domain }}
       COOKIE_DOMAIN: {{ $.Values.global.domain }}
-
-      # DEFAULT_PROVIDER: generic-oauth
-      # PROVIDERS_GENERIC_OAUTH_AUTH_URL: https://github.com/login/oauth/authorize
-      # PROVIDERS_GENERIC_OAUTH_TOKEN_URL: https://github.com/login/oauth/access_token
-      # PROVIDERS_GENERIC_OAUTH_USER_URL: https://api.github.com/user
-      # PROVIDERS_GENERIC_OAUTH_CLIENT_ID: 
-      # PROVIDERS_GENERIC_OAUTH_CLIENT_SECRET: 
-
       PROVIDERS_GOOGLE_CLIENT_ID:
         valueFrom:
           secretKeyRef:
-            name: traefik-forward-auth-secret
+            name: traefik-forward-auth
             key: PROVIDERS_GOOGLE_CLIENT_ID
       PROVIDERS_GOOGLE_CLIENT_SECRET:
         valueFrom:
           secretKeyRef:
-            name: traefik-forward-auth-secret
+            name: traefik-forward-auth
             key: PROVIDERS_GOOGLE_CLIENT_SECRET
       # PROVIDERS_GOOGLE_PROMPT: 
 
       SECRET:
         valueFrom:
           secretKeyRef:
-            name: traefik-forward-auth-secret
+            name: traefik-forward-auth
             key: SECRET
     middleware:
       nameOverride: traefik-forward-auth
@@ -80,8 +76,6 @@ spec:
   secretStoreRef:
     name: '{{ tpl $.Values.global.clusterExternalSecretStoreName $ }}'
     kind: ClusterSecretStore
-  target:
-    name: traefik-forward-auth-secret
   data:
   - secretKey: PROVIDERS_GOOGLE_CLIENT_SECRET
     remoteRef:
