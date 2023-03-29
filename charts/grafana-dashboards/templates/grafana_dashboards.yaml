@@ -17,7 +17,7 @@ data:
 {{- end }}
 
 {{ include "grafana-dashboard-cm.tpl" (dict
-  "Files" (.Files.Glob "dashboards/old/monitoring/*")
+  "Files" (.Files.Glob "dashboards-old/monitoring/*")
   "NamePrefix" "old-monitoring"
   "Folder" "Monitoring Old"
 ) }}
@@ -26,4 +26,10 @@ data:
   "Files" (.Files.Glob "dashboards/monitoring/*")
   "NamePrefix" "monitoring"
   "Folder" "Monitoring"
+) }}
+
+{{ include "grafana-dashboard-cm.tpl" (dict
+  "Files" (.Files.Glob "dashboards/applications/*")
+  "NamePrefix" "applications"
+  "Folder" "Applications"
 ) }}
