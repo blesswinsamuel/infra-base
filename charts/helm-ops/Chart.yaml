@@ -4,4 +4,4 @@ home: https://helm.sh/helm
 maintainers:
   - name: blesswinsamuel
 name: helm-ops
-version: 0.0.8
+version: 0.0.9
