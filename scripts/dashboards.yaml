@@ -125,8 +125,23 @@ dashboards:
 
   # Traefik
   - from: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
-    to: ingress/traefik-kubernetes
-    title: Traefik / Kubernetes
-  - from: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik.json
-    to: ingress/traefik
-    title: Traefik / Standalone
+    to: monitoring/traefik-kubernetes
+    title: Traefik
+
+  # Applications
+  - from: https://github.com/MacroPower/wakatime_exporter/raw/master/docs/dashboards/wakatime-coding-stats.json
+    to: applications/wakatime
+    title: Wakatime
+  - from: https://github.com/minio/minio/raw/master/docs/metrics/prometheus/grafana/minio-dashboard.json
+    to: applications/minio
+    title: Minio
+    replacements:
+      "${DS_PROMETHEUS}": "${datasource}"
+  - from: https://github.com/prometheus-community/postgres_exporter/raw/master/postgres_mixin/dashboards/postgres-overview.json
+    to: applications/postgres
+    title: Postgres
+  - from: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
+    to: applications/redis
+    title: Redis
+    replacements:
+      "${DS_PROMETHEUS}": "${datasource}"

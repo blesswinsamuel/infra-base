@@ -16,5 +16,7 @@ spec:
     architecture: standalone
     auth:
       enabled: false
+    metrics:
+      enabled: true
 {{- end }}
 {{- end }}

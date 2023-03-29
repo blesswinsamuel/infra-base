@@ -1606,8 +1606,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Traefik / Kubernetes",
-  "uid": "ingress-traefik-kubernetes",
+  "title": "Traefik",
+  "uid": "monitoring-traefik-kubernetes",
   "version": 6,
   "weekStart": ""
 }
