@@ -122,3 +122,11 @@ dashboards:
     gnet_id: 14950
     to: monitoring/victoriametrics-vmalert
     title: VictoriaMetrics / vmalert
+
+  # Traefik
+  - from: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
+    to: ingress/traefik-kubernetes
+    title: Traefik / Kubernetes
+  - from: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik.json
+    to: ingress/traefik
+    title: Traefik / Standalone
