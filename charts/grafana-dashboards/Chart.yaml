@@ -5,4 +5,4 @@ home: https://helm.sh/helm
 maintainers:
   - name: blesswinsamuel
 name: grafana-dashboards
-version: 0.0.7
+version: 0.0.8
