@@ -8,6 +8,7 @@ helmChartPath: ""
 helmReleaseName: ""
 helmReleaseNamespace: default
 helmExtraValuesFiles: []
+clusterName: ""
 
 webhook:
   image:
@@ -19,4 +20,4 @@ webhook:
 secretName: helm-ops
 
 scripts:
-  predeploy: ''
+  predeploy: ""

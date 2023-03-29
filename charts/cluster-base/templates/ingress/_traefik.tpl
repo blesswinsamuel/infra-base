@@ -1,4 +1,5 @@
 # https://github.com/traefik/traefik-helm-chart/blob/master/traefik
+# https://github.com/k3s-io/k3s/blob/master/manifests/traefik.yaml
 {{ define "cluster-base.ingress.traefik" }}
 ---
 apiVersion: helm.cattle.io/v1
@@ -27,10 +28,25 @@ spec:
     ports:
       web:
         redirectTo: websecure
-      # websecure:
+        forwardedHeaders:
+          trustedIPs:
+            {{- $.Values.traefik.trustedIPs | toYaml | nindent 12 }}
+        proxyProtocol:
+          trustedIPs:
+            {{- $.Values.traefik.trustedIPs | toYaml | nindent 12 }}
+      websecure:
+        forwardedHeaders:
+          trustedIPs:
+            {{- $.Values.traefik.trustedIPs | toYaml | nindent 12 }}
+        proxyProtocol:
+          trustedIPs:
+            {{- $.Values.traefik.trustedIPs | toYaml | nindent 12 }}
         ## Enable this entrypoint as a default entrypoint. When a service doesn't explicity set an entrypoint it will only use this entrypoint.
         # works only from traefik v3
         # asDefault: true
+      websecure:
+        middlewares:
+          - {{ include "cluster-base.ingress.router-middleware.auth" $ }}
     service:
       spec:
         externalTrafficPolicy: Local  # So that traefik gets the real IP - https://github.com/k3s-io/k3s/discussions/2997#discussioncomment-413904

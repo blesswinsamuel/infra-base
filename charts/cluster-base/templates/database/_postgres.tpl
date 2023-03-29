@@ -30,9 +30,6 @@ spec:
       existingSecret: postgres-passwords
     metrics:
       enabled: true
-      image:
-        repository: prometheuscommunity/postgres-exporter
-        tag: v0.10.1
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret

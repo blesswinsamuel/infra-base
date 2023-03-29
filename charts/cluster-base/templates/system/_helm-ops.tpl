@@ -22,6 +22,7 @@ spec:
     helmReleaseName: "{{ .helmReleaseName }}"
     helmReleaseNamespace: "{{ .helmReleaseNamespace }}"
     helmExtraValuesFiles: {{ .helmExtraValuesFiles | toJson }}
+    clusterName: "test"
     scripts:
       predeploy: |
         helm repo add blesswinsamuel https://blesswinsamuel.github.io/helm-charts
