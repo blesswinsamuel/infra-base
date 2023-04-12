@@ -1,5 +1,5 @@
 {{- define "cluster-base.secrets.dockercreds" -}}
-{{- with .Values.externalSecrets.regcred }}
+{{- with .Values.secrets.dockerCreds }}
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
