@@ -5,7 +5,6 @@ global:
   internetAuthType: traefik-forward-auth
   helmChartsNamespace: kube-system
   helmChartsNamespaceCreate: false
-  dopplerServiceToken: ""
 
 certIssuer:
   enabled: false

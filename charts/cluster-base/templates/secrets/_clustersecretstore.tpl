@@ -8,7 +8,7 @@ metadata:
   name: doppler-token-auth-api
   namespace: default
 data:
-  dopplerToken: '{{ .Values.global.dopplerServiceToken }}'
+  dopplerToken: '{{ .Values.secrets.clusterSecretStore.dopplerServiceToken }}'
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ClusterSecretStore
