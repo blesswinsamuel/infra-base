@@ -1,8 +1,0 @@
-apiVersion: v2
-appVersion: "1.0.0"
-description: A Helm chart for Kubernetes
-home: https://helm.sh/helm
-maintainers:
-  - name: blesswinsamuel
-name: grafana-dashboards
-version: 0.0.8
