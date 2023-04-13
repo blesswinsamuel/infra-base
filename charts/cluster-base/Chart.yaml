@@ -1,4 +1,0 @@
-apiVersion: v2
-name: cluster-base
-version: 0.1.25
-type: library
