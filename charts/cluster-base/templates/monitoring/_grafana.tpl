@@ -9,7 +9,7 @@ metadata:
 spec:
   repo: https://grafana.github.io/helm-charts
   chart: grafana
-  version: "6.52.4"
+  version: "6.52.9"
   targetNamespace: monitoring
   valuesContent: |-
     env:

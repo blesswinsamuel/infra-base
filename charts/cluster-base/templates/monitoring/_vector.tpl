@@ -11,7 +11,7 @@ metadata:
 spec:
   repo: https://helm.vector.dev
   chart: vector
-  version: "0.20.1"
+  version: "0.21.0"
   # version should be one less than the one in repo
   targetNamespace: monitoring
   valuesContent: |-

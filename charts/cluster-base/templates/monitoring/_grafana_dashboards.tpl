@@ -28,6 +28,6 @@ metadata:
 spec:
   repo: https://blesswinsamuel.github.io/helm-charts
   chart: grafana-dashboards
-  version: "0.0.7"
+  version: "0.0.8"
   targetNamespace: monitoring
 {{- end }}

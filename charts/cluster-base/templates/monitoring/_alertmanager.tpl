@@ -11,7 +11,7 @@ metadata:
 spec:
   repo: https://prometheus-community.github.io/helm-charts
   chart: alertmanager
-  version: "0.27.0"
+  version: "0.29.0"
   targetNamespace: monitoring
   valuesContent: |-
     service:

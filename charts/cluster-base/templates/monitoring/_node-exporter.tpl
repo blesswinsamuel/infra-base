@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://prometheus-community.github.io/helm-charts
   chart: prometheus-node-exporter
-  version: "4.14.0"
+  version: "4.16.0"
   targetNamespace: monitoring
   valuesContent: |-
     fullnameOverride: node-exporter

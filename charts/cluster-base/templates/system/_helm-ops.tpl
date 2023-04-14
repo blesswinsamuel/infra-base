@@ -9,7 +9,7 @@ metadata:
 spec:
   repo: https://blesswinsamuel.github.io/helm-charts
   chart: helm-ops
-  version: "0.0.8"
+  version: "0.0.9"
   targetNamespace: '{{ tpl $.Values.system.namespace $ }}'
   valuesContent: |-
     deployment:

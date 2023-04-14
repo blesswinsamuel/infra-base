@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://grafana.github.io/helm-charts
   chart: loki
-  version: "4.8.0"
+  version: "5.0.0"
   targetNamespace: monitoring
   valuesContent: |-
     singleBinary:

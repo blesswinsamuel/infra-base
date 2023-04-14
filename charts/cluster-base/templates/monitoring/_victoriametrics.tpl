@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://victoriametrics.github.io/helm-charts
   chart: victoria-metrics-single
-  version: "0.8.57"
+  version: "0.8.58"
   targetNamespace: monitoring
   valuesContent: |-
     server:

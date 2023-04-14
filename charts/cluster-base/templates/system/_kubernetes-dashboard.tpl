@@ -10,7 +10,7 @@ metadata:
 spec:
   repo: https://kubernetes.github.io/dashboard/
   chart: kubernetes-dashboard
-  version: "6.0.6"
+  version: "6.0.7"
   targetNamespace: '{{ tpl $.Values.system.namespace $ }}'
   valuesContent: |-
     protocolHttp: true
