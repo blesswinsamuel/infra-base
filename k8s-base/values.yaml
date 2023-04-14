@@ -1,0 +1,347 @@
+global:
+  domain: ""
+  clusterCertIssuerName: letsencrypt-prod
+  clusterExternalSecretStoreName: secretstore
+  internetAuthType: traefik-forward-auth
+
+ingress:
+  certManager:
+    enabled: true
+    helm:
+      repo: https://charts.jetstack.io
+      chart: cert-manager
+      version: "v1.11.1"
+  certIssuer:
+    enabled: false
+    # namespace: ""
+    solver: dns
+    email: ""
+
+  traefik:
+    helm:
+      repo: https://traefik.github.io/charts
+      chart: traefik
+      version: "22.1.0"
+    dashboardIngress:
+      enabled: false
+      subDomain: traefik
+    trustedIPs:
+      # https://docs.k3s.io/helm#customizing-packaged-components-with-helmchartconfig
+      - "10.0.0.0/8"
+    middlewares:
+      redirectHttps:
+        enabled: false
+      basicAuth:
+        enabled: false
+      stripPrefix:
+        enabled: false
+
+secrets:
+  externalSecrets:
+    enabled: true
+    helm:
+      repo: https://charts.external-secrets.io
+      chart: external-secrets
+      version: "0.8.1"
+  dockerCreds:
+    enabled: false
+  clusterSecretStore:
+    dopplerServiceToken: ""
+
+monitoring:
+  enabled: false
+  kubeStateMetrics:
+    enabled: true
+    helm:
+      repo: https://prometheus-community.github.io/helm-charts
+      chart: kube-state-metrics
+      version: "5.4.2"
+  grafana:
+    enabled: true
+    helm:
+      repo: https://grafana.github.io/helm-charts
+      chart: grafana
+      version: "6.52.9"
+    namespaced: false
+    authProxyEnabled: true
+    anonymousAuthEnabled: false
+    datasourceLabel: grafana_datasource
+    datasourceLabelValue: null
+    dashboardLabel: grafana_dashboard
+    dashboardLabelValue: null
+    ingress:
+      subDomain: "grafana"
+    datasources:
+      loki:
+        enabled: false
+      victoriametrics:
+        enabled: false
+  grafanaDashboards:
+    dashboards:
+      # Kubernetes
+      community-kubernetes:
+        folder: Kubernetes
+        urls:
+          - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-system-api-server.json
+            gnet_id: 15761
+            id: k8s-system-api-server
+            title: Kubernetes / System / API Server
+          - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-system-coredns.json
+            gnet_id: 15762
+            id: k8s-system-coredns
+            title: Kubernetes / System / CoreDNS
+          - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-global.json
+            gnet_id: 15757
+            id: k8s-views-global
+            title: Kubernetes / Views / Global
+          - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-namespaces.json
+            gnet_id: 15758
+            id: k8s-views-namespaces
+            title: Kubernetes / Views / Namespaces
+          - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-nodes.json
+            gnet_id: 15759
+            id: k8s-views-nodes
+            title: Kubernetes / Views / Nodes
+            replacements:
+              /d/k8s_views_pods: /d/k8s-views-pods
+          - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-pods.json
+            gnet_id: 15760
+            id: k8s-views-pods
+            title: Kubernetes / Views / Pods
+          - url: https://grafana.com/api/dashboards/13646/revisions/2/download # 13646
+            id: k8s-persistent-volumes
+            title: Kubernetes / Persistent Volumes
+
+      # Monitoring
+      community-monitoring:
+        folder: Monitoring
+        urls:
+          - url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
+            gnet_id: 1860
+            id: node-exporter
+            title: Node Exporter
+          - url: https://github.com/starsliao/Prometheus/raw/master/node_exporter/node-exporter-for-prometheus-dashboard-en.json
+            gnet_id: 11074
+            id: node-exporter-2
+            title: Node Exporter 2
+
+          - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmalert.json
+            gnet_id: 10229
+            id: victoriametrics-single
+            title: VictoriaMetrics / single
+          - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmagent.json
+            gnet_id: 12683
+            id: victoriametrics-vmagent
+            title: VictoriaMetrics / vmagent
+          - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmalert.json
+            gnet_id: 14950
+            id: victoriametrics-vmalert
+            title: VictoriaMetrics / vmalert
+
+          - url: https://github.com/FUSAKLA/alertmanager-grafana-dashboard/raw/master/dashboard/alertmanager-dashboard.json
+            gnet_id: 9578
+            id: alertmanager-overview
+            title: Alertmanager / Overview
+          - url: https://grafana.com/api/dashboards/3590/revisions/3/download # 3590
+            id: grafana-internals
+            title: Grafana Internals
+
+      # Traefik
+      community-ingress:
+        folder: Ingress
+        urls:
+          - url: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
+            id: traefik-kubernetes
+            title: Traefik
+
+      # Databases
+      databases:
+        folder: Databases
+        urls:
+          - url: https://github.com/prometheus-community/postgres_exporter/raw/master/postgres_mixin/dashboards/postgres-overview.json
+            id: postgres
+            title: Postgres
+          - url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
+            id: redis
+            title: Redis
+
+      # Applications
+      applications:
+        folder: Applications
+        urls:
+          - url: https://github.com/MacroPower/wakatime_exporter/raw/master/docs/dashboards/wakatime-coding-stats.json
+            id: wakatime
+            title: Wakatime
+          - url: https://github.com/minio/minio/raw/master/docs/metrics/prometheus/grafana/minio-dashboard.json
+            id: minio
+            title: Minio
+  alertingRules:
+    rules:
+      community-rules:
+        urls:
+          - url: https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/main/manifests/alertmanager-prometheusRule.yaml
+          - url: https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/main/manifests/kubernetesControlPlane-prometheusRule.yaml
+            skip:
+              - kubernetes-system-controller-manager
+              - kubernetes-system-scheduler
+          - url: https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/main/manifests/kubePrometheus-prometheusRule.yaml
+          - url: https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/main/manifests/kubeStateMetrics-prometheusRule.yaml
+          - url: https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/main/manifests/nodeExporter-prometheusRule.yaml
+          - url: https://raw.githubusercontent.com/VictoriaMetrics/VictoriaMetrics/master/deployment/docker/alerts.yml
+          - url: https://etcd.io/docs/v3.4/op-guide/etcd3_alert.rules.yml
+  vmagent:
+    enabled: true
+    helm:
+      repo: https://victoriametrics.github.io/helm-charts
+      chart: victoria-metrics-agent
+      version: "0.8.36"
+    ingress:
+      subDomain: "vmagent"
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+  vmalert:
+    enabled: true
+    helm:
+      repo: https://victoriametrics.github.io/helm-charts
+      chart: victoria-metrics-alert
+      version: "0.5.22"
+    ingress:
+      enabled: true
+      subDomain: "vmalert"
+  alertmanager:
+    enabled: true
+    helm:
+      repo: https://prometheus-community.github.io/helm-charts
+      chart: alertmanager
+      version: "0.29.0"
+    ingress:
+      enabled: true
+      subDomain: "alertmanager"
+    config:
+      watchdog:
+        webhookUrls: [https://betteruptime.com/api/v1/heartbeat/xxx]
+      slack:
+        channel: "#alertmanager"
+      telegram:
+        parseMode: HTML
+  nodeExporter:
+    enabled: true
+    helm:
+      repo: https://prometheus-community.github.io/helm-charts
+      chart: prometheus-node-exporter
+      version: "4.16.0"
+  victoriametrics:
+    enabled: true
+    helm:
+      repo: https://victoriametrics.github.io/helm-charts
+      chart: victoria-metrics-single
+      version: "0.8.58"
+    ingress:
+      enabled: true
+      subDomain: "victoriametrics"
+    retentionPeriod: 3
+    resources:
+      requests:
+        memory: "384Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+  loki:
+    enabled: true
+    helm:
+      repo: https://grafana.github.io/helm-charts
+      chart: loki
+      version: "4.10.0"
+    storage: local
+  vector:
+    enabled: true
+    helm:
+      repo: https://helm.vector.dev
+      chart: vector
+      version: "0.20.1"
+    syslogServer:
+      enabled: false
+    ingress:
+      enabled: false
+      subDomain: vector
+
+databases:
+  enabled: false
+  postgres:
+    enabled: false
+    helm:
+      repo: https://charts.bitnami.com/bitnami
+      chart: postgresql
+      version: "12.2.7"
+    image:
+      # not straightforward to upgrade to postgres 15
+      # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
+      # 2023-03-18 16:30:09.021 GMT [1] DETAIL:  The data directory was initialized by PostgreSQL version 14, which is not compatible with this version 15.2.
+      repository: bitnami/postgresql
+      tag: 14.7.0
+    namespace: database
+    database: null
+    username: null
+    backup:
+      enabled: false
+      schedule: "0 */12 * * *"
+      bucket: "testbucket"
+      path: "path/to/backup"
+      databases: []
+      postgresImage:
+        repository: postgres
+        tag: 14.7
+      minioImage:
+        repository: minio/mc
+        tag: RELEASE.2022-12-24T15-21-38Z
+  redis:
+    enabled: false
+    helm:
+      repo: https://charts.bitnami.com/bitnami
+      chart: redis
+      version: "17.9.4"
+    namespace: database
+
+auth:
+  namespace: auth
+  traefikForwardAuth:
+    enabled: false
+    helm:
+      repo: https://k8s-at-home.com/charts/
+      chart: traefik-forward-auth
+      version: "2.2.2"
+    image:
+      repository: thomseddon/traefik-forward-auth
+      tag: 2.2.0-arm
+    ingress:
+      subDomain: "auth"
+    whilelist: "" # email address
+
+system:
+  namespace: system
+  reloader:
+    enabled: false
+    helm:
+      repo: https://stakater.github.io/stakater-charts
+      chart: reloader
+      version: "v1.0.22"
+  helmOps:
+    enabled: false
+    # gitRepo:
+    #   url: ""
+    #   branch: ""
+    # helmChartPath: ""
+    # helmReleaseName: ""
+    helmReleaseNamespace: default
+    helmExtraValuesFiles: ["versions.yaml"]
+  kubernetesDashboard:
+    enabled: false
+    ingress:
+      enabled: false
+      subDomain: kube-dashboard
