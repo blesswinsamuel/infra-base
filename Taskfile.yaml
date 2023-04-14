@@ -1,6 +1,0 @@
-version: 3
-
-tasks:
-  sync-dashboards:
-    cmds:
-      - poetry -C ./scripts run python scripts/download_grafana_dashboards.py ./scripts/dashboards.yaml
