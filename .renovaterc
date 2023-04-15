@@ -1,12 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base",
-    "group:all"
+    "config:base"
   ],
-  "lockFileMaintenance": {
-    "enabled": false
-  },
+  "platformAutomerge": true,
   "regexManagers": [
     {
       "fileMatch": [
@@ -25,6 +22,59 @@
         "\n\\s+repository:\\s+['\"]?(?<depName>[^{}\\s]*?)['\"]?\n\\s+tag:\\s+['\"]?(?<currentValue>[^{}\\s]*?)(?:@(?<currentDigest>sha256:[a-f0-9]+))?['\"]?\n"
       ],
       "datasourceTemplate": "docker"
+    }
+  ],
+  "enabledManagers": [
+    "regex",
+    "gomod",
+    "github-actions"
+  ],
+  "prHourlyLimit": 30,
+  "packageRules": [
+    {
+      "packagePatterns": [
+        "^minio/"
+      ],
+      "versioning": "regex:^(RELEASE\\.)?(?<major>\\d{4})-(?<minor>\\d{2})-(?<patch>\\d{2})T\\S*?Z$"
+    },
+    {
+      "groupName": "all patch dependencies",
+      "groupSlug": "all-patch",
+      "matchPackagePatterns": [
+        "*"
+      ],
+      "automerge": true,
+      "matchUpdateTypes": [
+        "digest",
+        "lockFileMaintenance",
+        "bump",
+        "digest",
+        "pin",
+        "pinDigest",
+        "patch"
+      ]
+    },
+    {
+      "groupName": "all minor dependencies",
+      "groupSlug": "all-minor",
+      "matchPackagePatterns": [
+        "*"
+      ],
+      "matchUpdateTypes": [
+        "replacement",
+        "rollback",
+        "minor"
+      ]
+    },
+    {
+      "groupName": "all major dependencies",
+      "groupSlug": "all-major",
+      "matchPackagePatterns": [
+        "*"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ]
     }
   ]
 }
