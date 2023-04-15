@@ -1,0 +1,33 @@
+name: Test
+on:
+  pull_request:
+  merge_group:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+      - name: Set up cache
+        id: cache-charts-dashboards-alerts
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-charts-dashboards-alerts
+        with:
+          path: ./cache
+          key: cache-${{ env.cache-name }}
+      - name: Set up cdk8s
+        run: |
+          yarn global add cdk8s-cli
+      - name: cdk8s import
+        run: |
+          go generate ./...
+      - name: go build
+        run: |
+          CGO_ENABLED=0 go build -o /tmp/bless-stack
+      # - name: run stack commands
+      #   run: |
+      #     /tmp/bless-stack xxx
