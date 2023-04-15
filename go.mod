@@ -3,7 +3,7 @@ module github.com/blesswinsamuel/infra-base
 go 1.20
 
 require (
-	github.com/aws/constructs-go/constructs/v10 v10.1.310
+	github.com/aws/constructs-go/constructs/v10 v10.1.311
 	github.com/aws/jsii-runtime-go v1.80.0
 	github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2 v2.7.55
 	github.com/muesli/reflow v0.3.0
