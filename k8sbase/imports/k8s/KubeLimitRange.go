@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeLimitRange) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.core.v1.LimitRange" API object.
 func NewKubeLimitRange(scope constructs.Construct, id *string, props *KubeLimitRangeProps) KubeLimitRange {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeLimitRange) ToString() *string {
 
 	return returns
 }
+

@@ -126,6 +126,7 @@ func (j *jsiiProxy_AcrAccessToken) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "ACRAccessToken" API object.
 func NewAcrAccessToken(scope constructs.Construct, id *string, props *AcrAccessTokenProps) AcrAccessToken {
 	_init_.Initialize()
@@ -317,3 +318,4 @@ func (a *jsiiProxy_AcrAccessToken) ToString() *string {
 
 	return returns
 }
+

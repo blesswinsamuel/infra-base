@@ -123,6 +123,7 @@ func (j *jsiiProxy_Order) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "Order" API object.
 func NewOrder(scope constructs.Construct, id *string, props *OrderProps) Order {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (o *jsiiProxy_Order) ToString() *string {
 
 	return returns
 }
+

@@ -125,6 +125,7 @@ func (j *jsiiProxy_KubeCustomResourceDefinition) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.apiextensions-apiserver.pkg.apis.apiextensions.v1.CustomResourceDefinition" API object.
 func NewKubeCustomResourceDefinition(scope constructs.Construct, id *string, props *KubeCustomResourceDefinitionProps) KubeCustomResourceDefinition {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (k *jsiiProxy_KubeCustomResourceDefinition) ToString() *string {
 
 	return returns
 }
+

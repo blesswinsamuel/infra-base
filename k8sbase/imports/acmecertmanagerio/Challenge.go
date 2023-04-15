@@ -123,6 +123,7 @@ func (j *jsiiProxy_Challenge) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "Challenge" API object.
 func NewChallenge(scope constructs.Construct, id *string, props *ChallengeProps) Challenge {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (c *jsiiProxy_Challenge) ToString() *string {
 
 	return returns
 }
+

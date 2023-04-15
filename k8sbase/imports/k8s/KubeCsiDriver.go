@@ -125,6 +125,7 @@ func (j *jsiiProxy_KubeCsiDriver) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.storage.v1.CSIDriver" API object.
 func NewKubeCsiDriver(scope constructs.Construct, id *string, props *KubeCsiDriverProps) KubeCsiDriver {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (k *jsiiProxy_KubeCsiDriver) ToString() *string {
 
 	return returns
 }
+

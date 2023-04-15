@@ -125,6 +125,7 @@ func (j *jsiiProxy_ClusterIssuer) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "ClusterIssuer" API object.
 func NewClusterIssuer(scope constructs.Construct, id *string, props *ClusterIssuerProps) ClusterIssuer {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (c *jsiiProxy_ClusterIssuer) ToString() *string {
 
 	return returns
 }
+

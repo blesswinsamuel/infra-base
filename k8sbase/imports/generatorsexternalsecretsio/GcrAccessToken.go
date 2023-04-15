@@ -123,6 +123,7 @@ func (j *jsiiProxy_GcrAccessToken) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "GCRAccessToken" API object.
 func NewGcrAccessToken(scope constructs.Construct, id *string, props *GcrAccessTokenProps) GcrAccessToken {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (g *jsiiProxy_GcrAccessToken) ToString() *string {
 
 	return returns
 }
+

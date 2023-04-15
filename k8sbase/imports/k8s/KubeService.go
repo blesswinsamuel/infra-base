@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeService) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.core.v1.Service" API object.
 func NewKubeService(scope constructs.Construct, id *string, props *KubeServiceProps) KubeService {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeService) ToString() *string {
 
 	return returns
 }
+

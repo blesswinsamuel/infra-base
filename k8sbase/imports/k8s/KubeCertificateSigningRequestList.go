@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeCertificateSigningRequestList) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.certificates.v1.CertificateSigningRequestList" API object.
 func NewKubeCertificateSigningRequestList(scope constructs.Construct, id *string, props *KubeCertificateSigningRequestListProps) KubeCertificateSigningRequestList {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeCertificateSigningRequestList) ToString() *string {
 
 	return returns
 }
+

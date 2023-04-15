@@ -123,6 +123,7 @@ func (j *jsiiProxy_ClusterSecretStoreV1Beta1) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "ClusterSecretStoreV1Beta1" API object.
 func NewClusterSecretStoreV1Beta1(scope constructs.Construct, id *string, props *ClusterSecretStoreV1Beta1Props) ClusterSecretStoreV1Beta1 {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (c *jsiiProxy_ClusterSecretStoreV1Beta1) ToString() *string {
 
 	return returns
 }
+

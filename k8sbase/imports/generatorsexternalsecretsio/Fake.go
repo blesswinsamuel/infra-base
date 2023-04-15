@@ -125,6 +125,7 @@ func (j *jsiiProxy_Fake) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "Fake" API object.
 func NewFake(scope constructs.Construct, id *string, props *FakeProps) Fake {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (f *jsiiProxy_Fake) ToString() *string {
 
 	return returns
 }
+

@@ -125,6 +125,7 @@ func (j *jsiiProxy_Password) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "Password" API object.
 func NewPassword(scope constructs.Construct, id *string, props *PasswordProps) Password {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (p *jsiiProxy_Password) ToString() *string {
 
 	return returns
 }
+

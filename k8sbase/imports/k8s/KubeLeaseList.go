@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeLeaseList) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.coordination.v1.LeaseList" API object.
 func NewKubeLeaseList(scope constructs.Construct, id *string, props *KubeLeaseListProps) KubeLeaseList {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeLeaseList) ToString() *string {
 
 	return returns
 }
+

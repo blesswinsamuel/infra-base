@@ -125,6 +125,7 @@ func (j *jsiiProxy_Issuer) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "Issuer" API object.
 func NewIssuer(scope constructs.Construct, id *string, props *IssuerProps) Issuer {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (i *jsiiProxy_Issuer) ToString() *string {
 
 	return returns
 }
+

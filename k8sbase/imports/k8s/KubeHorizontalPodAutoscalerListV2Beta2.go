@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeHorizontalPodAutoscalerListV2Beta2) Node() constructs.Nod
 	return returns
 }
 
+
 // Defines a "io.k8s.api.autoscaling.v2beta2.HorizontalPodAutoscalerList" API object.
 func NewKubeHorizontalPodAutoscalerListV2Beta2(scope constructs.Construct, id *string, props *KubeHorizontalPodAutoscalerListV2Beta2Props) KubeHorizontalPodAutoscalerListV2Beta2 {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeHorizontalPodAutoscalerListV2Beta2) ToString() *string {
 
 	return returns
 }
+

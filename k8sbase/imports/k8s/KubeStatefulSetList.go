@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeStatefulSetList) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.apps.v1.StatefulSetList" API object.
 func NewKubeStatefulSetList(scope constructs.Construct, id *string, props *KubeStatefulSetListProps) KubeStatefulSetList {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeStatefulSetList) ToString() *string {
 
 	return returns
 }
+

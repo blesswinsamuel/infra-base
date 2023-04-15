@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeClusterCidrListV1Alpha1) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.networking.v1alpha1.ClusterCIDRList" API object.
 func NewKubeClusterCidrListV1Alpha1(scope constructs.Construct, id *string, props *KubeClusterCidrListV1Alpha1Props) KubeClusterCidrListV1Alpha1 {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeClusterCidrListV1Alpha1) ToString() *string {
 
 	return returns
 }
+

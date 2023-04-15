@@ -26,6 +26,7 @@ func (j *jsiiProxy_MiddlewareSpecCircuitBreakerCheckPeriod) Value() interface{} 
 	return returns
 }
 
+
 func MiddlewareSpecCircuitBreakerCheckPeriod_FromNumber(value *float64) MiddlewareSpecCircuitBreakerCheckPeriod {
 	_init_.Initialize()
 
@@ -61,3 +62,4 @@ func MiddlewareSpecCircuitBreakerCheckPeriod_FromString(value *string) Middlewar
 
 	return returns
 }
+

@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeRuntimeClassList) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.node.v1.RuntimeClassList" API object.
 func NewKubeRuntimeClassList(scope constructs.Construct, id *string, props *KubeRuntimeClassListProps) KubeRuntimeClassList {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeRuntimeClassList) ToString() *string {
 
 	return returns
 }
+

@@ -123,6 +123,7 @@ func (j *jsiiProxy_IngressRouteTcp) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "IngressRouteTCP" API object.
 func NewIngressRouteTcp(scope constructs.Construct, id *string, props *IngressRouteTcpProps) IngressRouteTcp {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (i *jsiiProxy_IngressRouteTcp) ToString() *string {
 
 	return returns
 }
+

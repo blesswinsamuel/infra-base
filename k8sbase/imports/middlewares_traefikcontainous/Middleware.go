@@ -125,6 +125,7 @@ func (j *jsiiProxy_Middleware) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "Middleware" API object.
 func NewMiddleware(scope constructs.Construct, id *string, props *MiddlewareProps) Middleware {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (m *jsiiProxy_Middleware) ToString() *string {
 
 	return returns
 }
+

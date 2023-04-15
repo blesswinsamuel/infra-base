@@ -122,6 +122,7 @@ func (j *jsiiProxy_PushSecret) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "PushSecret" API object.
 func NewPushSecret(scope constructs.Construct, id *string, props *PushSecretProps) PushSecret {
 	_init_.Initialize()
@@ -313,3 +314,4 @@ func (p *jsiiProxy_PushSecret) ToString() *string {
 
 	return returns
 }
+

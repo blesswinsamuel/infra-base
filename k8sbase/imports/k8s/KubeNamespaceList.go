@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeNamespaceList) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.core.v1.NamespaceList" API object.
 func NewKubeNamespaceList(scope constructs.Construct, id *string, props *KubeNamespaceListProps) KubeNamespaceList {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeNamespaceList) ToString() *string {
 
 	return returns
 }
+

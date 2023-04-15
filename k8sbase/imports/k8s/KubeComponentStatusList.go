@@ -125,6 +125,7 @@ func (j *jsiiProxy_KubeComponentStatusList) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.core.v1.ComponentStatusList" API object.
 func NewKubeComponentStatusList(scope constructs.Construct, id *string, props *KubeComponentStatusListProps) KubeComponentStatusList {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (k *jsiiProxy_KubeComponentStatusList) ToString() *string {
 
 	return returns
 }
+

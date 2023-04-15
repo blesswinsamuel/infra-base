@@ -28,6 +28,7 @@ func (j *jsiiProxy_IngressRouteTcpSpecRoutesServicesPort) Value() interface{} {
 	return returns
 }
 
+
 func IngressRouteTcpSpecRoutesServicesPort_FromNumber(value *float64) IngressRouteTcpSpecRoutesServicesPort {
 	_init_.Initialize()
 
@@ -63,3 +64,4 @@ func IngressRouteTcpSpecRoutesServicesPort_FromString(value *string) IngressRout
 
 	return returns
 }
+

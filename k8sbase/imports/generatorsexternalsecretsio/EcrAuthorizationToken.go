@@ -125,6 +125,7 @@ func (j *jsiiProxy_EcrAuthorizationToken) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "ECRAuthorizationToken" API object.
 func NewEcrAuthorizationToken(scope constructs.Construct, id *string, props *EcrAuthorizationTokenProps) EcrAuthorizationToken {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (e *jsiiProxy_EcrAuthorizationToken) ToString() *string {
 
 	return returns
 }
+

@@ -125,6 +125,7 @@ func (j *jsiiProxy_KubeTokenReview) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.authentication.v1.TokenReview" API object.
 func NewKubeTokenReview(scope constructs.Construct, id *string, props *KubeTokenReviewProps) KubeTokenReview {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (k *jsiiProxy_KubeTokenReview) ToString() *string {
 
 	return returns
 }
+

@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeControllerRevisionList) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.apps.v1.ControllerRevisionList" API object.
 func NewKubeControllerRevisionList(scope constructs.Construct, id *string, props *KubeControllerRevisionListProps) KubeControllerRevisionList {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeControllerRevisionList) ToString() *string {
 
 	return returns
 }
+

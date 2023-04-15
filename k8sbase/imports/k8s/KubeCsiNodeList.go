@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeCsiNodeList) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.storage.v1.CSINodeList" API object.
 func NewKubeCsiNodeList(scope constructs.Construct, id *string, props *KubeCsiNodeListProps) KubeCsiNodeList {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeCsiNodeList) ToString() *string {
 
 	return returns
 }
+

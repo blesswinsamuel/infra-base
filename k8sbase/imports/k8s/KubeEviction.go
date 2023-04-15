@@ -125,6 +125,7 @@ func (j *jsiiProxy_KubeEviction) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.policy.v1.Eviction" API object.
 func NewKubeEviction(scope constructs.Construct, id *string, props *KubeEvictionProps) KubeEviction {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (k *jsiiProxy_KubeEviction) ToString() *string {
 
 	return returns
 }
+

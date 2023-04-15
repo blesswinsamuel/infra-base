@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubePodTemplate) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.core.v1.PodTemplate" API object.
 func NewKubePodTemplate(scope constructs.Construct, id *string, props *KubePodTemplateProps) KubePodTemplate {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubePodTemplate) ToString() *string {
 
 	return returns
 }
+

@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubePodDisruptionBudget) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.policy.v1.PodDisruptionBudget" API object.
 func NewKubePodDisruptionBudget(scope constructs.Construct, id *string, props *KubePodDisruptionBudgetProps) KubePodDisruptionBudget {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubePodDisruptionBudget) ToString() *string {
 
 	return returns
 }
+

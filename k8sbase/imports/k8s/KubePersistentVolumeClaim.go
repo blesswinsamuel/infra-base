@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubePersistentVolumeClaim) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.core.v1.PersistentVolumeClaim" API object.
 func NewKubePersistentVolumeClaim(scope constructs.Construct, id *string, props *KubePersistentVolumeClaimProps) KubePersistentVolumeClaim {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubePersistentVolumeClaim) ToString() *string {
 
 	return returns
 }
+

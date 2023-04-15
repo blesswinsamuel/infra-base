@@ -123,6 +123,7 @@ func (j *jsiiProxy_ClusterExternalSecret) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "ClusterExternalSecret" API object.
 func NewClusterExternalSecret(scope constructs.Construct, id *string, props *ClusterExternalSecretProps) ClusterExternalSecret {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (c *jsiiProxy_ClusterExternalSecret) ToString() *string {
 
 	return returns
 }
+

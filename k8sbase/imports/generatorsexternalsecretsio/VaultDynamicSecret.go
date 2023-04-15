@@ -122,6 +122,7 @@ func (j *jsiiProxy_VaultDynamicSecret) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "VaultDynamicSecret" API object.
 func NewVaultDynamicSecret(scope constructs.Construct, id *string, props *VaultDynamicSecretProps) VaultDynamicSecret {
 	_init_.Initialize()
@@ -313,3 +314,4 @@ func (v *jsiiProxy_VaultDynamicSecret) ToString() *string {
 
 	return returns
 }
+

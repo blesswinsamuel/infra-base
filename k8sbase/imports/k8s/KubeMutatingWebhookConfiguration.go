@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeMutatingWebhookConfiguration) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.admissionregistration.v1.MutatingWebhookConfiguration" API object.
 func NewKubeMutatingWebhookConfiguration(scope constructs.Construct, id *string, props *KubeMutatingWebhookConfigurationProps) KubeMutatingWebhookConfiguration {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeMutatingWebhookConfiguration) ToString() *string {
 
 	return returns
 }
+

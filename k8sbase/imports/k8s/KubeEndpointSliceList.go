@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeEndpointSliceList) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.discovery.v1.EndpointSliceList" API object.
 func NewKubeEndpointSliceList(scope constructs.Construct, id *string, props *KubeEndpointSliceListProps) KubeEndpointSliceList {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeEndpointSliceList) ToString() *string {
 
 	return returns
 }
+

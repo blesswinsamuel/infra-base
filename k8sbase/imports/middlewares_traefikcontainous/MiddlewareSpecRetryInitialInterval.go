@@ -28,6 +28,7 @@ func (j *jsiiProxy_MiddlewareSpecRetryInitialInterval) Value() interface{} {
 	return returns
 }
 
+
 func MiddlewareSpecRetryInitialInterval_FromNumber(value *float64) MiddlewareSpecRetryInitialInterval {
 	_init_.Initialize()
 
@@ -63,3 +64,4 @@ func MiddlewareSpecRetryInitialInterval_FromString(value *string) MiddlewareSpec
 
 	return returns
 }
+

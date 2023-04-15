@@ -125,6 +125,7 @@ func (j *jsiiProxy_KubeBinding) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.core.v1.Binding" API object.
 func NewKubeBinding(scope constructs.Construct, id *string, props *KubeBindingProps) KubeBinding {
 	_init_.Initialize()
@@ -316,3 +317,4 @@ func (k *jsiiProxy_KubeBinding) ToString() *string {
 
 	return returns
 }
+

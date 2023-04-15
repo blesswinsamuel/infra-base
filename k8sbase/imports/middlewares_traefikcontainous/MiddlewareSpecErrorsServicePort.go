@@ -28,6 +28,7 @@ func (j *jsiiProxy_MiddlewareSpecErrorsServicePort) Value() interface{} {
 	return returns
 }
 
+
 func MiddlewareSpecErrorsServicePort_FromNumber(value *float64) MiddlewareSpecErrorsServicePort {
 	_init_.Initialize()
 
@@ -63,3 +64,4 @@ func MiddlewareSpecErrorsServicePort_FromString(value *string) MiddlewareSpecErr
 
 	return returns
 }
+

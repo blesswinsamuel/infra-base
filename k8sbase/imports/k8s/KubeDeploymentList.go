@@ -123,6 +123,7 @@ func (j *jsiiProxy_KubeDeploymentList) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.apps.v1.DeploymentList" API object.
 func NewKubeDeploymentList(scope constructs.Construct, id *string, props *KubeDeploymentListProps) KubeDeploymentList {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (k *jsiiProxy_KubeDeploymentList) ToString() *string {
 
 	return returns
 }
+

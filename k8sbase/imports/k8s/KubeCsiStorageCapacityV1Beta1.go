@@ -133,6 +133,7 @@ func (j *jsiiProxy_KubeCsiStorageCapacityV1Beta1) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "io.k8s.api.storage.v1beta1.CSIStorageCapacity" API object.
 func NewKubeCsiStorageCapacityV1Beta1(scope constructs.Construct, id *string, props *KubeCsiStorageCapacityV1Beta1Props) KubeCsiStorageCapacityV1Beta1 {
 	_init_.Initialize()
@@ -324,3 +325,4 @@ func (k *jsiiProxy_KubeCsiStorageCapacityV1Beta1) ToString() *string {
 
 	return returns
 }
+

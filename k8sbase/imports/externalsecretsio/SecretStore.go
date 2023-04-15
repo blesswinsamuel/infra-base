@@ -123,6 +123,7 @@ func (j *jsiiProxy_SecretStore) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "SecretStore" API object.
 func NewSecretStore(scope constructs.Construct, id *string, props *SecretStoreProps) SecretStore {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (s *jsiiProxy_SecretStore) ToString() *string {
 
 	return returns
 }
+

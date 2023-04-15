@@ -123,6 +123,7 @@ func (j *jsiiProxy_ExternalSecret) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "ExternalSecret" API object.
 func NewExternalSecret(scope constructs.Construct, id *string, props *ExternalSecretProps) ExternalSecret {
 	_init_.Initialize()
@@ -314,3 +315,4 @@ func (e *jsiiProxy_ExternalSecret) ToString() *string {
 
 	return returns
 }
+

@@ -126,6 +126,7 @@ func (j *jsiiProxy_CertificateRequest) Node() constructs.Node {
 	return returns
 }
 
+
 // Defines a "CertificateRequest" API object.
 func NewCertificateRequest(scope constructs.Construct, id *string, props *CertificateRequestProps) CertificateRequest {
 	_init_.Initialize()
@@ -317,3 +318,4 @@ func (c *jsiiProxy_CertificateRequest) ToString() *string {
 
 	return returns
 }
+
