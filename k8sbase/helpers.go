@@ -163,6 +163,20 @@ func NewKappConfig(scope constructs.Construct) constructs.Construct {
 						"name":      "external-secrets-webhook",
 					},
 				},
+				map[string]any{
+					"kindNamespaceNameMatcher": map[string]any{
+						"kind":      "Secret",
+						"namespace": "system",
+						"name":      "kubernetes-dashboard-csrf",
+					},
+				},
+				map[string]any{
+					"kindNamespaceNameMatcher": map[string]any{
+						"kind":      "Secret",
+						"namespace": "system",
+						"name":      "kubernetes-dashboard-key-holder",
+					},
+				},
 			},
 		},
 	}))
