@@ -46,9 +46,11 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 			},
 			"providers": map[string]any{
 				"kubernetesCRD": map[string]any{
-					"allowCrossNamespace": true,
+					"allowCrossNamespace":       true,
+					"allowExternalNameServices": true,
 				},
 				"kubernetesIngress": map[string]any{
+					"allowExternalNameServices": true,
 					"publishedService": map[string]any{
 						"enabled": true,
 					},
@@ -81,6 +83,14 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 					"enabled": false,
 				},
 			},
+			// "tlsOptions": map[string]any{
+			// 	// add traefik-ssh to the default alpnProtocols
+			// 	"default": map[string]any{
+			// 		"alpnProtocols": []string{
+			// 			"h2", "http/1.1", "acme-tls/1", "traefik-ssh",
+			// 		},
+			// 	},
+			// },
 			"additionalArguments": []string{
 				"--accesslog=true",
 				"--accesslog.format=json",
