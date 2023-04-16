@@ -257,7 +257,7 @@ monitoring:
     helm:
       repo: https://grafana.github.io/helm-charts
       chart: loki
-      version: "4.10.0"
+      version: "5.0.0"
     storage: local
   vector:
     enabled: true
