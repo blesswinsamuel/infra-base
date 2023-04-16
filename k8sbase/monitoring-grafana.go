@@ -21,7 +21,7 @@ type GrafanaProps struct {
 	} `yaml:"ingress"`
 }
 
-// https://github.com/grafana/helm-charts
+// https://github.com/grafana/helm-charts/tree/main/charts/grafana
 func NewGrafana(scope constructs.Construct, props GrafanaProps) cdk8s.Chart {
 	if !props.Enabled {
 		return nil
@@ -78,10 +78,12 @@ func NewGrafana(scope constructs.Construct, props GrafanaProps) cdk8s.Chart {
 			},
 			"sidecar": map[string]interface{}{
 				"datasources": map[string]interface{}{
-					"enabled":    true,
-					"label":      props.DatasourceLabel,
-					"labelValue": props.DatasourceLabelValue,
-					"resource":   "configmap",
+					"enabled":         true,
+					"label":           props.DatasourceLabel,
+					"labelValue":      props.DatasourceLabelValue,
+					"resource":        "configmap",
+					"skipReload":      true,
+					"initDatasources": true,
 				},
 				"dashboards": map[string]interface{}{
 					"enabled":          true,
@@ -92,6 +94,7 @@ func NewGrafana(scope constructs.Construct, props GrafanaProps) cdk8s.Chart {
 					"provider": map[string]interface{}{
 						"foldersFromFilesStructure": true,
 					},
+					// "skipReload":     true,
 				},
 			},
 			"rbac": map[string]interface{}{"namespaced": props.Namespaced, "pspEnabled": false},
