@@ -342,6 +342,10 @@ system:
     helmExtraValuesFiles: ["versions.yaml"]
   kubernetesDashboard:
     enabled: false
+    helm:
+      repo: https://kubernetes.github.io/dashboard/
+      chart: kubernetes-dashboard
+      version: "6.0.7"
     ingress:
-      enabled: false
-      subDomain: kube-dashboard
+      enabled: true
+      subDomain: kubernetes-dashboard
