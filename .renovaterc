@@ -3,7 +3,6 @@
   "extends": [
     "config:base"
   ],
-  "platformAutomerge": true,
   "regexManagers": [
     {
       "fileMatch": [
@@ -43,7 +42,6 @@
       "matchPackagePatterns": [
         "*"
       ],
-      "automerge": true,
       "matchUpdateTypes": [
         "digest",
         "lockFileMaintenance",
