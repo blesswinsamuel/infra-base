@@ -29,7 +29,7 @@ type TraefikProps struct {
 // https://github.com/traefik/traefik-helm-chart/tree/master/traefik
 func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 	cprops := cdk8s.ChartProps{
-		Namespace: jsii.String("kube-system"),
+		Namespace: GetNamespace(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("traefik"), &cprops)
 
@@ -125,8 +125,7 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 	if props.DashboardIngress.Enabled {
 		certmanagerio.NewCertificate(chart, jsii.String("traefik-dashboard-cert"), &certmanagerio.CertificateProps{
 			Metadata: &cdk8s.ApiObjectMetadata{
-				Name:      jsii.String("traefik-dashboard"),
-				Namespace: jsii.String("kube-system"),
+				Name: jsii.String("traefik-dashboard"),
 			},
 			Spec: &certmanagerio.CertificateSpec{
 				DnsNames: jsii.PtrSlice(
@@ -142,8 +141,7 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 
 		ingressroute_traefikcontainous.NewIngressRoute(chart, jsii.String("traefik-dashboard-external"), &ingressroute_traefikcontainous.IngressRouteProps{
 			Metadata: &cdk8s.ApiObjectMetadata{
-				Name:      jsii.String("traefik-dashboard-external"),
-				Namespace: jsii.String("kube-system"),
+				Name: jsii.String("traefik-dashboard-external"),
 			},
 			Spec: &ingressroute_traefikcontainous.IngressRouteSpec{
 				EntryPoints: jsii.PtrSlice("websecure"),
@@ -175,10 +173,11 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 	}
 
 	if props.Middlewares.BasicAuth.Enabled {
+		// TODO: Remove
 		middlewares_traefikcontainous.NewMiddleware(chart, jsii.String("traefik-basic-auth"), &middlewares_traefikcontainous.MiddlewareProps{
 			Metadata: &cdk8s.ApiObjectMetadata{
 				Name:      jsii.String("traefik-basic-auth"),
-				Namespace: jsii.String("kube-system"),
+				Namespace: jsii.String("auth"),
 			},
 			Spec: &middlewares_traefikcontainous.MiddlewareSpec{
 				BasicAuth: &middlewares_traefikcontainous.MiddlewareSpecBasicAuth{
@@ -189,7 +188,7 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 		})
 		NewExternalSecret(chart, jsii.String("traefik-basic-auth-secret"), &ExternalSecretProps{
 			Name:            jsii.String("traefik-basic-auth"),
-			Namespace:       jsii.String("kube-system"),
+			Namespace:       jsii.String("auth"),
 			RefreshInterval: jsii.String("2m"),
 			Secrets: map[string]string{
 				"users": "TRAEFIK_BASIC_AUTH_USERS",
@@ -200,8 +199,7 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 	if props.Middlewares.StripPrefix.Enabled {
 		middlewares_traefikcontainous.NewMiddleware(chart, jsii.String("traefik-strip-prefix"), &middlewares_traefikcontainous.MiddlewareProps{
 			Metadata: &cdk8s.ApiObjectMetadata{
-				Name:      jsii.String("traefik-strip-prefix"),
-				Namespace: jsii.String("kube-system"),
+				Name: jsii.String("traefik-strip-prefix"),
 			},
 			Spec: &middlewares_traefikcontainous.MiddlewareSpec{
 				StripPrefixRegex: &middlewares_traefikcontainous.MiddlewareSpecStripPrefixRegex{
@@ -219,7 +217,7 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 // # kind: Middleware
 // # metadata:
 // #   name: ssl-header
-// #   namespace: kube-system
+// #   namespace: ingress
 // # spec:
 // #   headers:
 // #     customRequestHeaders:

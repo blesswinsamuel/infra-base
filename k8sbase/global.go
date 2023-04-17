@@ -34,7 +34,7 @@ func GetCertIssuerAnnotation(scope constructs.Construct) map[string]string {
 func GetTraefikAuthMiddlewareName(scope constructs.Construct) string {
 	switch GetGlobal(scope).InternetAuthType {
 	case "basic-auth":
-		return "kube-system-traefik-basic-auth@kubernetescrd"
+		return "auth-traefik-basic-auth@kubernetescrd"
 	case "traefik-forward-auth":
 		return "auth-traefik-forward-auth@kubernetescrd"
 	case "authelia":
@@ -46,7 +46,7 @@ func GetTraefikAuthMiddlewareName(scope constructs.Construct) string {
 func GetTraefikCRAuthMiddleware(scope constructs.Construct) *ingressroute_traefikcontainous.IngressRouteSpecRoutesMiddlewares {
 	switch GetGlobal(scope).InternetAuthType {
 	case "basic-auth":
-		return &ingressroute_traefikcontainous.IngressRouteSpecRoutesMiddlewares{Name: jsii.String("traefik-basic-auth"), Namespace: jsii.String("kube-system")}
+		return &ingressroute_traefikcontainous.IngressRouteSpecRoutesMiddlewares{Name: jsii.String("traefik-basic-auth"), Namespace: jsii.String("auth")}
 	case "traefik-forward-auth":
 		return &ingressroute_traefikcontainous.IngressRouteSpecRoutesMiddlewares{Name: jsii.String("traefik-forward-auth"), Namespace: jsii.String("auth")}
 	case "authelia":
