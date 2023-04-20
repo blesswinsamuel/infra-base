@@ -194,7 +194,7 @@ monitoring:
     helm:
       repo: https://victoriametrics.github.io/helm-charts
       chart: victoria-metrics-agent
-      version: "0.8.36"
+      version: "0.8.37"
     ingress:
       subDomain: "vmagent"
     resources:
@@ -209,7 +209,7 @@ monitoring:
     helm:
       repo: https://victoriametrics.github.io/helm-charts
       chart: victoria-metrics-alert
-      version: "0.5.22"
+      version: "0.5.23"
     ingress:
       enabled: true
       subDomain: "vmalert"
@@ -240,7 +240,7 @@ monitoring:
     helm:
       repo: https://victoriametrics.github.io/helm-charts
       chart: victoria-metrics-single
-      version: "0.8.58"
+      version: "0.8.59"
     ingress:
       enabled: true
       subDomain: "victoriametrics"
@@ -305,7 +305,7 @@ databases:
     helm:
       repo: https://charts.bitnami.com/bitnami
       chart: redis
-      version: "17.9.4"
+      version: "17.9.5"
     namespace: database
 
 auth:
