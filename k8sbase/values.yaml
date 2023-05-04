@@ -18,6 +18,7 @@ ingress:
     email: ""
 
   traefik:
+    enabled: true
     helm:
       repo: https://traefik.github.io/charts
       chart: traefik
@@ -30,8 +31,6 @@ ingress:
       - "10.0.0.0/8"
     middlewares:
       redirectHttps:
-        enabled: false
-      basicAuth:
         enabled: false
       stripPrefix:
         enabled: false
@@ -71,11 +70,6 @@ monitoring:
     dashboardLabelValue: null
     ingress:
       subDomain: "grafana"
-    datasources:
-      loki:
-        enabled: false
-      victoriametrics:
-        enabled: false
   grafanaDashboards:
     dashboards:
       # Kubernetes
@@ -322,6 +316,24 @@ auth:
     ingress:
       subDomain: "auth"
     whilelist: "" # email address
+  lldap:
+    enabled: false
+    image:
+      repository: ghcr.io/lldap/lldap
+      tag: v0.4.3-alpine
+  authelia:
+    enabled: false
+    helm:
+      repo: https://charts.authelia.com
+      chart: authelia
+      version: "0.8.57"
+    ingress:
+      subDomain: authelia
+    database:
+      postgres:
+        host: "postgres.database.svc.cluster.local"
+      redis:
+        host: "redis-master.database.svc.cluster.local"
 
 system:
   namespace: system

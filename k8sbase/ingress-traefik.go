@@ -10,6 +10,7 @@ import (
 )
 
 type TraefikProps struct {
+	Enabled          bool      `yaml:"enabled"`
 	ChartInfo        ChartInfo `yaml:"helm"`
 	TrustedIPs       []string  `yaml:"trustedIPs"`
 	DashboardIngress struct {
@@ -17,9 +18,6 @@ type TraefikProps struct {
 		SubDomain string `yaml:"subDomain"`
 	} `yaml:"dashboardIngress"`
 	Middlewares struct {
-		BasicAuth struct {
-			Enabled bool `yaml:"enabled"`
-		} `yaml:"basicAuth"`
 		StripPrefix struct {
 			Enabled bool `yaml:"enabled"`
 		} `yaml:"stripPrefix"`
@@ -28,6 +26,9 @@ type TraefikProps struct {
 
 // https://github.com/traefik/traefik-helm-chart/tree/master/traefik
 func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
+	if !props.Enabled {
+		return nil
+	}
 	cprops := cdk8s.ChartProps{
 		Namespace: GetNamespace(scope),
 	}
@@ -168,30 +169,6 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 						},
 					},
 				},
-			},
-		})
-	}
-
-	if props.Middlewares.BasicAuth.Enabled {
-		// TODO: Remove
-		middlewares_traefikcontainous.NewMiddleware(chart, jsii.String("traefik-basic-auth"), &middlewares_traefikcontainous.MiddlewareProps{
-			Metadata: &cdk8s.ApiObjectMetadata{
-				Name:      jsii.String("traefik-basic-auth"),
-				Namespace: jsii.String("auth"),
-			},
-			Spec: &middlewares_traefikcontainous.MiddlewareSpec{
-				BasicAuth: &middlewares_traefikcontainous.MiddlewareSpecBasicAuth{
-					Secret:       jsii.String("traefik-basic-auth"),
-					RemoveHeader: jsii.Bool(true),
-				},
-			},
-		})
-		NewExternalSecret(chart, jsii.String("traefik-basic-auth-secret"), &ExternalSecretProps{
-			Name:            jsii.String("traefik-basic-auth"),
-			Namespace:       jsii.String("auth"),
-			RefreshInterval: jsii.String("2m"),
-			Secrets: map[string]string{
-				"users": "TRAEFIK_BASIC_AUTH_USERS",
 			},
 		})
 	}
