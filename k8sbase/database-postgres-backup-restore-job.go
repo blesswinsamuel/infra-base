@@ -31,11 +31,10 @@ func NewPostgresBackupRestoreJob(scope constructs.Construct, props PostgresBacku
 	chart := cdk8s.NewChart(scope, jsii.String("postgres-backup-restore"), &cprops)
 
 	NewExternalSecret(chart, jsii.String("external-secret-pg"), &ExternalSecretProps{
-		Name:            jsii.String("postgres-backup-restore-secrets"),
-		RefreshInterval: jsii.String("2m"),
+		Name: jsii.String("postgres-backup-restore-secrets"),
 		Template: &externalsecretsio.ExternalSecretV1Beta1SpecTargetTemplate{
 			Data: &map[string]*string{
-				"PGHOST":     jsii.String("postgres.database.svc.cluster.local"),
+				"PGHOST":     jsii.String("postgres." + *GetNamespace(scope) + ".svc.cluster.local"),
 				"PGPORT":     jsii.String("5432"),
 				"PGUSER":     jsii.String("{{ .PGUSER }}"),
 				"PGPASSWORD": jsii.String("{{ .PGPASSWORD }}"),
@@ -48,12 +47,18 @@ func NewPostgresBackupRestoreJob(scope constructs.Construct, props PostgresBacku
 	})
 
 	NewExternalSecret(chart, jsii.String("external-secret-minio"), &ExternalSecretProps{
-		Name:            jsii.String("minio-secrets"),
-		RefreshInterval: jsii.String("2m"),
+		Name: jsii.String("minio-secrets"),
 		Secrets: map[string]string{
 			"MINIO_ENDPOINT":   "S3_ENDPOINT",
 			"MINIO_ACCESS_KEY": "S3_ACCESS_KEY",
 			"MINIO_SECRET_KEY": "S3_SECRET_KEY",
+		},
+	})
+
+	NewExternalSecret(chart, jsii.String("external-secret-heartbeat"), &ExternalSecretProps{
+		Name: jsii.String("postgres-backups-heartbeat"),
+		Secrets: map[string]string{
+			"HEARTBEAT_URL": "DB_BACKUP_HEARTBEAT_URL",
 		},
 	})
 
@@ -162,9 +167,16 @@ func backupScripts(chart cdk8s.Chart, props PostgresBackupRestoreProps) {
 							},
 							Containers: &[]*k8s.Container{
 								{
-									Name:    jsii.String("job-done"),
-									Image:   jsii.String("busybox"),
-									Command: jsii.PtrSlice("sh", "-c", "echo 'Backup complete' && sleep 1"),
+									Name:  jsii.String("job-done"),
+									Image: jsii.String("curlimages/curl"),
+									Command: jsii.PtrSlice(
+										"sh",
+										"-c",
+										`curl -s -i --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 "$HEARTBEAT_URL" && echo 'Backup complete' && sleep 1`,
+									),
+									EnvFrom: &[]*k8s.EnvFromSource{
+										{SecretRef: &k8s.SecretEnvSource{Name: jsii.String("postgres-backups-heartbeat")}},
+									},
 								},
 							},
 							RestartPolicy: jsii.String("OnFailure"),

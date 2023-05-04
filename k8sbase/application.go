@@ -14,17 +14,21 @@ import (
 )
 
 type ApplicationProps struct {
-	Kind               string                       `yaml:"kind"`
-	Name               string                       `yaml:"name"`
-	Annotations        map[string]string            `yaml:"annotations"`
-	PodSecurityContext *k8s.PodSecurityContext      `yaml:"securityContext"`
-	ImagePullSecrets   string                       `yaml:"imagePullSecrets"`
-	Container          ApplicationContainer         `yaml:"container"`
-	ConfigMap          *ApplicationConfigMap        `yaml:"configMap"`
-	ExternalSecrets    []ApplicationExternalSecret  `yaml:"externalSecrets"`
-	Secrets            []ApplicationSecret          `yaml:"secrets"`
-	ExtraVolumes       []*k8s.Volume                `yaml:"extraVolumes"`
+	Kind               string                  `yaml:"kind"`
+	Name               string                  `yaml:"name"`
+	Annotations        map[string]string       `yaml:"annotations"`
+	PodSecurityContext *k8s.PodSecurityContext `yaml:"securityContext"`
+	ImagePullSecrets   string                  `yaml:"imagePullSecrets"`
+	// Deprecated: use Containers instead
+	Container       ApplicationContainer        `yaml:"container"`
+	Containers      []ApplicationContainer      `yaml:"containers"`
+	ConfigMap       *ApplicationConfigMap       `yaml:"configMap"`
+	ExternalSecrets []ApplicationExternalSecret `yaml:"externalSecrets"`
+	Secrets         []ApplicationSecret         `yaml:"secrets"`
+	ExtraVolumes    []*k8s.Volume               `yaml:"extraVolumes"`
+	// Deprecated: use PersistentVolumes instead
 	Persistence        *ApplicationPersistence      `yaml:"persistence"`
+	PersistentVolumes  []ApplicationPersistence     `yaml:"persistent_volumes"`
 	Ingress            []ApplicationIngress         `yaml:"ingress"`
 	IngressAnnotations map[string]string            `yaml:"ingressAnnotations"`
 	PrometheusScrape   *ApplicationPrometheusScrape `yaml:"prometheusScrape"`
@@ -96,17 +100,9 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		Namespace: GetNamespace(scope),
 	})
 	label := map[string]*string{"app": jsii.String(props.Name)}
-	var args *[]*string
-	if len(props.Container.Args) > 0 {
-		args = &[]*string{}
-		for _, arg := range props.Container.Args {
-			*args = append(*args, jsii.String(arg))
-		}
-	}
 	var volumes []*k8s.Volume
-	var volumeMounts []*k8s.VolumeMount
-	var ports []*k8s.ContainerPort
 	annotations := map[string]*string{}
+	var commonVolumeMounts []*k8s.VolumeMount
 	if props.ConfigMap != nil {
 		volumes = append(volumes, &k8s.Volume{
 			Name: jsii.String(props.ConfigMap.MountName),
@@ -114,12 +110,14 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 				Name: jsii.String(props.ConfigMap.Name),
 			},
 		})
-		volumeMounts = append(volumeMounts, &k8s.VolumeMount{
-			Name:      jsii.String(props.ConfigMap.MountName),
-			MountPath: jsii.String(props.ConfigMap.MountPath),
-			SubPath:   jsii.String(props.ConfigMap.SubPath),
-			ReadOnly:  jsii.Bool(props.ConfigMap.ReadOnly),
-		})
+		if props.ConfigMap.MountPath != "" {
+			commonVolumeMounts = append(commonVolumeMounts, &k8s.VolumeMount{
+				Name:      jsii.String(props.ConfigMap.MountName),
+				MountPath: jsii.String(props.ConfigMap.MountPath),
+				SubPath:   jsii.String(props.ConfigMap.SubPath),
+				ReadOnly:  jsii.Bool(props.ConfigMap.ReadOnly),
+			})
+		}
 		hash := sha256.New()
 		for _, v := range props.ConfigMap.Data {
 			hash.Write([]byte(v))
@@ -127,77 +125,128 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		annotations["configmap/checksum"] = jsii.String(fmt.Sprintf("%x", hash.Sum(nil)))
 	}
 	volumes = append(volumes, props.ExtraVolumes...)
-	volumeMounts = append(volumeMounts, props.Container.ExtraVolumeMounts...)
 	for k, v := range props.Annotations {
 		annotations[k] = jsii.String(v)
 	}
-	if len(props.Container.Ports) > 0 {
-		for _, port := range props.Container.Ports {
-			ports = append(ports, &k8s.ContainerPort{
-				Name:          jsii.String(port.Name),
-				ContainerPort: jsii.Number(port.Port),
-			})
-		}
-	}
-	env := []*k8s.EnvVar{}
-	for k, v := range props.Container.Env {
-		env = append(env, &k8s.EnvVar{Name: jsii.String(k), Value: jsii.String(v)})
-	}
-	slices.SortFunc(env, func(a *k8s.EnvVar, b *k8s.EnvVar) bool {
-		return *a.Name < *b.Name
-	})
-	envFrom := []*k8s.EnvFromSource{}
-	secretReloadAnnotationValue := []string{}
-	for _, v := range props.Container.EnvFromSecretRef {
-		envFrom = append(envFrom, &k8s.EnvFromSource{
-			SecretRef: &k8s.SecretEnvSource{
-				Name: jsii.String(v),
-			},
-		})
-		secretReloadAnnotationValue = append(secretReloadAnnotationValue, v)
-	}
-	topAnnotations := map[string]*string{}
-	if len(secretReloadAnnotationValue) > 0 {
-		topAnnotations["secret.reloader.stakater.com/reload"] = jsii.String(strings.Join(secretReloadAnnotationValue, ","))
-	}
-	var command []*string
-	if len(props.Container.Command) > 0 {
-		command = []*string{}
-		for _, v := range props.Container.Command {
-			command = append(command, jsii.String(v))
-		}
-	}
 	if props.Persistence != nil {
-		if props.Persistence.VolumeMountName != "" {
+		props.PersistentVolumes = append(props.PersistentVolumes, *props.Persistence)
+	}
+	for _, pv := range props.PersistentVolumes {
+		if pv.VolumeMountName != "" {
 			volumes = append(volumes, &k8s.Volume{
-				Name: jsii.String(props.Persistence.VolumeMountName),
+				Name: jsii.String(pv.VolumeMountName),
 				PersistentVolumeClaim: &k8s.PersistentVolumeClaimVolumeSource{
-					ClaimName: jsii.String(props.Persistence.PersistentVolumeName),
+					ClaimName: jsii.String(pv.PersistentVolumeName),
 				},
 			})
-			if props.Persistence.VolumeMountPath != "" {
-				volumeMounts = append(volumeMounts, &k8s.VolumeMount{
-					Name:      jsii.String(props.Persistence.VolumeMountName),
-					MountPath: jsii.String(props.Persistence.VolumeMountPath),
+			if pv.VolumeMountPath != "" {
+				commonVolumeMounts = append(commonVolumeMounts, &k8s.VolumeMount{
+					Name:      jsii.String(pv.VolumeMountName),
+					MountPath: jsii.String(pv.VolumeMountPath),
 				})
 			}
 		}
 		k8s.NewKubePersistentVolumeClaim(chart, jsii.String("pvc"), &k8s.KubePersistentVolumeClaimProps{
 			Metadata: &k8s.ObjectMeta{
-				Name:      jsii.String(props.Persistence.PersistentVolumeName),
+				Name:      jsii.String(pv.PersistentVolumeName),
 				Namespace: GetNamespace(scope),
 			},
 			Spec: &k8s.PersistentVolumeClaimSpec{
 				AccessModes: &[]*string{jsii.String("ReadWriteOnce")},
 				Resources: &k8s.ResourceRequirements{
 					Requests: &map[string]k8s.Quantity{
-						"storage": k8s.Quantity_FromString(&props.Persistence.RequestsStorage),
+						"storage": k8s.Quantity_FromString(&pv.RequestsStorage),
 					},
 				},
-				StorageClassName: jsii.String(props.Persistence.StorageClass),
+				StorageClassName: Ternary(
+					pv.StorageClass == "",
+					nil,
+					jsii.String(pv.StorageClass),
+				),
 			},
 		})
 	}
+	containers := []*k8s.Container{}
+	if props.Container.ImageInfo.Repository != nil {
+		if props.Container.Name == "" {
+			props.Container.Name = props.Name
+		}
+		props.Containers = append(props.Containers, props.Container)
+	}
+	secretReloadAnnotationValue := []string{}
+	servicePorts := []*k8s.ServicePort{}
+	for _, container := range props.Containers {
+		var volumeMounts []*k8s.VolumeMount
+		volumeMounts = append(volumeMounts, commonVolumeMounts...)
+		volumeMounts = append(volumeMounts, container.ExtraVolumeMounts...)
+
+		env := []*k8s.EnvVar{}
+		for k, v := range container.Env {
+			env = append(env, &k8s.EnvVar{Name: jsii.String(k), Value: jsii.String(v)})
+		}
+		slices.SortFunc(env, func(a *k8s.EnvVar, b *k8s.EnvVar) bool {
+			return *a.Name < *b.Name
+		})
+		envFrom := []*k8s.EnvFromSource{}
+		for _, v := range container.EnvFromSecretRef {
+			envFrom = append(envFrom, &k8s.EnvFromSource{
+				SecretRef: &k8s.SecretEnvSource{
+					Name: jsii.String(v),
+				},
+			})
+			secretReloadAnnotationValue = append(secretReloadAnnotationValue, v)
+		}
+		var ports []*k8s.ContainerPort
+		for _, port := range container.Ports {
+			ports = append(ports, &k8s.ContainerPort{
+				Name:          jsii.String(port.Name),
+				ContainerPort: jsii.Number(port.Port),
+			})
+		}
+
+		var args *[]*string
+		if len(container.Args) > 0 {
+			args = &[]*string{}
+			for _, arg := range container.Args {
+				*args = append(*args, jsii.String(arg))
+			}
+		}
+
+		var command []*string
+		if len(container.Command) > 0 {
+			command = []*string{}
+			for _, v := range container.Command {
+				command = append(command, jsii.String(v))
+			}
+		}
+
+		for _, port := range container.Ports {
+			servicePorts = append(servicePorts, &k8s.ServicePort{
+				Name:       jsii.String(port.Name),
+				Port:       jsii.Number(port.Port),
+				TargetPort: k8s.IntOrString_FromString(jsii.String(port.Name)),
+			})
+		}
+
+		containers = append(containers, &k8s.Container{
+			Name:    jsii.String(container.Name),
+			Image:   container.ImageInfo.ToString(),
+			Command: Ternary(len(command) > 0, &command, nil),
+			// ImagePullPolicy: jsii.String("IfNotPresent"),
+			Env:            Ternary(len(env) > 0, &env, nil),
+			EnvFrom:        Ternary(len(envFrom) > 0, &envFrom, nil),
+			Args:           args,
+			VolumeMounts:   Ternary(len(volumeMounts) > 0, &volumeMounts, nil),
+			Ports:          Ternary(len(ports) > 0, &ports, nil),
+			LivenessProbe:  container.LivenessProbe,
+			ReadinessProbe: container.ReadinessProbe,
+		})
+	}
+	topAnnotations := map[string]*string{}
+	if len(secretReloadAnnotationValue) > 0 {
+		topAnnotations["secret.reloader.stakater.com/reload"] = jsii.String(strings.Join(secretReloadAnnotationValue, ","))
+	}
+
 	podTemplate := &k8s.PodTemplateSpec{
 		Metadata: &k8s.ObjectMeta{
 			Labels:      &label,
@@ -208,20 +257,8 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			ImagePullSecrets: Ternary(props.ImagePullSecrets != "", &[]*k8s.LocalObjectReference{
 				{Name: jsii.String(props.ImagePullSecrets)},
 			}, nil),
-			Containers: &[]*k8s.Container{{
-				Name:    jsii.String(props.Name),
-				Image:   props.Container.ImageInfo.ToString(),
-				Command: Ternary(len(command) > 0, &command, nil),
-				// ImagePullPolicy: jsii.String("IfNotPresent"),
-				Env:            Ternary(len(env) > 0, &env, nil),
-				EnvFrom:        Ternary(len(envFrom) > 0, &envFrom, nil),
-				Args:           args,
-				VolumeMounts:   Ternary(len(volumeMounts) > 0, &volumeMounts, nil),
-				Ports:          Ternary(len(ports) > 0, &ports, nil),
-				LivenessProbe:  props.Container.LivenessProbe,
-				ReadinessProbe: props.Container.ReadinessProbe,
-			}},
-			Volumes: &volumes,
+			Containers: &containers,
+			Volumes:    &volumes,
 		},
 	}
 	switch props.Kind {
@@ -270,15 +307,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			Data: data,
 		})
 	}
-	if len(props.Container.Ports) > 0 {
-		ports := &[]*k8s.ServicePort{}
-		for _, port := range props.Container.Ports {
-			*ports = append(*ports, &k8s.ServicePort{
-				Name:       jsii.String(port.Name),
-				Port:       jsii.Number(port.Port),
-				TargetPort: k8s.IntOrString_FromString(jsii.String(port.Name)),
-			})
-		}
+	if len(servicePorts) > 0 {
 		serviceAnnotations := map[string]string{}
 		if props.PrometheusScrape != nil {
 			serviceAnnotations["prometheus.io/scrape"] = "true"
@@ -295,17 +324,19 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			},
 			Spec: &k8s.ServiceSpec{
 				Selector: &label,
-				Ports:    ports,
+				Ports:    &servicePorts,
 			},
 		})
 		if len(props.Ingress) > 0 {
-			ingressRules := &[]*k8s.IngressRule{}
+			ingressRules := []*k8s.IngressRule{}
+			tlsHosts := map[string]bool{}
 			for _, ingress := range props.Ingress {
 				path := ingress.Path
 				if path == nil {
 					path = jsii.String("/")
 				}
-				*ingressRules = append(*ingressRules, &k8s.IngressRule{
+				tlsHosts[ingress.Host] = true
+				ingressRules = append(ingressRules, &k8s.IngressRule{
 					Host: jsii.String(ingress.Host),
 					Http: &k8s.HttpIngressRuleValue{
 						Paths: &[]*k8s.HttpIngressPath{
@@ -335,12 +366,10 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 					)),
 				},
 				Spec: &k8s.IngressSpec{
-					Rules: ingressRules,
+					Rules: &ingressRules,
 					Tls: &[]*k8s.IngressTls{
 						{
-							Hosts: &[]*string{
-								jsii.String(props.Ingress[0].Host),
-							},
+							Hosts:      JSIISlice(MapKeys(tlsHosts)...),
 							SecretName: jsii.String(fmt.Sprintf("%s-tls", props.Name)),
 						},
 					},

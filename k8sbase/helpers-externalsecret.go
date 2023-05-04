@@ -30,6 +30,9 @@ func NewExternalSecret(scope constructs.Construct, id *string, props *ExternalSe
 	slices.SortFunc(data, func(a *externalsecretsio.ExternalSecretV1Beta1SpecData, b *externalsecretsio.ExternalSecretV1Beta1SpecData) bool {
 		return *a.SecretKey < *b.SecretKey
 	})
+	if props.RefreshInterval == nil {
+		props.RefreshInterval = jsii.String("10m")
+	}
 	return externalsecretsio.NewExternalSecretV1Beta1(scope, id, &externalsecretsio.ExternalSecretV1Beta1Props{
 		Metadata: &cdk8s.ApiObjectMetadata{Name: props.Name, Namespace: props.Namespace},
 		Spec: &externalsecretsio.ExternalSecretV1Beta1Spec{

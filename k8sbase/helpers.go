@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"text/template"
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"golang.org/x/exp/constraints"
+	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
 )
 
@@ -39,6 +42,11 @@ func NewNamespace(scope constructs.Construct, namespaceName string) constructs.C
 			},
 		},
 	})
+}
+
+func UseNamespace(scope constructs.Construct, namespaceName string) constructs.Construct {
+	scope.Node().SetContext(jsii.String("namespace"), namespaceName)
+	return nil
 }
 
 func GetNamespace(scope constructs.Construct) *string {
@@ -80,8 +88,32 @@ func Ternary[V any](cond bool, trueVal V, falseVal V) V {
 	return falseVal
 }
 
+func Fallback[V any](v *V, defv V) V {
+	if v != nil {
+		return *v
+	}
+	return defv
+}
+
+func MapKeys[K constraints.Ordered, V any](m map[K]V) []K {
+	keys := make([]K, 0)
+	for k := range m {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+	return keys
+}
+
 func Ptr[T any](v T) *T {
 	return &v
+}
+
+func JSIISlice[V any](ss ...V) *[]*V {
+	jsiiSlice := make([]*V, 0)
+	for _, s := range ss {
+		jsiiSlice = append(jsiiSlice, &s)
+	}
+	return &jsiiSlice
 }
 
 func ToYamlString(v any) *string {
@@ -214,4 +246,29 @@ func Synth(app cdk8s.App) {
 	// 	}
 	// }
 	log.Println("Done.")
+}
+
+func TemplateOutputFiles(app cdk8s.App, vars any) {
+	files, err := filepath.Glob(filepath.Join(*app.Outdir(), "*.yaml"))
+	if err != nil {
+		log.Fatalf("Glob: %v", err)
+	}
+	for _, file := range files {
+		bytes, err := os.ReadFile(file)
+		if err != nil {
+			log.Fatalf("ReadFile: %v", err)
+		}
+		tpl := template.New("tpl")
+		tpl.Delims("[{@", "@}]")
+		out, err := tpl.Parse(string(bytes))
+		if err != nil {
+			log.Fatalf("Parse: %v", err)
+		}
+		f, err := os.OpenFile(file, os.O_WRONLY|os.O_TRUNC, 0644)
+		if err != nil {
+			log.Fatalf("OpenFile: %v", err)
+		}
+		out.Execute(f, vars)
+		f.Close()
+	}
 }

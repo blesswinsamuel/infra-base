@@ -16,19 +16,38 @@ type AutheliaProps struct {
 	} `yaml:"ingress"`
 	Rules []map[string]interface{} `yaml:"rules"`
 	OIDC  struct {
+		Enabled                bool                     `yaml:"enabled"`
 		IssuerCertificateChain string                   `yaml:"issuer_certificate_chain"`
 		Clients                []map[string]interface{} `yaml:"clients"`
 	} `yaml:"oidc"`
-	LDAP struct {
+	AuthMode string `yaml:"authMode"` // ldap or file
+	LDAP     struct {
 		BaseDN string `yaml:"baseDN"`
 	} `yaml:"ldap"`
 	SMTP struct {
-		Host        string `yaml:"host"`
-		Port        int    `yaml:"port"`
-		Username    string `yaml:"username"`
-		EmailDomain string `yaml:"emailDomain"`
+		Host        string  `yaml:"host"`
+		Port        int     `yaml:"port"`
+		Username    string  `yaml:"username"`
+		EmailDomain string  `yaml:"emailDomain"`
+		Sender      *string `yaml:"sender"`
+		Subject     *string `yaml:"subject"`
 	} `yaml:"smtp"`
+	Database struct {
+		Postgres struct {
+			Host     *string `yaml:"host"`
+			Port     *int    `yaml:"port"`
+			Database *string `yaml:"database"`
+			Username *string `yaml:"username"`
+			Schema   *string `yaml:"schema"`
+		} `yaml:"postgres"`
+		Redis struct {
+			Host *string `yaml:"host"`
+		} `yaml:"redis"`
+	} `yaml:"database"`
+	RedirectionSubDomain string `yaml:"redirectionSubDomain"`
 }
+
+// https://github.com/authelia/chartrepo/tree/master/charts/authelia
 
 func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Construct {
 	if !props.Enabled {
@@ -38,21 +57,47 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 		Namespace: GetNamespace(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("authelia"), &cprops)
+	pod := map[string]interface{}{
+		"annotations": map[string]interface{}{
+			"secret.reloader.stakater.com/reload": "authelia",
+		},
+		"kind": "Deployment",
+		"env": []map[string]interface{}{
+			{"name": "TZ", "value": "UTC"},
+		},
+	}
+	if props.AuthMode == "file" {
+		NewExternalSecret(chart, jsii.String("users-db"), &ExternalSecretProps{
+			Name:            jsii.String("authelia-users-db"),
+			Namespace:       GetNamespace(scope),
+			RefreshInterval: jsii.String("10m"),
+			Secrets: map[string]string{
+				"users_database.yml": "AUTHELIA_USERS_DATABASE_YML",
+			},
+		})
+		pod["extraVolumeMounts"] = []map[string]interface{}{
+			{
+				"name":      "authelia-users-db",
+				"mountPath": "/config/users_database.yml",
+				"subPath":   "users_database.yml",
+			},
+		}
+		pod["extraVolumes"] = []map[string]interface{}{
+			{
+				"name": "authelia-users-db",
+				"secret": map[string]interface{}{
+					"secretName": "authelia-users-db",
+				},
+			},
+		}
+	}
 	NewHelmCached(chart, jsii.String("helm"), &HelmProps{
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: jsii.String("authelia"),
 		Namespace:   chart.Namespace(),
 		Values: &map[string]interface{}{
 			"domain": GetDomain(scope),
-			"pod": map[string]interface{}{
-				"annotations": map[string]interface{}{
-					"secret.reloader.stakater.com/reload": "authelia",
-				},
-				"kind": "Deployment",
-				"env": []map[string]interface{}{
-					{"name": "TZ", "value": "UTC"},
-				},
-			},
+			"pod":    pod,
 			"service": map[string]interface{}{
 				"annotations": map[string]interface{}{
 					"prometheus.io/scrape": "true",
@@ -88,30 +133,38 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 					"find_time":   "2m",
 					"ban_time":    "5m",
 				},
-				"default_redirection_url": "https://dashy." + GetDomain(scope),
+				"default_redirection_url": "https://" +
+					Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") +
+					GetDomain(scope),
 				"access_control": map[string]interface{}{
 					"default_policy": "deny",
 					"rules":          props.Rules,
 				},
 				"session": map[string]interface{}{
 					"redis": map[string]interface{}{
-						"host": "redis-master.database.svc.cluster.local",
+						"host": props.Database.Redis.Host,
 					},
 				},
 				"storage": map[string]interface{}{
 					"postgres": map[string]interface{}{
-						"host":     "postgres.database.svc.cluster.local",
-						"username": "homelab",
+						"host":     props.Database.Postgres.Host,
+						"port":     props.Database.Postgres.Port,
+						"database": props.Database.Postgres.Database,
+						"schema":   props.Database.Postgres.Schema,
+						"username": props.Database.Postgres.Username,
 					},
 				},
 				"notifier": map[string]interface{}{
 					"smtp": map[string]interface{}{
-						"host":                  props.SMTP.Host,
-						"port":                  props.SMTP.Port,
-						"username":              props.SMTP.Username,
-						"sender":                fmt.Sprintf("Authelia <authelia@%s>", props.SMTP.EmailDomain),
+						"host":     props.SMTP.Host,
+						"port":     props.SMTP.Port,
+						"username": props.SMTP.Username,
+						"sender": Fallback(
+							props.SMTP.Sender,
+							fmt.Sprintf("Authelia <authelia@%s>", props.SMTP.EmailDomain),
+						),
 						"identifier":            props.SMTP.EmailDomain,
-						"subject":               "[authelia] {title}",
+						"subject":               Fallback(props.SMTP.Subject, "[authelia] {title}"),
 						"startup_check_address": fmt.Sprintf("test@%s", props.SMTP.EmailDomain),
 						"enabledSecret":         true,
 					},
@@ -125,7 +178,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 					"refresh_interval": "always",
 					// https://github.com/nitnelave/lldap/blob/main/example_configs/authelia_config.yml
 					"ldap": map[string]interface{}{
-						"enabled":             true,
+						"enabled":             props.AuthMode == "ldap",
 						"implementation":      "custom",
 						"url":                 "ldap://lldap:3890",
 						"timeout":             "5s",
@@ -142,10 +195,13 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 						"display_name_attribute": "displayName",
 						"user":                   "uid=admin,ou=people," + props.LDAP.BaseDN,
 					},
+					"file": map[string]interface{}{
+						"enabled": props.AuthMode == "file",
+					},
 				},
 				"identity_providers": map[string]interface{}{
 					"oidc": map[string]interface{}{
-						"enabled": true,
+						"enabled": props.OIDC.Enabled,
 						"cors": map[string]interface{}{
 							"endpoints": []string{
 								"token",
@@ -164,20 +220,25 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 		},
 	})
 
+	secrets := map[string]string{
+		"SMTP_PASSWORD":          "SMTP_PASSWORD",
+		"JWT_TOKEN":              "AUTHELIA_JWT_TOKEN",
+		"SESSION_ENCRYPTION_KEY": "AUTHELIA_SESSION_ENCRYPTION_KEY",
+		"STORAGE_ENCRYPTION_KEY": "AUTHELIA_STORAGE_ENCRYPTION_KEY",
+		"STORAGE_PASSWORD":       "POSTGRES_USER_PASSWORD",
+	}
+	if props.AuthMode == "ldap" {
+		secrets["LDAP_PASSWORD"] = "LLDAP_LDAP_USER_PASS"
+	}
+	if props.OIDC.Enabled {
+		secrets["OIDC_PRIVATE_KEY"] = "AUTHELIA_OIDC_PRIVATE_KEY"
+		secrets["OIDC_HMAC_SECRET"] = "AUTHELIA_OIDC_HMAC_SECRET"
+	}
 	NewExternalSecret(chart, jsii.String("external-secrets"), &ExternalSecretProps{
 		Name:            jsii.String("authelia"),
 		Namespace:       GetNamespace(scope),
 		RefreshInterval: jsii.String("10m"),
-		Secrets: map[string]string{
-			"SMTP_PASSWORD":          "SMTP_PASSWORD",
-			"JWT_TOKEN":              "AUTHELIA_JWT_TOKEN",
-			"SESSION_ENCRYPTION_KEY": "AUTHELIA_SESSION_ENCRYPTION_KEY",
-			"STORAGE_ENCRYPTION_KEY": "AUTHELIA_STORAGE_ENCRYPTION_KEY",
-			"STORAGE_PASSWORD":       "POSTGRES_USER_PASSWORD",
-			"OIDC_PRIVATE_KEY":       "AUTHELIA_OIDC_PRIVATE_KEY",
-			"OIDC_HMAC_SECRET":       "AUTHELIA_OIDC_HMAC_SECRET",
-			"LDAP_PASSWORD":          "LLDAP_LDAP_USER_PASS",
-		},
+		Secrets:         secrets,
 	})
 	return chart
 }
