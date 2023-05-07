@@ -111,6 +111,7 @@ func Ptr[T any](v T) *T {
 func JSIISlice[V any](ss ...V) *[]*V {
 	jsiiSlice := make([]*V, 0)
 	for _, s := range ss {
+		s := s
 		jsiiSlice = append(jsiiSlice, &s)
 	}
 	return &jsiiSlice
