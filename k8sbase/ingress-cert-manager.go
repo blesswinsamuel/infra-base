@@ -25,7 +25,7 @@ func NewCertManager(scope constructs.Construct, props CertManagerProps) construc
 		DisableResourceNameHashes: jsii.Bool(true),
 	})
 
-	helmContents := NewHelmCached(chart, jsii.String("helm"), &HelmProps{
+	NewHelmCached(chart, jsii.String("helm"), &HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("cert-manager"),
 		Namespace:   chart.Namespace(),
@@ -33,12 +33,6 @@ func NewCertManager(scope constructs.Construct, props CertManagerProps) construc
 			"installCRDs": "true",
 		},
 	})
-
-	for _, obj := range *helmContents.ApiObjects() {
-		if *obj.Metadata().Name() == "cert-manager-startupapicheck" || *obj.Metadata().Name() == "cert-manager-startupapicheck:create-cert" {
-			helmContents.Node().TryRemoveChild(obj.Node().Id())
-		}
-	}
 
 	return construct
 }

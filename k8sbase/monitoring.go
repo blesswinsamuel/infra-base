@@ -6,17 +6,19 @@ import (
 )
 
 type MonitoringProps struct {
-	Grafana           GrafanaProps           `yaml:"grafana"`
-	GrafanaDashboards GrafanaDashboardsProps `yaml:"grafanaDashboards"`
-	AlertingRules     AlertingRulesProps     `yaml:"alertingRules"`
-	KubeStateMetrics  KubeStateMetricsProps  `yaml:"kubeStateMetrics"`
-	NodeExporter      NodeExporterProps      `yaml:"nodeExporter"`
-	Vector            VectorProps            `yaml:"vector"`
-	Victoriametrics   VictoriametricsProps   `yaml:"victoriametrics"`
-	Alertmanager      AlertmanagerProps      `yaml:"alertmanager"`
-	Vmagent           VmagentProps           `yaml:"vmagent"`
-	Vmalert           VmalertProps           `yaml:"vmalert"`
-	Loki              LokiProps              `yaml:"loki"`
+	Grafana                GrafanaProps                `yaml:"grafana"`
+	GrafanaDashboards      GrafanaDashboardsProps      `yaml:"grafanaDashboards"`
+	AlertingRules          AlertingRulesProps          `yaml:"alertingRules"`
+	KubeStateMetrics       KubeStateMetricsProps       `yaml:"kubeStateMetrics"`
+	NodeExporter           NodeExporterProps           `yaml:"nodeExporter"`
+	Vector                 VectorProps                 `yaml:"vector"`
+	Victoriametrics        VictoriametricsProps        `yaml:"victoriametrics"`
+	Alertmanager           AlertmanagerProps           `yaml:"alertmanager"`
+	Vmagent                VmagentProps                `yaml:"vmagent"`
+	Vmalert                VmalertProps                `yaml:"vmalert"`
+	Loki                   LokiProps                   `yaml:"loki"`
+	Crowdsec               CrowdsecProps               `yaml:"crowdsec"`
+	CrowdsecTraefikBouncer CrowdsecTraefikBouncerProps `yaml:"crowdsec-traefik-bouncer"`
 }
 
 func NewMonitoring(scope constructs.Construct, props MonitoringProps) constructs.Construct {
@@ -35,6 +37,8 @@ func NewMonitoring(scope constructs.Construct, props MonitoringProps) constructs
 	NewVmagent(construct, props.Vmagent)
 	NewVmalert(construct, props.Vmalert)
 	NewLoki(construct, props.Loki)
+	NewCrowdsec(construct, props.Crowdsec)
+	NewCrowdsecTraefikBouncer(construct, props.CrowdsecTraefikBouncer)
 
 	NewGrafanaDatasource(construct, GrafanaDatasourceProps{})
 

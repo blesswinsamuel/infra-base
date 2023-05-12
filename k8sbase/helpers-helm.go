@@ -49,6 +49,9 @@ func NewHelmCached(scope constructs.Construct, id *string, props *HelmProps) cdk
 	if _, err := exec.LookPath("helm"); err != nil {
 		log.Fatalln("helm LookPath failed", err)
 	}
+	if props.ChartInfo.Repo == nil {
+		log.Fatalf("props.ChartInfo is nil for %s", *props.ReleaseName)
+	}
 	chartPath := fmt.Sprintf("%s/%s-%s.tgz", chartsCacheDir, *props.ChartInfo.Chart, *props.ChartInfo.Version)
 	if _, err := os.Stat(chartPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -70,6 +73,6 @@ func NewHelmCached(scope constructs.Construct, id *string, props *HelmProps) cdk
 		ReleaseName: props.ReleaseName,
 		Namespace:   props.Namespace,
 		Values:      props.Values,
-		HelmFlags:   jsii.Strings("--include-crds"),
+		HelmFlags:   jsii.Strings("--include-crds", "--skip-tests", "--no-hooks"),
 	})
 }

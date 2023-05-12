@@ -49,6 +49,18 @@ secrets:
 
 monitoring:
   enabled: false
+  crowdsec:
+    enabled: false
+    helm:
+      repo: https://crowdsecurity.github.io/helm-charts
+      chart: crowdsec
+      version: "0.9.6"
+  crowdsec-traefik-bouncer:
+    enabled: false
+    helm:
+      repo: https://crowdsecurity.github.io/helm-charts
+      chart: crowdsec-traefik-bouncer
+      version: "0.1.2"
   kubeStateMetrics:
     enabled: true
     helm:
@@ -147,6 +159,34 @@ monitoring:
           - url: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
             id: traefik-kubernetes
             title: Traefik
+          - url: https://grafana.com/api/dashboards/17501/revisions/1/download
+            id: traefik-logs
+            title: Traefik Logs
+
+      # CrowdSec
+      community-crowdsec:
+        folder: CrowdSec
+        urls:
+          - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Details%20per%20Machine.json
+            id: crowdsec-details-per-machine
+            title: Crowdsec Details per Machine
+            replacements:
+              machine: job
+          - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Insight.json
+            id: crowdsec-insight
+            title: Crowdsec Insight
+            replacements:
+              machine: job
+          - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Overview.json
+            id: crowdsec-overview
+            title: Crowdsec Overview
+            replacements:
+              machine: job
+          - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/LAPI%20Metrics.json
+            id: lapi-metrics
+            title: LAPI Metrics
+            replacements:
+              machine: job
 
       # Databases
       databases:
