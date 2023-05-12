@@ -44,7 +44,7 @@ func NewAlertmanager(scope constructs.Construct, props AlertmanagerProps) cdk8s.
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("alertmanager"), &cprops)
 
-	helmOutput := NewHelmCached(chart, jsii.String("helm"), &HelmProps{
+	NewHelmCached(chart, jsii.String("helm"), &HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("alertmanager"),
 		Namespace:   chart.Namespace(),
@@ -102,12 +102,6 @@ func NewAlertmanager(scope constructs.Construct, props AlertmanagerProps) cdk8s.
 			},
 		},
 	})
-
-	for _, obj := range *helmOutput.ApiObjects() {
-		if *obj.Metadata().Name() == "alertmanager-test-connection" {
-			helmOutput.Node().TryRemoveChild(obj.Node().Id())
-		}
-	}
 
 	k8s.NewKubeSecret(chart, jsii.String("alertmanager-templates"), &k8s.KubeSecretProps{
 		Metadata: &k8s.ObjectMeta{
