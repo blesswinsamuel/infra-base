@@ -2,6 +2,7 @@ package k8sbase
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"strings"
 
@@ -405,4 +406,8 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		})
 	}
 	return chart
+}
+
+func Base64Encode(s string) string {
+	return base64.StdEncoding.EncodeToString([]byte(s))
 }

@@ -104,6 +104,20 @@ func MapKeys[K constraints.Ordered, V any](m map[K]V) []K {
 	return keys
 }
 
+func MapToEnvVars(m map[string]string) *[]*k8s.EnvVar {
+	envVars := make([]*k8s.EnvVar, 0)
+	for k, v := range m {
+		envVars = append(envVars, &k8s.EnvVar{
+			Name:  jsii.String(k),
+			Value: jsii.String(v),
+		})
+	}
+	slices.SortFunc(envVars, func(i, j *k8s.EnvVar) bool {
+		return *i.Name < *j.Name
+	})
+	return &envVars
+}
+
 func Ptr[T any](v T) *T {
 	return &v
 }
