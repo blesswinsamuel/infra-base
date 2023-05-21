@@ -3,8 +3,8 @@ module github.com/blesswinsamuel/infra-base
 go 1.20
 
 require (
-	github.com/aws/constructs-go/constructs/v10 v10.1.312
-	github.com/aws/jsii-runtime-go v1.80.0
+	github.com/aws/constructs-go/constructs/v10 v10.2.30
+	github.com/aws/jsii-runtime-go v1.81.0
 	github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2 v2.7.56
 	github.com/muesli/reflow v0.3.0
 	golang.org/x/exp v0.0.0-20230420155640-133eef4313cb
@@ -16,7 +16,7 @@ require (
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/yuin/goldmark v1.4.13 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/mod v0.9.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/tools v0.7.0 // indirect
+	golang.org/x/mod v0.10.0 // indirect
+	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/tools v0.8.0 // indirect
 )
