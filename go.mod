@@ -5,9 +5,9 @@ go 1.20
 require (
 	github.com/aws/constructs-go/constructs/v10 v10.2.30
 	github.com/aws/jsii-runtime-go v1.81.0
-	github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2 v2.7.56
+	github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2 v2.7.72
 	github.com/muesli/reflow v0.3.0
-	golang.org/x/exp v0.0.0-20230420155640-133eef4313cb
+	golang.org/x/exp v0.0.0-20230519143937-03e91628a987
 	gopkg.in/yaml.v3 v3.0.1
 )
 
