@@ -83,6 +83,7 @@ monitoring:
     ingress:
       subDomain: "grafana"
   grafanaDashboards:
+    enabled: true
     dashboards:
       # Kubernetes
       community-kubernetes:

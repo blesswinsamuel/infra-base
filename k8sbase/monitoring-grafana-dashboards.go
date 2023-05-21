@@ -20,6 +20,7 @@ import (
 )
 
 type GrafanaDashboardsProps struct {
+	Enabled    bool                                    `yaml:"enabled"`
 	Dashboards map[string]GrafanaDashboardsConfigProps `yaml:"dashboards"`
 }
 
@@ -74,6 +75,9 @@ func GetCachedDashboard(url string, id string) []byte {
 }
 
 func NewGrafanaDashboards(scope constructs.Construct, props GrafanaDashboardsProps) cdk8s.Chart {
+	if !props.Enabled {
+		return nil
+	}
 	cprops := cdk8s.ChartProps{
 		Namespace: GetNamespace(scope),
 	}
