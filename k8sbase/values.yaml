@@ -10,7 +10,7 @@ ingress:
     helm:
       repo: https://charts.jetstack.io
       chart: cert-manager
-      version: "v1.11.1"
+      version: "v1.12.0"
   certIssuer:
     enabled: false
     # namespace: ""
@@ -22,7 +22,7 @@ ingress:
     helm:
       repo: https://traefik.github.io/charts
       chart: traefik
-      version: "22.1.0"
+      version: "22.3.0"
     dashboardIngress:
       enabled: false
       subDomain: traefik
@@ -66,13 +66,13 @@ monitoring:
     helm:
       repo: https://prometheus-community.github.io/helm-charts
       chart: kube-state-metrics
-      version: "5.4.2"
+      version: "5.6.2"
   grafana:
     enabled: true
     helm:
       repo: https://grafana.github.io/helm-charts
       chart: grafana
-      version: "6.52.9"
+      version: "6.56.5"
     namespaced: false
     authProxyEnabled: true
     anonymousAuthEnabled: false
@@ -244,7 +244,7 @@ monitoring:
     helm:
       repo: https://victoriametrics.github.io/helm-charts
       chart: victoria-metrics-alert
-      version: "0.5.23"
+      version: "0.6.1"
     ingress:
       enabled: true
       subDomain: "vmalert"
@@ -253,7 +253,7 @@ monitoring:
     helm:
       repo: https://prometheus-community.github.io/helm-charts
       chart: alertmanager
-      version: "0.29.0"
+      version: "0.30.1"
     ingress:
       enabled: true
       subDomain: "alertmanager"
@@ -269,7 +269,7 @@ monitoring:
     helm:
       repo: https://prometheus-community.github.io/helm-charts
       chart: prometheus-node-exporter
-      version: "4.16.0"
+      version: "4.17.2"
   victoriametrics:
     enabled: true
     helm:
@@ -292,14 +292,14 @@ monitoring:
     helm:
       repo: https://grafana.github.io/helm-charts
       chart: loki
-      version: "5.0.0"
+      version: "5.5.2"
     storage: local
   vector:
     enabled: true
     helm:
       repo: https://helm.vector.dev
       chart: vector
-      version: "0.20.1"
+      version: "0.21.1"
     syslogServer:
       enabled: false
     ingress:
@@ -313,13 +313,13 @@ databases:
     helm:
       repo: https://charts.bitnami.com/bitnami
       chart: postgresql
-      version: "12.2.8"
+      version: "12.5.3"
     image:
       # not straightforward to upgrade to postgres 15
       # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
       # 2023-03-18 16:30:09.021 GMT [1] DETAIL:  The data directory was initialized by PostgreSQL version 14, which is not compatible with this version 15.2.
       repository: bitnami/postgresql
-      tag: 14.7.0
+      tag: 14.8.0
     namespace: database
     database: null
     username: null
@@ -331,7 +331,7 @@ databases:
       databases: []
       postgresImage:
         repository: postgres
-        tag: 14.7
+        tag: 14.8
       minioImage:
         repository: minio/mc
         tag: RELEASE.2022-12-24T15-21-38Z
@@ -340,7 +340,7 @@ databases:
     helm:
       repo: https://charts.bitnami.com/bitnami
       chart: redis
-      version: "17.9.5"
+      version: "17.11.3"
     namespace: database
 
 auth:
