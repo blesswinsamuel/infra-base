@@ -35,10 +35,11 @@ type ChartInfo struct {
 }
 
 type HelmProps struct {
-	ChartInfo   ChartInfo
-	ReleaseName *string
-	Namespace   *string
-	Values      *map[string]interface{}
+	ChartInfo           ChartInfo
+	ChartFileNamePrefix *string
+	ReleaseName         *string
+	Namespace           *string
+	Values              *map[string]interface{}
 }
 
 func NewHelmCached(scope constructs.Construct, id *string, props *HelmProps) cdk8s.Helm {
@@ -52,7 +53,11 @@ func NewHelmCached(scope constructs.Construct, id *string, props *HelmProps) cdk
 	if props.ChartInfo.Repo == nil {
 		log.Fatalf("props.ChartInfo is nil for %s", *props.ReleaseName)
 	}
-	chartPath := fmt.Sprintf("%s/%s-%s.tgz", chartsCacheDir, *props.ChartInfo.Chart, *props.ChartInfo.Version)
+	chartFileName := *props.ChartInfo.Chart + "-" + *props.ChartInfo.Version + ".tgz"
+	if props.ChartFileNamePrefix != nil {
+		chartFileName = *props.ChartFileNamePrefix + *props.ChartInfo.Version + ".tgz"
+	}
+	chartPath := fmt.Sprintf("%s/%s", chartsCacheDir, chartFileName)
 	if _, err := os.Stat(chartPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			cmd := exec.Command("helm", "pull", *props.ChartInfo.Chart, "--repo", *props.ChartInfo.Repo, "--destination", chartsCacheDir, "--version", *props.ChartInfo.Version)
