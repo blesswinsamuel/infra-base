@@ -545,6 +545,10 @@ func init() {
 		reflect.TypeOf((*ClusterIssuerSpecAcmeSolversHttp01IngressPodTemplateSpecAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions)(nil)).Elem(),
 	)
 	_jsii_.RegisterStruct(
+		"cert-managerio.ClusterIssuerSpecAcmeSolversHttp01IngressPodTemplateSpecImagePullSecrets",
+		reflect.TypeOf((*ClusterIssuerSpecAcmeSolversHttp01IngressPodTemplateSpecImagePullSecrets)(nil)).Elem(),
+	)
+	_jsii_.RegisterStruct(
 		"cert-managerio.ClusterIssuerSpecAcmeSolversHttp01IngressPodTemplateSpecTolerations",
 		reflect.TypeOf((*ClusterIssuerSpecAcmeSolversHttp01IngressPodTemplateSpecTolerations)(nil)).Elem(),
 	)
@@ -583,6 +587,10 @@ func init() {
 	_jsii_.RegisterStruct(
 		"cert-managerio.ClusterIssuerSpecVaultAuthKubernetesSecretRef",
 		reflect.TypeOf((*ClusterIssuerSpecVaultAuthKubernetesSecretRef)(nil)).Elem(),
+	)
+	_jsii_.RegisterStruct(
+		"cert-managerio.ClusterIssuerSpecVaultAuthKubernetesServiceAccountRef",
+		reflect.TypeOf((*ClusterIssuerSpecVaultAuthKubernetesServiceAccountRef)(nil)).Elem(),
 	)
 	_jsii_.RegisterStruct(
 		"cert-managerio.ClusterIssuerSpecVaultAuthTokenSecretRef",
@@ -954,6 +962,10 @@ func init() {
 		reflect.TypeOf((*IssuerSpecAcmeSolversHttp01IngressPodTemplateSpecAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions)(nil)).Elem(),
 	)
 	_jsii_.RegisterStruct(
+		"cert-managerio.IssuerSpecAcmeSolversHttp01IngressPodTemplateSpecImagePullSecrets",
+		reflect.TypeOf((*IssuerSpecAcmeSolversHttp01IngressPodTemplateSpecImagePullSecrets)(nil)).Elem(),
+	)
+	_jsii_.RegisterStruct(
 		"cert-managerio.IssuerSpecAcmeSolversHttp01IngressPodTemplateSpecTolerations",
 		reflect.TypeOf((*IssuerSpecAcmeSolversHttp01IngressPodTemplateSpecTolerations)(nil)).Elem(),
 	)
@@ -992,6 +1004,10 @@ func init() {
 	_jsii_.RegisterStruct(
 		"cert-managerio.IssuerSpecVaultAuthKubernetesSecretRef",
 		reflect.TypeOf((*IssuerSpecVaultAuthKubernetesSecretRef)(nil)).Elem(),
+	)
+	_jsii_.RegisterStruct(
+		"cert-managerio.IssuerSpecVaultAuthKubernetesServiceAccountRef",
+		reflect.TypeOf((*IssuerSpecVaultAuthKubernetesServiceAccountRef)(nil)).Elem(),
 	)
 	_jsii_.RegisterStruct(
 		"cert-managerio.IssuerSpecVaultAuthTokenSecretRef",

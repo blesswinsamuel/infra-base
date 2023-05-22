@@ -9,7 +9,7 @@ type ChallengeSpecSolverHttp01IngressPodTemplate struct {
 	Metadata *ChallengeSpecSolverHttp01IngressPodTemplateMetadata `field:"optional" json:"metadata" yaml:"metadata"`
 	// PodSpec defines overrides for the HTTP01 challenge solver pod.
 	//
-	// Only the 'priorityClassName', 'nodeSelector', 'affinity', 'serviceAccountName' and 'tolerations' fields are supported currently. All other fields will be ignored.
+	// Check ACMEChallengeSolverHTTP01IngressPodSpec to find out currently supported fields. All other fields will be ignored.
 	Spec *ChallengeSpecSolverHttp01IngressPodTemplateSpec `field:"optional" json:"spec" yaml:"spec"`
 }
 

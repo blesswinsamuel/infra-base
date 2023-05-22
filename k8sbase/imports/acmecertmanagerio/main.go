@@ -329,6 +329,10 @@ func init() {
 		reflect.TypeOf((*ChallengeSpecSolverHttp01IngressPodTemplateSpecAffinityPodAntiAffinityRequiredDuringSchedulingIgnoredDuringExecutionNamespaceSelectorMatchExpressions)(nil)).Elem(),
 	)
 	_jsii_.RegisterStruct(
+		"acmecert-managerio.ChallengeSpecSolverHttp01IngressPodTemplateSpecImagePullSecrets",
+		reflect.TypeOf((*ChallengeSpecSolverHttp01IngressPodTemplateSpecImagePullSecrets)(nil)).Elem(),
+	)
+	_jsii_.RegisterStruct(
 		"acmecert-managerio.ChallengeSpecSolverHttp01IngressPodTemplateSpecTolerations",
 		reflect.TypeOf((*ChallengeSpecSolverHttp01IngressPodTemplateSpecTolerations)(nil)).Elem(),
 	)
