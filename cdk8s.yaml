@@ -14,4 +14,4 @@ imports:
   - traefikservices:=https://github.com/traefik/traefik-helm-chart/raw/v23.0.1/traefik/crds/traefik.io_traefikservices.yaml
   - https://github.com/external-secrets/external-secrets/raw/v0.8.1/deploy/crds/bundle.yaml
   # - https://github.com/external-secrets/external-secrets/releases/download/v0.8.1/external-secrets.yaml
-  - https://github.com/cert-manager/cert-manager/releases/download/v1.11.1/cert-manager.crds.yaml
+  - https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.crds.yaml
