@@ -4,8 +4,8 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/certmanagerio"
-	"github.com/blesswinsamuel/infra-base/k8sbase/imports/ingressroute_traefikcontainous"
-	"github.com/blesswinsamuel/infra-base/k8sbase/imports/middlewares_traefikcontainous"
+	"github.com/blesswinsamuel/infra-base/k8sbase/imports/ingressroute_traefikio"
+	"github.com/blesswinsamuel/infra-base/k8sbase/imports/middlewares_traefikio"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
@@ -140,30 +140,30 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 			},
 		})
 
-		ingressroute_traefikcontainous.NewIngressRoute(chart, jsii.String("traefik-dashboard-external"), &ingressroute_traefikcontainous.IngressRouteProps{
+		ingressroute_traefikio.NewIngressRoute(chart, jsii.String("traefik-dashboard-external"), &ingressroute_traefikio.IngressRouteProps{
 			Metadata: &cdk8s.ApiObjectMetadata{
 				Name: jsii.String("traefik-dashboard-external"),
 			},
-			Spec: &ingressroute_traefikcontainous.IngressRouteSpec{
+			Spec: &ingressroute_traefikio.IngressRouteSpec{
 				EntryPoints: jsii.PtrSlice("websecure"),
-				Routes: &[]*ingressroute_traefikcontainous.IngressRouteSpecRoutes{
+				Routes: &[]*ingressroute_traefikio.IngressRouteSpecRoutes{
 					{
 						Match: jsii.String("Host(`" + props.DashboardIngress.SubDomain + "." + GetDomain(chart) + "`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))"),
-						Kind:  ingressroute_traefikcontainous.IngressRouteSpecRoutesKind_RULE,
-						Services: &[]*ingressroute_traefikcontainous.IngressRouteSpecRoutesServices{
+						Kind:  ingressroute_traefikio.IngressRouteSpecRoutesKind_RULE,
+						Services: &[]*ingressroute_traefikio.IngressRouteSpecRoutesServices{
 							{
 								Name: jsii.String("api@internal"),
-								Kind: ingressroute_traefikcontainous.IngressRouteSpecRoutesServicesKind_TRAEFIK_SERVICE,
+								Kind: ingressroute_traefikio.IngressRouteSpecRoutesServicesKind_TRAEFIK_SERVICE,
 							},
 						},
-						Middlewares: &[]*ingressroute_traefikcontainous.IngressRouteSpecRoutesMiddlewares{
+						Middlewares: &[]*ingressroute_traefikio.IngressRouteSpecRoutesMiddlewares{
 							GetTraefikCRAuthMiddleware(chart),
 						},
 					},
 				},
-				Tls: &ingressroute_traefikcontainous.IngressRouteSpecTls{
+				Tls: &ingressroute_traefikio.IngressRouteSpecTls{
 					SecretName: jsii.String("traefik-dashboard-tls"),
-					Domains: &[]*ingressroute_traefikcontainous.IngressRouteSpecTlsDomains{
+					Domains: &[]*ingressroute_traefikio.IngressRouteSpecTlsDomains{
 						{
 							Main: jsii.String(props.DashboardIngress.SubDomain + "." + GetDomain(chart)),
 						},
@@ -174,12 +174,12 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 	}
 
 	if props.Middlewares.StripPrefix.Enabled {
-		middlewares_traefikcontainous.NewMiddleware(chart, jsii.String("traefik-strip-prefix"), &middlewares_traefikcontainous.MiddlewareProps{
+		middlewares_traefikio.NewMiddleware(chart, jsii.String("traefik-strip-prefix"), &middlewares_traefikio.MiddlewareProps{
 			Metadata: &cdk8s.ApiObjectMetadata{
 				Name: jsii.String("traefik-strip-prefix"),
 			},
-			Spec: &middlewares_traefikcontainous.MiddlewareSpec{
-				StripPrefixRegex: &middlewares_traefikcontainous.MiddlewareSpecStripPrefixRegex{
+			Spec: &middlewares_traefikio.MiddlewareSpec{
+				StripPrefixRegex: &middlewares_traefikio.MiddlewareSpecStripPrefixRegex{
 					Regex: jsii.PtrSlice("^/[^/]+"),
 				},
 			},

@@ -22,7 +22,7 @@ ingress:
     helm:
       repo: https://traefik.github.io/charts
       chart: traefik
-      version: "22.3.0"
+      version: "23.0.1"
     dashboardIngress:
       enabled: false
       subDomain: traefik
