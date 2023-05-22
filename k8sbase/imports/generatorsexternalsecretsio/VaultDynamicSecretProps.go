@@ -1,4 +1,3 @@
-// generatorsexternal-secretsio
 package generatorsexternalsecretsio
 
 import (

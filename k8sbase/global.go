@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/imports/ingressroute_traefikcontainous"
+	"github.com/blesswinsamuel/infra-base/k8sbase/imports/ingressroute_traefikio"
 )
 
 type GlobalProps struct {
@@ -40,12 +40,12 @@ func GetTraefikAuthMiddlewareName(scope constructs.Construct) string {
 	panic("Invalid internetAuthType")
 }
 
-func GetTraefikCRAuthMiddleware(scope constructs.Construct) *ingressroute_traefikcontainous.IngressRouteSpecRoutesMiddlewares {
+func GetTraefikCRAuthMiddleware(scope constructs.Construct) *ingressroute_traefikio.IngressRouteSpecRoutesMiddlewares {
 	switch GetGlobal(scope).InternetAuthType {
 	case "traefik-forward-auth":
-		return &ingressroute_traefikcontainous.IngressRouteSpecRoutesMiddlewares{Name: jsii.String("traefik-forward-auth"), Namespace: jsii.String("auth")}
+		return &ingressroute_traefikio.IngressRouteSpecRoutesMiddlewares{Name: jsii.String("traefik-forward-auth"), Namespace: jsii.String("auth")}
 	case "authelia":
-		return &ingressroute_traefikcontainous.IngressRouteSpecRoutesMiddlewares{Name: jsii.String("forwardauth-authelia"), Namespace: jsii.String("auth")}
+		return &ingressroute_traefikio.IngressRouteSpecRoutesMiddlewares{Name: jsii.String("forwardauth-authelia"), Namespace: jsii.String("auth")}
 	}
 	panic("Invalid internetAuthType")
 }

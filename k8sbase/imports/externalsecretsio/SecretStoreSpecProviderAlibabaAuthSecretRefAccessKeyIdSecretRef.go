@@ -1,4 +1,3 @@
-// external-secretsio
 package externalsecretsio
 
 

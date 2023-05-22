@@ -1,6 +1,5 @@
 //go:build !no_runtime_type_checking
 
-// generatorsexternal-secretsio
 package generatorsexternalsecretsio
 
 import (

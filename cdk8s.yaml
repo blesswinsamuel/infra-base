@@ -3,16 +3,15 @@ app: go run .
 imports:
   - k8s
   # https://github.com/cdk8s-team/cdk8s/issues/885
-  - ingressroute:=https://github.com/traefik/traefik-helm-chart/raw/v22.1.0/traefik/crds/ingressroute.yaml
-  - ingressroutetcp:=https://github.com/traefik/traefik-helm-chart/raw/v22.1.0/traefik/crds/ingressroutetcp.yaml
-  - ingressrouteudp:=https://github.com/traefik/traefik-helm-chart/raw/v22.1.0/traefik/crds/ingressrouteudp.yaml
-  - kustomization:=https://github.com/traefik/traefik-helm-chart/raw/v22.1.0/traefik/crds/kustomization.yaml
-  - middlewares:=https://github.com/traefik/traefik-helm-chart/raw/v22.1.0/traefik/crds/middlewares.yaml
-  - middlewarestcp:=https://github.com/traefik/traefik-helm-chart/raw/v22.1.0/traefik/crds/middlewarestcp.yaml
-  - serverstransports:=https://github.com/traefik/traefik-helm-chart/raw/v22.1.0/traefik/crds/serverstransports.yaml
-  - tlsoptions:=https://github.com/traefik/traefik-helm-chart/raw/v22.1.0/traefik/crds/tlsoptions.yaml
-  - tlsstores:=https://github.com/traefik/traefik-helm-chart/raw/v22.1.0/traefik/crds/tlsstores.yaml
-  - traefikservices:=https://github.com/traefik/traefik-helm-chart/raw/v22.1.0/traefik/crds/traefikservices.yaml
+  - ingressroute:=https://github.com/traefik/traefik-helm-chart/raw/v23.0.1/traefik/crds/traefik.io_ingressroutes.yaml
+  - ingressroutetcp:=https://github.com/traefik/traefik-helm-chart/raw/v23.0.1/traefik/crds/traefik.io_ingressroutetcps.yaml
+  - ingressrouteudp:=https://github.com/traefik/traefik-helm-chart/raw/v23.0.1/traefik/crds/traefik.io_ingressrouteudps.yaml
+  - middlewares:=https://github.com/traefik/traefik-helm-chart/raw/v23.0.1/traefik/crds/traefik.io_middlewares.yaml
+  - middlewarestcp:=https://github.com/traefik/traefik-helm-chart/raw/v23.0.1/traefik/crds/traefik.io_middlewaretcps.yaml
+  - serverstransports:=https://github.com/traefik/traefik-helm-chart/raw/v23.0.1/traefik/crds/traefik.io_serverstransports.yaml
+  - tlsoptions:=https://github.com/traefik/traefik-helm-chart/raw/v23.0.1/traefik/crds/traefik.io_tlsoptions.yaml
+  - tlsstores:=https://github.com/traefik/traefik-helm-chart/raw/v23.0.1/traefik/crds/traefik.io_tlsstores.yaml
+  - traefikservices:=https://github.com/traefik/traefik-helm-chart/raw/v23.0.1/traefik/crds/traefik.io_traefikservices.yaml
   - https://github.com/external-secrets/external-secrets/raw/v0.8.1/deploy/crds/bundle.yaml
   # - https://github.com/external-secrets/external-secrets/releases/download/v0.8.1/external-secrets.yaml
   - https://github.com/cert-manager/cert-manager/releases/download/v1.11.1/cert-manager.crds.yaml

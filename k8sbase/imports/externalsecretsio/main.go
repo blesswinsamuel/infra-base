@@ -1,3 +1,4 @@
+// external-secretsio
 package externalsecretsio
 
 import (
