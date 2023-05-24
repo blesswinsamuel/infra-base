@@ -195,4 +195,127 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 			},
 		},
 	})
+	NewRestoreJobPostgres(chart, props)
+}
+
+func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
+	if !props.Postgres.Enabled {
+		return
+	}
+	sharedMountPath := jsii.String("/pgdumps")
+	k8s.NewKubeConfigMap(chart, jsii.String("backup-job-restore-scripts-cm"), &k8s.KubeConfigMapProps{
+		Metadata: &k8s.ObjectMeta{
+			Name: jsii.String("backup-job-restore-scripts"),
+		},
+		Data: &map[string]*string{
+			"kopia-restore.sh": GoTemplate(strings.TrimSpace(dedent.String(`
+				#!/bin/bash
+				set -e
+				set -o pipefail
+
+				# rm -f /pgdumps/*
+
+				kopia repository connect server --url http://kopia.system.svc.cluster.local:51515 --no-grpc --override-username kopia
+				kopia snapshot restore /pgdumps --snapshot-time latest
+				ls -lah /pgdumps
+			`)), props.Kopia),
+			"restore-postgres-dump.sh": GoTemplate(strings.TrimSpace(dedent.String(`
+				#!/bin/bash
+				set -e
+				set -o pipefail
+			
+				{{- range $n, $database := . }}
+				echo "Restoring dump for database '{{ $database }}'"
+				echo "Terminating active connections..."
+				createdb {{ $database }} || echo 'Database already exists'
+				psql -d {{ $database }} -c 'SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid();'
+				echo "Dropping the database..."
+				dropdb {{ $database }} || true
+				echo "Creating the database..."
+				createdb {{ $database }}
+				echo "Restoring the database..."
+				pg_restore -Fc -d {{ $database }} --no-owner < "/pgdumps/{{ $database }}.pgdump"
+				echo "Database restored."
+				{{- end }}
+			`)), props.Postgres.Databases),
+		},
+	})
+
+	props.Postgres.LocalBackupVolume.Name = jsii.String("shared-backup-data")
+	k8s.NewKubeCronJob(chart, jsii.String("restore-job-postgres"), &k8s.KubeCronJobProps{
+		Metadata: &k8s.ObjectMeta{
+			Name: jsii.String("restore-job-postgres"),
+			Annotations: &map[string]*string{
+				"secret.reloader.stakater.com/reload": jsii.String("backup-job-postgres"),
+			},
+		},
+		Spec: &k8s.CronJobSpec{
+			Suspend:  jsii.Bool(true),
+			Schedule: jsii.String("* * 31 2 *"),
+			JobTemplate: &k8s.JobTemplateSpec{
+				Spec: &k8s.JobSpec{
+					Template: &k8s.PodTemplateSpec{
+						Spec: &k8s.PodSpec{
+							Hostname: jsii.String("backup-job-postgres"),
+							Volumes: &[]*k8s.Volume{
+								props.Postgres.LocalBackupVolume,
+								{
+									Name: jsii.String("scripts"),
+									ConfigMap: &k8s.ConfigMapVolumeSource{
+										Name:        jsii.String("backup-job-restore-scripts"),
+										DefaultMode: jsii.Number(0o755),
+									},
+								},
+							},
+							InitContainers: &[]*k8s.Container{
+								{
+									Name:  jsii.String("kopia-restore"),
+									Image: props.Kopia.Image.ToString(),
+									Command: &[]*string{
+										jsii.String("/script/kopia-restore.sh"),
+									},
+									EnvFrom: &[]*k8s.EnvFromSource{
+										// {SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-job-s3")}},
+									},
+									Env: &[]*k8s.EnvVar{
+										{Name: jsii.String("KOPIA_PASSWORD"), Value: jsii.String("could-be-anything")},
+									},
+									VolumeMounts: &[]*k8s.VolumeMount{
+										{Name: jsii.String("shared-backup-data"), MountPath: sharedMountPath},
+										{Name: jsii.String("scripts"), MountPath: jsii.String("/script/kopia-restore.sh"), SubPath: jsii.String("kopia-restore.sh")},
+									},
+								},
+								{
+									Name:  jsii.String("restore-dump"),
+									Image: props.Postgres.Image.ToString(),
+									Command: &[]*string{
+										jsii.String("/script/restore-postgres-dump.sh"),
+									},
+									EnvFrom: &[]*k8s.EnvFromSource{
+										{
+											SecretRef: &k8s.SecretEnvSource{
+												Name: jsii.String("backup-job-postgres"),
+											},
+										},
+									},
+									VolumeMounts: &[]*k8s.VolumeMount{
+										{Name: jsii.String("shared-backup-data"), MountPath: sharedMountPath},
+										{Name: jsii.String("scripts"), MountPath: jsii.String("/script/restore-postgres-dump.sh"), SubPath: jsii.String("restore-postgres-dump.sh")},
+									},
+								},
+							},
+							Containers: &[]*k8s.Container{
+								{
+									Name:    jsii.String("job-done"),
+									Image:   jsii.String("busybox"),
+									Command: jsii.PtrSlice("sh", "-c", "echo 'Restore complete' && sleep 1"),
+								},
+							},
+							RestartPolicy: jsii.String("OnFailure"),
+						},
+					},
+				},
+			},
+		},
+	})
 }
