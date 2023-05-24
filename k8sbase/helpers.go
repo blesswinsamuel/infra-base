@@ -2,11 +2,12 @@ package k8sbase
 
 import (
 	"bytes"
-	"fmt"
+	"encoding/json"
 	"log"
 	"os"
 	"path/filepath"
 	"text/template"
+	"time"
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
@@ -151,6 +152,14 @@ func FromYamlString[T any](s string) T {
 	return v
 }
 
+func ToJSONString(v any) string {
+	out, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return string(out)
+}
+
 func GoTemplate(s string, data interface{}) *string {
 	tmpl, err := template.New("tmpl").Parse(s)
 	if err != nil {
@@ -231,10 +240,8 @@ func NewKappConfig(scope constructs.Construct) constructs.Construct {
 }
 
 func Synth(app cdk8s.App) {
-	fmt.Println("Patching...")
-	// for _, chart := range *app.Charts() {
-	// 	patchObjects(chart.Node())
-	// }
+	log.Println("Starting synth...")
+	startTime := time.Now()
 	NewKappConfig(app)
 
 	if err := os.RemoveAll(*app.Outdir()); err != nil {
@@ -243,24 +250,7 @@ func Synth(app cdk8s.App) {
 
 	app.Synth()
 
-	// // read all files and escape {{ }} to avoid templating by helm
-	// files, err := filepath.Glob(filepath.Join(*app.Outdir(), "*.yaml"))
-	// if err != nil {
-	// 	log.Fatalf("Glob: %v", err)
-	// }
-	// for _, file := range files {
-	// 	bytes, err := os.ReadFile(file)
-	// 	if err != nil {
-	// 		log.Fatalf("ReadFile: %v", err)
-	// 	}
-	// 	replacer := strings.NewReplacer("{{", "{{\"{{\"}}", "}}", "{{\"}}\"}}")
-	// 	bytes = []byte(replacer.Replace(string(bytes)))
-	// 	// write back to file
-	// 	if err := os.WriteFile(file, bytes, 0644); err != nil {
-	// 		log.Fatalf("WriteFile: %v", err)
-	// 	}
-	// }
-	log.Println("Done.")
+	log.Printf("Synth done in %s.", time.Since(startTime))
 }
 
 func TemplateOutputFiles(app cdk8s.App, vars any) {

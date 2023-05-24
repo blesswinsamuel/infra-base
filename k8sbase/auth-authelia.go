@@ -14,8 +14,8 @@ type AutheliaProps struct {
 	Ingress   struct {
 		SubDomain string `yaml:"subDomain"`
 	} `yaml:"ingress"`
-	Rules []map[string]interface{} `yaml:"rules"`
-	OIDC  struct {
+	AccessControl map[string]interface{} `yaml:"accessControl"`
+	OIDC          struct {
 		Enabled                bool                     `yaml:"enabled"`
 		IssuerCertificateChain string                   `yaml:"issuer_certificate_chain"`
 		Clients                []map[string]interface{} `yaml:"clients"`
@@ -136,10 +136,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 				"default_redirection_url": "https://" +
 					Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") +
 					GetDomain(scope),
-				"access_control": map[string]interface{}{
-					"default_policy": "deny",
-					"rules":          props.Rules,
-				},
+				"access_control": props.AccessControl,
 				"session": map[string]interface{}{
 					"redis": map[string]interface{}{
 						"host": props.Database.Redis.Host,

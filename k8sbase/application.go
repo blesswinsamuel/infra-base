@@ -17,6 +17,8 @@ import (
 type ApplicationProps struct {
 	Kind               string                  `yaml:"kind"`
 	Name               string                  `yaml:"name"`
+	Hostname           string                  `yaml:"hostname"`
+	TopAnnotations     map[string]string       `yaml:"topAnnotations"`
 	Annotations        map[string]string       `yaml:"annotations"`
 	PodSecurityContext *k8s.PodSecurityContext `yaml:"securityContext"`
 	ImagePullSecrets   string                  `yaml:"imagePullSecrets"`
@@ -243,7 +245,17 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			ReadinessProbe: container.ReadinessProbe,
 		})
 	}
+	for _, vol := range props.ExtraVolumes {
+		if vol.Secret != nil {
+			secretReloadAnnotationValue = append(secretReloadAnnotationValue, *vol.Secret.SecretName)
+		}
+	}
 	topAnnotations := map[string]*string{}
+	if len(props.TopAnnotations) > 0 {
+		for k, v := range props.TopAnnotations {
+			topAnnotations[k] = jsii.String(v)
+		}
+	}
 	if len(secretReloadAnnotationValue) > 0 {
 		topAnnotations["secret.reloader.stakater.com/reload"] = jsii.String(strings.Join(secretReloadAnnotationValue, ","))
 	}
@@ -254,6 +266,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			Annotations: &annotations,
 		},
 		Spec: &k8s.PodSpec{
+			Hostname:        Ternary(props.Hostname != "", &props.Hostname, nil),
 			SecurityContext: props.PodSecurityContext,
 			ImagePullSecrets: Ternary(props.ImagePullSecrets != "", &[]*k8s.LocalObjectReference{
 				{Name: jsii.String(props.ImagePullSecrets)},

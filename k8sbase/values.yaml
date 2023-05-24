@@ -402,3 +402,18 @@ system:
     ingress:
       enabled: true
       subDomain: kubernetes-dashboard
+  kopia:
+    enabled: false
+    image:
+      repository: kopia/kopia
+      tag: "0.13.0"
+  backupJob:
+    enabled: false
+    kopia:
+      image:
+        repository: kopia/kopia
+        tag: "0.13.0"
+    postgres:
+      image:
+        repository: postgres
+        tag: "14.8"
