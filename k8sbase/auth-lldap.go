@@ -21,7 +21,7 @@ func NewLLDAP(scope constructs.Construct, props LLDAPProps) constructs.Construct
 	}
 	return NewApplication(scope, jsii.String("lldap"), &ApplicationProps{
 		Name: "lldap",
-		Container: ApplicationContainer{
+		Containers: []ApplicationContainer{{
 			Name:      "lldap",
 			ImageInfo: props.ImageInfo,
 			Command: []string{
@@ -53,7 +53,7 @@ func NewLLDAP(scope constructs.Construct, props LLDAPProps) constructs.Construct
 			ReadinessProbe: &k8s.Probe{
 				HttpGet: &k8s.HttpGetAction{Path: jsii.String("/health"), Port: k8s.IntOrString_FromNumber(jsii.Number(17170))},
 			},
-		},
+		}},
 		Ingress: []ApplicationIngress{
 			{Host: "lldap." + GetDomain(scope), PortName: "web"},
 		},

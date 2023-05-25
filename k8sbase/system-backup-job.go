@@ -42,16 +42,8 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 	chart := cdk8s.NewChart(scope, jsii.String("backup-job"), &cdk8s.ChartProps{
 		Namespace: GetNamespace(scope),
 	})
-	NewBackupJobPostgres(chart, props)
-	return chart
-}
-
-func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
-	if !props.Postgres.Enabled {
-		return
-	}
 	NewExternalSecret(chart, jsii.String("external-secret-pg"), &ExternalSecretProps{
-		Name: jsii.String("backup-job-postgres"),
+		Name: jsii.String("backup-restore-job-postgres"),
 		Template: &externalsecretsio.ExternalSecretV1Beta1SpecTargetTemplate{
 			Data: &map[string]*string{
 				"PGHOST":     jsii.String("postgres.database.svc.cluster.local"),
@@ -66,7 +58,7 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 		},
 	})
 	NewExternalSecret(chart, jsii.String("external-secret-s3"), &ExternalSecretProps{
-		Name:            jsii.String("backup-job-s3"),
+		Name:            jsii.String("backup-restore-job-s3"),
 		RefreshInterval: jsii.String("2m"),
 		Secrets: map[string]string{
 			"S3_ACCESS_KEY":  "BACKUP_S3_ACCESS_KEY",
@@ -76,14 +68,7 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 			"KOPIA_PASSWORD": "BACKUP_ENCRYPTION_PASSWORD",
 		},
 	})
-	NewExternalSecret(chart, jsii.String("external-secret-heartbeat"), &ExternalSecretProps{
-		Name: jsii.String("backup-job-heartbeat"),
-		Secrets: map[string]string{
-			"HEARTBEAT_URL": "DB_BACKUP_HEARTBEAT_URL",
-		},
-	})
 
-	sharedMountPath := jsii.String("/pgdumps")
 	k8s.NewKubeConfigMap(chart, jsii.String("backup-job-scripts-cm"), &k8s.KubeConfigMapProps{
 		Metadata: &k8s.ObjectMeta{
 			Name: jsii.String("backup-job-scripts"),
@@ -94,12 +79,12 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 				set -e
 				set -o pipefail
 			
-				rm -f /pgdumps/*
+				rm -f $FOLDER/*
 			
 				{{- range $n, $database := . }}
 				FILENAME="{{ $database }}.pgdump"
 				echo "Creating dump '$FILENAME'"
-				pg_dump -Fc {{ $database }} > "/pgdumps/$FILENAME"
+				pg_dump -Fc {{ $database }} > "$FOLDER/$FILENAME"
 				{{- end }}
 			`)), props.Postgres.Databases),
 			"kopia-snapshot.sh": GoTemplate(strings.TrimSpace(dedent.String(`
@@ -108,17 +93,35 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 				set -o pipefail
 			
 				kopia repository connect s3 --bucket=$S3_BUCKET --access-key=$S3_ACCESS_KEY --secret-access-key=$S3_SECRET_KEY --endpoint=$S3_ENDPOINT --override-username kopia
-				kopia snapshot create /pgdumps
+				kopia snapshot create $FOLDER
 			`)), props.Kopia),
 		},
 	})
+
+	NewBackupJobPostgres(chart, props)
+	NewRestoreJobPostgres(chart, props)
+	return chart
+}
+
+func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
+	if !props.Postgres.Enabled {
+		return
+	}
+	NewExternalSecret(chart, jsii.String("external-secret-heartbeat"), &ExternalSecretProps{
+		Name: jsii.String("backup-job-heartbeat"),
+		Secrets: map[string]string{
+			"HEARTBEAT_URL": "DB_BACKUP_HEARTBEAT_URL",
+		},
+	})
+
+	sharedMountPath := jsii.String("/pgdumps")
 
 	props.Postgres.LocalBackupVolume.Name = jsii.String("shared-backup-data")
 	k8s.NewKubeCronJob(chart, jsii.String("backup-job-postgres"), &k8s.KubeCronJobProps{
 		Metadata: &k8s.ObjectMeta{
 			Name: jsii.String("backup-job-postgres"),
 			Annotations: &map[string]*string{
-				"secret.reloader.stakater.com/reload": jsii.String("backup-job-postgres,postgres-backups-heartbeat"),
+				"secret.reloader.stakater.com/reload": jsii.String("backup-restore-job-postgres,postgres-backups-heartbeat"),
 			},
 		},
 		Spec: &k8s.CronJobSpec{
@@ -146,11 +149,10 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 										jsii.String("/script/take-postgres-dump.sh"),
 									},
 									EnvFrom: &[]*k8s.EnvFromSource{
-										{
-											SecretRef: &k8s.SecretEnvSource{
-												Name: jsii.String("backup-job-postgres"),
-											},
-										},
+										{SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-restore-job-postgres")}},
+									},
+									Env: &[]*k8s.EnvVar{
+										{Name: jsii.String("FOLDER"), Value: sharedMountPath},
 									},
 									VolumeMounts: &[]*k8s.VolumeMount{
 										{Name: jsii.String("shared-backup-data"), MountPath: sharedMountPath},
@@ -164,7 +166,10 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 										jsii.String("/script/kopia-snapshot.sh"),
 									},
 									EnvFrom: &[]*k8s.EnvFromSource{
-										{SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-job-s3")}},
+										{SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-restore-job-s3")}},
+									},
+									Env: &[]*k8s.EnvVar{
+										{Name: jsii.String("FOLDER"), Value: sharedMountPath},
 									},
 									VolumeMounts: &[]*k8s.VolumeMount{
 										{Name: jsii.String("shared-backup-data"), MountPath: sharedMountPath},
@@ -193,7 +198,6 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 			},
 		},
 	})
-	NewRestoreJobPostgres(chart, props)
 }
 
 func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
@@ -201,9 +205,9 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 		return
 	}
 	sharedMountPath := jsii.String("/pgdumps")
-	k8s.NewKubeConfigMap(chart, jsii.String("backup-job-restore-scripts-cm"), &k8s.KubeConfigMapProps{
+	k8s.NewKubeConfigMap(chart, jsii.String("restore-job-scripts-cm"), &k8s.KubeConfigMapProps{
 		Metadata: &k8s.ObjectMeta{
-			Name: jsii.String("backup-job-restore-scripts"),
+			Name: jsii.String("restore-job-scripts"),
 		},
 		Data: &map[string]*string{
 			"kopia-restore.sh": GoTemplate(strings.TrimSpace(dedent.String(`
@@ -244,7 +248,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 		Metadata: &k8s.ObjectMeta{
 			Name: jsii.String("restore-job-postgres"),
 			Annotations: &map[string]*string{
-				"secret.reloader.stakater.com/reload": jsii.String("backup-job-postgres"),
+				"secret.reloader.stakater.com/reload": jsii.String("backup-restore-job-postgres"),
 			},
 		},
 		Spec: &k8s.CronJobSpec{
@@ -254,13 +258,13 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 				Spec: &k8s.JobSpec{
 					Template: &k8s.PodTemplateSpec{
 						Spec: &k8s.PodSpec{
-							Hostname: jsii.String("backup-job-postgres"),
+							Hostname: jsii.String("backup-job-postgres"), // should be same as backup job hostname
 							Volumes: &[]*k8s.Volume{
 								props.Postgres.LocalBackupVolume,
 								{
 									Name: jsii.String("scripts"),
 									ConfigMap: &k8s.ConfigMapVolumeSource{
-										Name:        jsii.String("backup-job-restore-scripts"),
+										Name:        jsii.String("restore-job-scripts"),
 										DefaultMode: jsii.Number(0o755),
 									},
 								},
@@ -273,7 +277,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 										jsii.String("/script/kopia-restore.sh"),
 									},
 									EnvFrom: &[]*k8s.EnvFromSource{
-										{SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-job-s3")}},
+										{SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-restore-job-s3")}},
 									},
 									VolumeMounts: &[]*k8s.VolumeMount{
 										{Name: jsii.String("shared-backup-data"), MountPath: sharedMountPath},
@@ -290,7 +294,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 									EnvFrom: &[]*k8s.EnvFromSource{
 										{
 											SecretRef: &k8s.SecretEnvSource{
-												Name: jsii.String("backup-job-postgres"),
+												Name: jsii.String("backup-restore-job-postgres"),
 											},
 										},
 									},
@@ -301,14 +305,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 									TerminationMessagePolicy: jsii.String("FallbackToLogsOnError"),
 								},
 							},
-							Containers: &[]*k8s.Container{
-								{
-									Name:                     jsii.String("job-done"),
-									Image:                    jsii.String("busybox"),
-									Command:                  jsii.PtrSlice("sh", "-c", "echo 'Restore complete' && sleep 1"),
-									TerminationMessagePolicy: jsii.String("FallbackToLogsOnError"),
-								},
-							},
+							Containers:    &[]*k8s.Container{echoContainer("Restore complete")},
 							RestartPolicy: jsii.String("OnFailure"),
 						},
 					},
@@ -316,4 +313,13 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 			},
 		},
 	})
+}
+
+func echoContainer(msg string) *k8s.Container {
+	return &k8s.Container{
+		Name:                     jsii.String("job-done"),
+		Image:                    jsii.String("busybox"),
+		Command:                  jsii.PtrSlice("sh", "-c", "echo 'Restore complete' && sleep 1"),
+		TerminationMessagePolicy: jsii.String("FallbackToLogsOnError"),
+	}
 }
