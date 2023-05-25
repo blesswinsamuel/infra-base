@@ -65,16 +65,17 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 			"PGPASSWORD": "POSTGRES_USER_PASSWORD",
 		},
 	})
-	// NewExternalSecret(chart, jsii.String("external-secret-s3"), &ExternalSecretProps{
-	// 	Name:            jsii.String("backup-job-s3"),
-	// 	RefreshInterval: jsii.String("2m"),
-	// 	Secrets: map[string]string{
-	// 		"S3_ACCESS_KEY": "BACKUP_S3_ACCESS_KEY",
-	// 		"S3_SECRET_KEY": "BACKUP_S3_SECRET_KEY",
-	// 		"S3_ENDPOINT":   "BACKUP_S3_ENDPOINT",
-	// 		"S3_BUCKET":     "BACKUP_S3_BUCKET",
-	// 	},
-	// })
+	NewExternalSecret(chart, jsii.String("external-secret-s3"), &ExternalSecretProps{
+		Name:            jsii.String("backup-job-s3"),
+		RefreshInterval: jsii.String("2m"),
+		Secrets: map[string]string{
+			"S3_ACCESS_KEY":  "BACKUP_S3_ACCESS_KEY",
+			"S3_SECRET_KEY":  "BACKUP_S3_SECRET_KEY",
+			"S3_ENDPOINT":    "BACKUP_S3_ENDPOINT",
+			"S3_BUCKET":      "BACKUP_S3_BUCKET",
+			"KOPIA_PASSWORD": "BACKUP_ENCRYPTION_PASSWORD",
+		},
+	})
 	NewExternalSecret(chart, jsii.String("external-secret-heartbeat"), &ExternalSecretProps{
 		Name: jsii.String("backup-job-heartbeat"),
 		Secrets: map[string]string{
@@ -106,7 +107,7 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 				set -e
 				set -o pipefail
 			
-				kopia repository connect server --url http://kopia.system.svc.cluster.local:51515 --no-grpc --override-username kopia
+				kopia repository connect s3 --bucket=$S3_BUCKET --access-key=$S3_ACCESS_KEY --secret-access-key=$S3_SECRET_KEY --endpoint=$S3_ENDPOINT --override-username kopia
 				kopia snapshot create /pgdumps
 			`)), props.Kopia),
 		},
@@ -163,10 +164,7 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 										jsii.String("/script/kopia-snapshot.sh"),
 									},
 									EnvFrom: &[]*k8s.EnvFromSource{
-										// {SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-job-s3")}},
-									},
-									Env: &[]*k8s.EnvVar{
-										{Name: jsii.String("KOPIA_PASSWORD"), Value: jsii.String("could-be-anything")},
+										{SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-job-s3")}},
 									},
 									VolumeMounts: &[]*k8s.VolumeMount{
 										{Name: jsii.String("shared-backup-data"), MountPath: sharedMountPath},
@@ -215,7 +213,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 
 				# rm -f /pgdumps/*
 
-				kopia repository connect server --url http://kopia.system.svc.cluster.local:51515 --no-grpc --override-username kopia
+				kopia repository connect s3 --bucket=$S3_BUCKET --access-key=$S3_ACCESS_KEY --secret-access-key=$S3_SECRET_KEY --endpoint=$S3_ENDPOINT --override-username kopia
 				kopia snapshot restore /pgdumps --snapshot-time latest
 				ls -lah /pgdumps
 			`)), props.Kopia),
@@ -275,15 +273,13 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 										jsii.String("/script/kopia-restore.sh"),
 									},
 									EnvFrom: &[]*k8s.EnvFromSource{
-										// {SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-job-s3")}},
-									},
-									Env: &[]*k8s.EnvVar{
-										{Name: jsii.String("KOPIA_PASSWORD"), Value: jsii.String("could-be-anything")},
+										{SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-job-s3")}},
 									},
 									VolumeMounts: &[]*k8s.VolumeMount{
 										{Name: jsii.String("shared-backup-data"), MountPath: sharedMountPath},
 										{Name: jsii.String("scripts"), MountPath: jsii.String("/script/kopia-restore.sh"), SubPath: jsii.String("kopia-restore.sh")},
 									},
+									TerminationMessagePolicy: jsii.String("FallbackToLogsOnError"),
 								},
 								{
 									Name:  jsii.String("restore-dump"),
@@ -302,13 +298,15 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 										{Name: jsii.String("shared-backup-data"), MountPath: sharedMountPath},
 										{Name: jsii.String("scripts"), MountPath: jsii.String("/script/restore-postgres-dump.sh"), SubPath: jsii.String("restore-postgres-dump.sh")},
 									},
+									TerminationMessagePolicy: jsii.String("FallbackToLogsOnError"),
 								},
 							},
 							Containers: &[]*k8s.Container{
 								{
-									Name:    jsii.String("job-done"),
-									Image:   jsii.String("busybox"),
-									Command: jsii.PtrSlice("sh", "-c", "echo 'Restore complete' && sleep 1"),
+									Name:                     jsii.String("job-done"),
+									Image:                    jsii.String("busybox"),
+									Command:                  jsii.PtrSlice("sh", "-c", "echo 'Restore complete' && sleep 1"),
+									TerminationMessagePolicy: jsii.String("FallbackToLogsOnError"),
 								},
 							},
 							RestartPolicy: jsii.String("OnFailure"),
