@@ -323,18 +323,6 @@ databases:
     namespace: database
     database: null
     username: null
-    backup:
-      enabled: false
-      schedule: "0 */12 * * *"
-      bucket: "testbucket"
-      path: "path/to/backup"
-      databases: []
-      postgresImage:
-        repository: postgres
-        tag: 14.8
-      minioImage:
-        repository: minio/mc
-        tag: RELEASE.2022-12-24T15-21-38Z
   redis:
     enabled: false
     helm:

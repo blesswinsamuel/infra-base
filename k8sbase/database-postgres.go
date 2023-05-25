@@ -7,12 +7,11 @@ import (
 )
 
 type PostgresProps struct {
-	Enabled       bool                       `yaml:"enabled"`
-	HelmChartInfo ChartInfo                  `yaml:"helm"`
-	ImageInfo     ImageInfo                  `yaml:"image"`
-	Database      string                     `yaml:"database"`
-	Username      string                     `yaml:"username"`
-	Backup        PostgresBackupRestoreProps `yaml:"backup"`
+	Enabled       bool      `yaml:"enabled"`
+	HelmChartInfo ChartInfo `yaml:"helm"`
+	ImageInfo     ImageInfo `yaml:"image"`
+	Database      string    `yaml:"database"`
+	Username      string    `yaml:"username"`
 }
 
 func NewPostgres(scope constructs.Construct, props PostgresProps) cdk8s.Chart {
@@ -49,8 +48,6 @@ func NewPostgres(scope constructs.Construct, props PostgresProps) cdk8s.Chart {
 			"replication-password": "POSTGRES_REPLICATION_PASSWORD",
 		},
 	})
-
-	NewPostgresBackupRestoreJob(chart, props.Backup)
 
 	return chart
 }
