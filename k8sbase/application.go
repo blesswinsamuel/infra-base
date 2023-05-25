@@ -236,13 +236,14 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			Image:   container.ImageInfo.ToString(),
 			Command: Ternary(len(command) > 0, &command, nil),
 			// ImagePullPolicy: jsii.String("IfNotPresent"),
-			Env:            Ternary(len(env) > 0, &env, nil),
-			EnvFrom:        Ternary(len(envFrom) > 0, &envFrom, nil),
-			Args:           args,
-			VolumeMounts:   Ternary(len(volumeMounts) > 0, &volumeMounts, nil),
-			Ports:          Ternary(len(ports) > 0, &ports, nil),
-			LivenessProbe:  container.LivenessProbe,
-			ReadinessProbe: container.ReadinessProbe,
+			Env:                      Ternary(len(env) > 0, &env, nil),
+			EnvFrom:                  Ternary(len(envFrom) > 0, &envFrom, nil),
+			Args:                     args,
+			VolumeMounts:             Ternary(len(volumeMounts) > 0, &volumeMounts, nil),
+			Ports:                    Ternary(len(ports) > 0, &ports, nil),
+			LivenessProbe:            container.LivenessProbe,
+			ReadinessProbe:           container.ReadinessProbe,
+			TerminationMessagePolicy: jsii.String("FallbackToLogsOnError"),
 		})
 	}
 	for _, vol := range props.ExtraVolumes {
