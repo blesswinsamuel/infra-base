@@ -10,7 +10,7 @@ ingress:
     helm:
       repo: https://charts.jetstack.io
       chart: cert-manager
-      version: "v1.12.0"
+      version: "v1.12.1"
   certIssuer:
     enabled: false
     # namespace: ""
@@ -41,7 +41,7 @@ secrets:
     helm:
       repo: https://charts.external-secrets.io
       chart: external-secrets
-      version: "0.8.1"
+      version: "0.8.3"
   dockerCreds:
     enabled: false
   clusterSecretStore:
@@ -66,13 +66,13 @@ monitoring:
     helm:
       repo: https://prometheus-community.github.io/helm-charts
       chart: kube-state-metrics
-      version: "5.6.2"
+      version: "5.6.4"
   grafana:
     enabled: true
     helm:
       repo: https://grafana.github.io/helm-charts
       chart: grafana
-      version: "6.56.5"
+      version: "6.56.6"
     namespaced: false
     authProxyEnabled: true
     anonymousAuthEnabled: false
@@ -269,7 +269,7 @@ monitoring:
     helm:
       repo: https://prometheus-community.github.io/helm-charts
       chart: prometheus-node-exporter
-      version: "4.17.2"
+      version: "4.17.3"
   victoriametrics:
     enabled: true
     helm:
@@ -313,7 +313,7 @@ databases:
     helm:
       repo: https://charts.bitnami.com/bitnami
       chart: postgresql
-      version: "12.5.3"
+      version: "12.5.5"
     image:
       # not straightforward to upgrade to postgres 15
       # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
@@ -371,7 +371,7 @@ system:
     helm:
       repo: https://stakater.github.io/stakater-charts
       chart: reloader
-      version: "v1.0.24"
+      version: "v1.0.25"
   helmOps:
     enabled: false
     # gitRepo:
@@ -386,7 +386,7 @@ system:
     helm:
       repo: https://kubernetes.github.io/dashboard/
       chart: kubernetes-dashboard
-      version: "6.0.7"
+      version: "6.0.8"
     ingress:
       enabled: true
       subDomain: kubernetes-dashboard
