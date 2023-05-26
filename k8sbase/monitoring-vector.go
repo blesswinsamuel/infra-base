@@ -148,6 +148,7 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 								# .@timestamp = del(.timestamp)
 								del(.kubernetes.pod_labels)
 								del(.kubernetes.pod_annotations)
+								del(.kubernetes.node_labels)
 								del(.kubernetes.namespace_labels)
 								del(.kubernetes.container_id)
 								del(.kubernetes.pod_uid)

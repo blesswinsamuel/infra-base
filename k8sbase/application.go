@@ -37,6 +37,7 @@ type ApplicationProps struct {
 	IngressAnnotations map[string]string            `yaml:"ingressAnnotations"`
 	PrometheusScrape   *ApplicationPrometheusScrape `yaml:"prometheusScrape"`
 	HostNetwork        bool                         `yaml:"hostNetwork"`
+	DnsPolicy          string                       `yaml:"dnsPolicy"`
 }
 
 type ApplicationIngress struct {
@@ -302,6 +303,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			Containers:  &containers,
 			Volumes:     &volumes,
 			HostNetwork: Ternary(props.HostNetwork, jsii.Bool(true), nil),
+			DnsPolicy:   Ternary(props.DnsPolicy != "", &props.DnsPolicy, nil),
 		},
 	}
 	switch props.Kind {
