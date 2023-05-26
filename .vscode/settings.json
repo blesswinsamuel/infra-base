@@ -1,0 +1,5 @@
+{
+    "search.exclude": {
+        "k8sbase/imports": true
+    }
+}
