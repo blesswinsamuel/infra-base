@@ -66,7 +66,9 @@ func NewHelmCached(scope constructs.Construct, id *string, props *HelmProps) cdk
 				log.Fatalln("Error occured during helm pull command", err)
 			} else {
 				log.Printf("Fetching chart '%s' from repo '%s' version '%s' ...", *props.ChartInfo.Chart, *props.ChartInfo.Repo, *props.ChartInfo.Version)
-				log.Println(string(out))
+				if len(out) > 0 {
+					log.Println(string(out))
+				}
 			}
 		} else {
 			log.Fatalln("helm Stat failed", err)
