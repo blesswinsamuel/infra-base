@@ -160,34 +160,34 @@ monitoring:
           - url: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
             id: traefik-kubernetes
             title: Traefik
-          - url: https://grafana.com/api/dashboards/17501/revisions/1/download
-            id: traefik-logs
-            title: Traefik Logs
+          # - url: https://grafana.com/api/dashboards/17501/revisions/1/download
+          #   id: traefik-logs
+          #   title: Traefik Logs
 
-      # CrowdSec
-      community-crowdsec:
-        folder: CrowdSec
-        urls:
-          - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Details%20per%20Machine.json
-            id: crowdsec-details-per-machine
-            title: Crowdsec Details per Machine
-            replacements:
-              machine: job
-          - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Insight.json
-            id: crowdsec-insight
-            title: Crowdsec Insight
-            replacements:
-              machine: job
-          - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Overview.json
-            id: crowdsec-overview
-            title: Crowdsec Overview
-            replacements:
-              machine: job
-          - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/LAPI%20Metrics.json
-            id: lapi-metrics
-            title: LAPI Metrics
-            replacements:
-              machine: job
+      # # CrowdSec
+      # community-crowdsec:
+      #   folder: CrowdSec
+      #   urls:
+      #     - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Details%20per%20Machine.json
+      #       id: crowdsec-details-per-machine
+      #       title: Crowdsec Details per Machine
+      #       replacements:
+      #         machine: job
+      #     - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Insight.json
+      #       id: crowdsec-insight
+      #       title: Crowdsec Insight
+      #       replacements:
+      #         machine: job
+      #     - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Overview.json
+      #       id: crowdsec-overview
+      #       title: Crowdsec Overview
+      #       replacements:
+      #         machine: job
+      #     - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/LAPI%20Metrics.json
+      #       id: lapi-metrics
+      #       title: LAPI Metrics
+      #       replacements:
+      #         machine: job
 
       # Databases
       databases:
@@ -199,17 +199,6 @@ monitoring:
           - url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
             id: redis
             title: Redis
-
-      # Applications
-      applications:
-        folder: Applications
-        urls:
-          - url: https://github.com/MacroPower/wakatime_exporter/raw/master/docs/dashboards/wakatime-coding-stats.json
-            id: wakatime
-            title: Wakatime
-          - url: https://github.com/minio/minio/raw/master/docs/metrics/prometheus/grafana/minio-dashboard.json
-            id: minio
-            title: Minio
   alertingRules:
     rules:
       community-rules:
