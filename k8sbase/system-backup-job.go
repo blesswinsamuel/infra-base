@@ -1,6 +1,7 @@
 package k8sbase
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/aws/constructs-go/constructs/v10"
@@ -24,14 +25,15 @@ type BackupJobProps struct {
 		Databases         []string    `yaml:"databases"`
 	} `yaml:"postgres"`
 	Filesystem struct {
-		Enabled bool      `yaml:"enabled"`
-		Image   ImageInfo `yaml:"image"`
-		Paths   []struct {
-			Schedule string `yaml:"schedule"`
-			Source   string `yaml:"source"`
-			Policy   struct {
+		Enabled bool `yaml:"enabled"`
+		Jobs    []struct {
+			Name         string      `yaml:"name"`
+			Schedule     string      `yaml:"schedule"`
+			SourceVolume *k8s.Volume `yaml:"sourceVolume"`
+			Paths        []string    `yaml:"paths"`
+			Policy       struct {
 			} `yaml:"policy"`
-		} `yaml:"paths"`
+		} `yaml:"jobs"`
 	} `yaml:"filesystem"`
 }
 
@@ -87,7 +89,7 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 				pg_dump -Fc {{ $database }} > "$FOLDER/$FILENAME"
 				{{- end }}
 			`)), props.Postgres.Databases),
-			"kopia-snapshot.sh": GoTemplate(strings.TrimSpace(dedent.String(`
+			"kopia-postgres-snapshot.sh": GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
 				set -o pipefail
@@ -95,11 +97,23 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 				kopia repository connect s3 --bucket=$S3_BUCKET --access-key=$S3_ACCESS_KEY --secret-access-key=$S3_SECRET_KEY --endpoint=$S3_ENDPOINT --override-username kopia
 				kopia snapshot create $FOLDER
 			`)), props.Kopia),
+			"kopia-filesystem-snapshot.sh": GoTemplate(strings.TrimSpace(dedent.String(`
+				#!/bin/bash
+				set -e
+				set -o pipefail
+
+				kopia repository connect s3 --bucket=$S3_BUCKET --access-key=$S3_ACCESS_KEY --secret-access-key=$S3_SECRET_KEY --endpoint=$S3_ENDPOINT --override-username kopia
+				for FOLDER in ${FOLDERS}
+				do
+					kopia snapshot create $FOLDER
+				done
+			`)), props.Kopia),
 		},
 	})
 
 	NewBackupJobPostgres(chart, props)
 	NewRestoreJobPostgres(chart, props)
+	NewBackupJobFilesystem(chart, props)
 	return chart
 }
 
@@ -163,7 +177,7 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 									Name:  jsii.String("kopia-snapshot"),
 									Image: props.Kopia.Image.ToString(),
 									Command: &[]*string{
-										jsii.String("/script/kopia-snapshot.sh"),
+										jsii.String("/script/kopia-postgres-snapshot.sh"),
 									},
 									EnvFrom: &[]*k8s.EnvFromSource{
 										{SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-restore-job-s3")}},
@@ -173,7 +187,7 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 									},
 									VolumeMounts: &[]*k8s.VolumeMount{
 										{Name: jsii.String("shared-backup-data"), MountPath: sharedMountPath},
-										{Name: jsii.String("scripts"), MountPath: jsii.String("/script/kopia-snapshot.sh"), SubPath: jsii.String("kopia-snapshot.sh")},
+										{Name: jsii.String("scripts"), MountPath: jsii.String("/script/kopia-postgres-snapshot.sh"), SubPath: jsii.String("kopia-postgres-snapshot.sh")},
 									},
 								},
 							},
@@ -319,7 +333,71 @@ func echoContainer(msg string) *k8s.Container {
 	return &k8s.Container{
 		Name:                     jsii.String("job-done"),
 		Image:                    jsii.String("busybox"),
-		Command:                  jsii.PtrSlice("sh", "-c", "echo 'Restore complete' && sleep 1"),
+		Command:                  jsii.PtrSlice("sh", "-c", fmt.Sprintf("echo %q && sleep 1", msg)),
 		TerminationMessagePolicy: jsii.String("FallbackToLogsOnError"),
+	}
+}
+
+func NewBackupJobFilesystem(chart constructs.Construct, props BackupJobProps) {
+	if !props.Filesystem.Enabled {
+		return
+	}
+
+	for _, job := range props.Filesystem.Jobs {
+		sharedMountPath := jsii.String("/filesystem")
+
+		job.SourceVolume.Name = jsii.String("source-data")
+		folders := []string{}
+		for _, path := range job.Paths {
+			folders = append(folders, *sharedMountPath+"/"+strings.TrimPrefix(path, "/"))
+		}
+		k8s.NewKubeCronJob(chart, jsii.String("backup-job-filesystem-"+job.Name), &k8s.KubeCronJobProps{
+			Metadata: &k8s.ObjectMeta{
+				Name: jsii.String("backup-job-filesystem-" + job.Name),
+			},
+			Spec: &k8s.CronJobSpec{
+				Schedule: jsii.String(job.Schedule),
+				JobTemplate: &k8s.JobTemplateSpec{
+					Spec: &k8s.JobSpec{
+						Template: &k8s.PodTemplateSpec{
+							Spec: &k8s.PodSpec{
+								Hostname: jsii.String("backup-job-filesystem-" + job.Name),
+								Volumes: &[]*k8s.Volume{
+									job.SourceVolume,
+									{
+										Name: jsii.String("scripts"),
+										ConfigMap: &k8s.ConfigMapVolumeSource{
+											Name:        jsii.String("backup-job-scripts"),
+											DefaultMode: jsii.Number(0o755),
+										},
+									},
+								},
+								InitContainers: &[]*k8s.Container{
+									{
+										Name:  jsii.String("kopia-snapshot"),
+										Image: props.Kopia.Image.ToString(),
+										Command: &[]*string{
+											jsii.String("/script/kopia-filesystem-snapshot.sh"),
+										},
+										EnvFrom: &[]*k8s.EnvFromSource{
+											{SecretRef: &k8s.SecretEnvSource{Name: jsii.String("backup-restore-job-s3")}},
+										},
+										Env: &[]*k8s.EnvVar{
+											{Name: jsii.String("FOLDERS"), Value: jsii.String(strings.Join(folders, " "))},
+										},
+										VolumeMounts: &[]*k8s.VolumeMount{
+											{Name: jsii.String("source-data"), MountPath: sharedMountPath},
+											{Name: jsii.String("scripts"), MountPath: jsii.String("/script/kopia-filesystem-snapshot.sh"), SubPath: jsii.String("kopia-filesystem-snapshot.sh")},
+										},
+									},
+								},
+								Containers:    &[]*k8s.Container{echoContainer("Backup complete")},
+								RestartPolicy: jsii.String("OnFailure"),
+							},
+						},
+					},
+				},
+			},
+		})
 	}
 }

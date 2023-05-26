@@ -15,13 +15,14 @@ import (
 )
 
 type ApplicationProps struct {
-	Kind               string                  `yaml:"kind"`
-	Name               string                  `yaml:"name"`
-	Hostname           string                  `yaml:"hostname"`
-	TopAnnotations     map[string]string       `yaml:"topAnnotations"`
-	Annotations        map[string]string       `yaml:"annotations"`
-	PodSecurityContext *k8s.PodSecurityContext `yaml:"securityContext"`
-	ImagePullSecrets   string                  `yaml:"imagePullSecrets"`
+	Kind                     string                  `yaml:"kind"`
+	Name                     string                  `yaml:"name"`
+	Hostname                 string                  `yaml:"hostname"`
+	DeploymentUpdateStrategy *k8s.DeploymentStrategy `yaml:"strategy"`
+	TopAnnotations           map[string]string       `yaml:"topAnnotations"`
+	Annotations              map[string]string       `yaml:"annotations"`
+	PodSecurityContext       *k8s.PodSecurityContext `yaml:"securityContext"`
+	ImagePullSecrets         string                  `yaml:"imagePullSecrets"`
 	// Deprecated: use Containers instead
 	Container       ApplicationContainer        `yaml:"container"`
 	Containers      []ApplicationContainer      `yaml:"containers"`
@@ -35,6 +36,7 @@ type ApplicationProps struct {
 	Ingress            []ApplicationIngress         `yaml:"ingress"`
 	IngressAnnotations map[string]string            `yaml:"ingressAnnotations"`
 	PrometheusScrape   *ApplicationPrometheusScrape `yaml:"prometheusScrape"`
+	HostNetwork        bool                         `yaml:"hostNetwork"`
 }
 
 type ApplicationIngress struct {
@@ -67,6 +69,7 @@ type ApplicationContainer struct {
 	ExtraVolumeMounts []*k8s.VolumeMount `yaml:"extraVolumeMounts"`
 	LivenessProbe     *k8s.Probe         `yaml:"livenessProbe"`
 	ReadinessProbe    *k8s.Probe         `yaml:"readinessProbe"`
+	StartupProbe      *k8s.Probe         `yaml:"startupProbe"`
 }
 
 type ApplicationConfigMap struct {
@@ -85,8 +88,12 @@ type ApplicationExternalSecret struct {
 }
 
 type ApplicationSecret struct {
-	Name string            `yaml:"name"`
-	Data map[string]string `yaml:"data"`
+	Name      string            `yaml:"name"`
+	Data      map[string]string `yaml:"data"`
+	MountName string            `yaml:"mountName"`
+	MountPath string            `yaml:"mountPath"`
+	SubPath   string            `yaml:"subPath"`
+	ReadOnly  bool              `yaml:"readOnly"`
 }
 
 type ContainerPort struct {
@@ -106,6 +113,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 	var volumes []*k8s.Volume
 	annotations := map[string]*string{}
 	var commonVolumeMounts []*k8s.VolumeMount
+	secretReloadAnnotationValue := []string{}
 	if props.ConfigMap != nil {
 		volumes = append(volumes, &k8s.Volume{
 			Name: jsii.String(props.ConfigMap.MountName),
@@ -126,6 +134,25 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			hash.Write([]byte(v))
 		}
 		annotations["configmap/checksum"] = jsii.String(fmt.Sprintf("%x", hash.Sum(nil)))
+	}
+	for _, secret := range props.Secrets {
+		if secret.MountName != "" {
+			volumes = append(volumes, &k8s.Volume{
+				Name: jsii.String(secret.MountName),
+				Secret: &k8s.SecretVolumeSource{
+					SecretName: jsii.String(secret.Name),
+				},
+			})
+			if secret.MountPath != "" {
+				commonVolumeMounts = append(commonVolumeMounts, &k8s.VolumeMount{
+					Name:      jsii.String(secret.MountName),
+					MountPath: jsii.String(secret.MountPath),
+					SubPath:   jsii.String(secret.SubPath),
+					ReadOnly:  jsii.Bool(secret.ReadOnly),
+				})
+				secretReloadAnnotationValue = append(secretReloadAnnotationValue, secret.Name)
+			}
+		}
 	}
 	volumes = append(volumes, props.ExtraVolumes...)
 	for k, v := range props.Annotations {
@@ -149,7 +176,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 				})
 			}
 		}
-		k8s.NewKubePersistentVolumeClaim(chart, jsii.String("pvc"), &k8s.KubePersistentVolumeClaimProps{
+		k8s.NewKubePersistentVolumeClaim(chart, jsii.String("pvc-"+pv.PersistentVolumeName), &k8s.KubePersistentVolumeClaimProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:      jsii.String(pv.PersistentVolumeName),
 				Namespace: GetNamespace(scope),
@@ -176,7 +203,6 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		}
 		props.Containers = append(props.Containers, props.Container)
 	}
-	secretReloadAnnotationValue := []string{}
 	servicePorts := []*k8s.ServicePort{}
 	for _, container := range props.Containers {
 		var volumeMounts []*k8s.VolumeMount
@@ -243,6 +269,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			Ports:                    Ternary(len(ports) > 0, &ports, nil),
 			LivenessProbe:            container.LivenessProbe,
 			ReadinessProbe:           container.ReadinessProbe,
+			StartupProbe:             container.StartupProbe,
 			TerminationMessagePolicy: jsii.String("FallbackToLogsOnError"),
 		})
 	}
@@ -272,8 +299,9 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			ImagePullSecrets: Ternary(props.ImagePullSecrets != "", &[]*k8s.LocalObjectReference{
 				{Name: jsii.String(props.ImagePullSecrets)},
 			}, nil),
-			Containers: &containers,
-			Volumes:    &volumes,
+			Containers:  &containers,
+			Volumes:     &volumes,
+			HostNetwork: Ternary(props.HostNetwork, jsii.Bool(true), nil),
 		},
 	}
 	switch props.Kind {
@@ -286,6 +314,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			},
 			Spec: &k8s.DeploymentSpec{
 				Replicas: jsii.Number(1),
+				Strategy: props.DeploymentUpdateStrategy,
 				Selector: &k8s.LabelSelector{
 					MatchLabels: &label,
 				},
