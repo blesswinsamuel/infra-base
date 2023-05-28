@@ -5,6 +5,9 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
+	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
+	"github.com/blesswinsamuel/infra-base/k8sbase/utils"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
@@ -20,10 +23,10 @@ type Resources struct {
 }
 
 type VmagentProps struct {
-	Enabled            bool             `yaml:"enabled"`
-	HelmChartInfo      ChartInfo        `yaml:"helm"`
-	ExtraScrapeConfigs []map[string]any `yaml:"extraScrapeConfigs"`
-	Resources          *Resources       `yaml:"resources"`
+	Enabled            bool              `yaml:"enabled"`
+	HelmChartInfo      helpers.ChartInfo `yaml:"helm"`
+	ExtraScrapeConfigs []map[string]any  `yaml:"extraScrapeConfigs"`
+	Resources          *Resources        `yaml:"resources"`
 	Ingress            struct {
 		Enabled   bool   `yaml:"enabled"`
 		SubDomain string `yaml:"subDomain"`
@@ -39,13 +42,13 @@ func NewVmagent(scope constructs.Construct, props VmagentProps) cdk8s.Chart {
 		return nil
 	}
 	cprops := cdk8s.ChartProps{
-		Namespace: GetNamespace(scope),
+		Namespace: helpers.GetNamespace(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("vmagent"), &cprops)
 
-	vmagentConfig := FromYamlString[map[string]any](vmagentConfig)
+	vmagentConfig := utils.FromYamlString[map[string]any](vmagentConfig)
 
-	NewHelmCached(chart, jsii.String("helm"), &HelmProps{
+	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("vmagent"),
 		Namespace:   chart.Namespace(),
@@ -62,7 +65,7 @@ func NewVmagent(scope constructs.Construct, props VmagentProps) cdk8s.Chart {
 			},
 			"ingress": map[string]any{
 				"enabled":     props.Ingress.Enabled,
-				"annotations": GetCertIssuerAnnotation(scope),
+				"annotations": infraglobal.GetCertIssuerAnnotation(scope),
 				"hosts": []map[string]any{
 					{
 						"host": props.Ingress.SubDomain + "." + GetDomain(scope),

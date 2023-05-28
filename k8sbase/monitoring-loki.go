@@ -3,13 +3,14 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type LokiProps struct {
-	Enabled       bool      `yaml:"enabled"`
-	HelmChartInfo ChartInfo `yaml:"helm"`
-	Storage       string    `yaml:"storage"`
+	Enabled       bool              `yaml:"enabled"`
+	HelmChartInfo helpers.ChartInfo `yaml:"helm"`
+	Storage       string            `yaml:"storage"`
 	S3            struct {
 		Endpoint        string `yaml:"endpoint"`
 		SecretAccessKey string `yaml:"secret_access_key"`
@@ -23,11 +24,11 @@ func NewLoki(scope constructs.Construct, props LokiProps) cdk8s.Chart {
 		return nil
 	}
 	cprops := cdk8s.ChartProps{
-		Namespace: GetNamespace(scope),
+		Namespace: helpers.GetNamespace(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("loki"), &cprops)
 
-	NewHelmCached(chart, jsii.String("helm"), &HelmProps{
+	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("loki"),
 		Namespace:   chart.Namespace(),
@@ -85,15 +86,15 @@ func NewLoki(scope constructs.Construct, props LokiProps) cdk8s.Chart {
 				"rulerConfig": map[string]any{
 					"alertmanager_url": "http://alertmanager:9093",
 				},
-				"storage": MergeMaps(
-					Ternary(
+				"storage": helpers.MergeMaps(
+					helpers.Ternary(
 						props.Storage == "local",
 						map[string]any{
 							"type": "filesystem",
 						},
 						nil,
 					),
-					Ternary(
+					helpers.Ternary(
 						props.Storage == "s3",
 						map[string]any{
 							"type": "s3",

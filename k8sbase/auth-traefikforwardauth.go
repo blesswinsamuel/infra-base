@@ -5,13 +5,15 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
+	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type TraefikForwardAuthProps struct {
-	Enabled       bool      `yaml:"enabled"`
-	HelmChartInfo ChartInfo `yaml:"helm"`
-	ImageInfo     ImageInfo `yaml:"image"`
+	Enabled       bool              `yaml:"enabled"`
+	HelmChartInfo helpers.ChartInfo `yaml:"helm"`
+	ImageInfo     helpers.ImageInfo `yaml:"image"`
 	Ingress       struct {
 		SubDomain string `yaml:"subDomain"`
 	} `yaml:"ingress"`
@@ -28,11 +30,11 @@ func NewTraefikForwardAuth(scope constructs.Construct, props TraefikForwardAuthP
 		return nil
 	}
 	cprops := cdk8s.ChartProps{
-		Namespace: GetNamespace(scope),
+		Namespace: helpers.GetNamespace(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("traefik-forward-auth"), &cprops)
 
-	NewHelmCached(chart, jsii.String("helm"), &HelmProps{
+	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("traefik-forward-auth"),
 		Namespace:   chart.Namespace(),
@@ -49,8 +51,8 @@ func NewTraefikForwardAuth(scope constructs.Construct, props TraefikForwardAuthP
 			"ingress": map[string]interface{}{
 				"main": map[string]interface{}{
 					"enabled": true,
-					"annotations": MergeAnnotations(
-						GetCertIssuerAnnotation(scope),
+					"annotations": helpers.MergeAnnotations(
+						infraglobal.GetCertIssuerAnnotation(scope),
 						map[string]string{"traefik.ingress.kubernetes.io/router.middlewares": "auth-traefik-forward-auth@kubernetescrd"},
 					),
 					"hosts": []map[string]interface{}{

@@ -5,12 +5,14 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
+	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type AutheliaProps struct {
-	Enabled   bool      `yaml:"enabled"`
-	ChartInfo ChartInfo `yaml:"helm"`
+	Enabled   bool              `yaml:"enabled"`
+	ChartInfo helpers.ChartInfo `yaml:"helm"`
 	Ingress   struct {
 		SubDomain string `yaml:"subDomain"`
 	} `yaml:"ingress"`
@@ -54,7 +56,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 		return nil
 	}
 	cprops := cdk8s.ChartProps{
-		Namespace: GetNamespace(scope),
+		Namespace: helpers.GetNamespace(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("authelia"), &cprops)
 	pod := map[string]interface{}{
@@ -69,7 +71,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 	if props.AuthMode == "file" {
 		NewExternalSecret(chart, jsii.String("users-db"), &ExternalSecretProps{
 			Name:            jsii.String("authelia-users-db"),
-			Namespace:       GetNamespace(scope),
+			Namespace:       helpers.GetNamespace(scope),
 			RefreshInterval: jsii.String("10m"),
 			Secrets: map[string]string{
 				"users_database.yml": "AUTHELIA_USERS_DATABASE_YML",
@@ -91,7 +93,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 			},
 		}
 	}
-	NewHelmCached(chart, jsii.String("helm"), &HelmProps{
+	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: jsii.String("authelia"),
 		Namespace:   chart.Namespace(),
@@ -112,8 +114,8 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 					"enabled":             true,
 					"disableIngressRoute": true,
 				},
-				"annotations": MergeAnnotations(
-					GetCertIssuerAnnotation(scope),
+				"annotations": helpers.MergeAnnotations(
+					infraglobal.GetCertIssuerAnnotation(scope),
 					map[string]string{
 						"traefik.ingress.kubernetes.io/router.middlewares": "auth-chain-authelia@kubernetescrd",
 					},
@@ -134,7 +136,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 					"ban_time":    "5m",
 				},
 				"default_redirection_url": "https://" +
-					Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") +
+					helpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") +
 					GetDomain(scope),
 				"access_control": props.AccessControl,
 				"session": map[string]interface{}{
@@ -156,12 +158,12 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 						"host":     props.SMTP.Host,
 						"port":     props.SMTP.Port,
 						"username": props.SMTP.Username,
-						"sender": Fallback(
+						"sender": helpers.Fallback(
 							props.SMTP.Sender,
 							fmt.Sprintf("Authelia <authelia@%s>", props.SMTP.EmailDomain),
 						),
 						"identifier":            props.SMTP.EmailDomain,
-						"subject":               Fallback(props.SMTP.Subject, "[authelia] {title}"),
+						"subject":               helpers.Fallback(props.SMTP.Subject, "[authelia] {title}"),
 						"startup_check_address": fmt.Sprintf("test@%s", props.SMTP.EmailDomain),
 						"enabledSecret":         true,
 					},
@@ -233,7 +235,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 	}
 	NewExternalSecret(chart, jsii.String("external-secrets"), &ExternalSecretProps{
 		Name:            jsii.String("authelia"),
-		Namespace:       GetNamespace(scope),
+		Namespace:       helpers.GetNamespace(scope),
 		RefreshInterval: jsii.String("10m"),
 		Secrets:         secrets,
 	})

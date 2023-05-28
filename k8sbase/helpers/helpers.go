@@ -1,4 +1,4 @@
-package k8sbase
+package helpers
 
 import (
 	"bytes"
@@ -18,11 +18,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var cacheDir = os.Getenv("CACHE_DIR")
+var CacheDir = os.Getenv("CACHE_DIR")
 
 func init() {
-	if cacheDir == "" {
-		cacheDir = "./cache"
+	if CacheDir == "" {
+		CacheDir = "./cache"
 	}
 }
 
@@ -141,15 +141,6 @@ func ToYamlString(v any) *string {
 		panic(err)
 	}
 	return jsii.String(buf.String())
-}
-
-func FromYamlString[T any](s string) T {
-	var v T
-	err := yaml.Unmarshal([]byte(s), &v)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func ToJSONString(v any) string {
@@ -276,4 +267,13 @@ func TemplateOutputFiles(app cdk8s.App, vars any) {
 		out.Execute(f, vars)
 		f.Close()
 	}
+}
+
+func JSIIMap[K comparable, V any](m map[K]V) *map[K]*V {
+	out := make(map[K]*V)
+	for k, v := range m {
+		v := v
+		out[k] = &v
+	}
+	return &out
 }

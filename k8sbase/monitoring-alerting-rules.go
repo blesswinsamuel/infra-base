@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"golang.org/x/exp/slices"
@@ -33,7 +34,7 @@ type RuleURLProps struct {
 }
 
 func GetCachedAlertingRule(url string) []byte {
-	alertsCacheDir := fmt.Sprintf("%s/%s", cacheDir, "alerts")
+	alertsCacheDir := fmt.Sprintf("%s/%s", helpers.CacheDir, "alerts")
 	if err := os.MkdirAll(alertsCacheDir, os.ModePerm); err != nil {
 		log.Fatalln("GetCachedAlertingRule MkdirAll failed", err)
 	}
@@ -70,7 +71,7 @@ func GetCachedAlertingRule(url string) []byte {
 
 func NewAlertingRules(scope constructs.Construct, props AlertingRulesProps) cdk8s.Chart {
 	cprops := cdk8s.ChartProps{
-		Namespace: GetNamespace(scope),
+		Namespace: helpers.GetNamespace(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("alerting-rules"), &cprops)
 

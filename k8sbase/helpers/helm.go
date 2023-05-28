@@ -1,4 +1,4 @@
-package k8sbase
+package helpers
 
 import (
 	"errors"
@@ -43,7 +43,7 @@ type HelmProps struct {
 }
 
 func NewHelmCached(scope constructs.Construct, id *string, props *HelmProps) cdk8s.Helm {
-	chartsCacheDir := fmt.Sprintf("%s/%s", cacheDir, "charts")
+	chartsCacheDir := fmt.Sprintf("%s/%s", CacheDir, "charts")
 	if err := os.MkdirAll(chartsCacheDir, os.ModePerm); err != nil {
 		log.Fatalln("MkdirAll failed", err)
 	}

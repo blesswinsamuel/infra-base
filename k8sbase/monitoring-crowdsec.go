@@ -3,12 +3,14 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
+	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type CrowdsecProps struct {
-	Enabled       bool      `yaml:"enabled"`
-	HelmChartInfo ChartInfo `yaml:"helm"`
+	Enabled       bool              `yaml:"enabled"`
+	HelmChartInfo helpers.ChartInfo `yaml:"helm"`
 }
 
 // https://github.com/crowdsecurity/helm-charts/tree/main/charts/crowdsec
@@ -17,11 +19,11 @@ func NewCrowdsec(scope constructs.Construct, props CrowdsecProps) cdk8s.Chart {
 		return nil
 	}
 	cprops := cdk8s.ChartProps{
-		Namespace: GetNamespace(scope),
+		Namespace: helpers.GetNamespace(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("crowdsec"), &cprops)
 
-	NewHelmCached(chart, jsii.String("helm"), &HelmProps{
+	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("crowdsec"),
 		Namespace:   chart.Namespace(),
@@ -44,7 +46,7 @@ func NewCrowdsec(scope constructs.Construct, props CrowdsecProps) cdk8s.Chart {
 				},
 				"ingress": map[string]any{
 					"enabled":     false,
-					"annotations": GetCertIssuerAnnotation(scope),
+					"annotations": infraglobal.GetCertIssuerAnnotation(scope),
 					"host":        "crowdsec-lapi" + "." + GetDomain(scope),
 					"tls": []map[string]any{
 						{
@@ -57,7 +59,7 @@ func NewCrowdsec(scope constructs.Construct, props CrowdsecProps) cdk8s.Chart {
 					"enabled": false,
 					"ingress": map[string]any{
 						"enabled":     true,
-						"annotations": GetCertIssuerAnnotation(scope),
+						"annotations": infraglobal.GetCertIssuerAnnotation(scope),
 						"host":        "crowdsec-lapi-dashboard" + "." + GetDomain(scope),
 						"tls": []map[string]any{
 							{

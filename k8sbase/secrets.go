@@ -3,6 +3,7 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 )
 
 type SecretsProps struct {
@@ -14,7 +15,7 @@ type SecretsProps struct {
 func NewSecrets(scope constructs.Construct, props SecretsProps) constructs.Construct {
 	construct := constructs.NewConstruct(scope, jsii.String("secrets"))
 
-	NewNamespace(construct, "secrets")
+	helpers.NewNamespace(construct, "secrets")
 
 	NewExternalSecrets(construct, props.ExternalSecrets)
 

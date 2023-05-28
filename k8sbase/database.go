@@ -3,6 +3,7 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 )
 
 type DatabaseProps struct {
@@ -16,9 +17,9 @@ func NewDatabase(scope constructs.Construct, props DatabaseProps) constructs.Con
 	construct := constructs.NewConstruct(scope, jsii.String("database"))
 
 	if props.Namespace != "" {
-		UseNamespace(construct, props.Namespace)
+		helpers.UseNamespace(construct, props.Namespace)
 	} else {
-		NewNamespace(construct, "database")
+		helpers.NewNamespace(construct, "database")
 	}
 
 	NewMariaDB(construct, props.MariaDB)

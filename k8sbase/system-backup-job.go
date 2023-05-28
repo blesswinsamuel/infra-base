@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/externalsecretsio"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
@@ -15,14 +16,14 @@ import (
 type BackupJobProps struct {
 	Enabled bool `yaml:"enabled"`
 	Kopia   struct {
-		Image ImageInfo `yaml:"image"`
+		Image helpers.ImageInfo `yaml:"image"`
 	} `yaml:"kopia"`
 	Postgres struct {
-		Enabled           bool        `yaml:"enabled"`
-		Image             ImageInfo   `yaml:"image"`
-		Schedule          string      `yaml:"schedule"`
-		LocalBackupVolume *k8s.Volume `yaml:"localBackupVolume"`
-		Databases         []string    `yaml:"databases"`
+		Enabled           bool              `yaml:"enabled"`
+		Image             helpers.ImageInfo `yaml:"image"`
+		Schedule          string            `yaml:"schedule"`
+		LocalBackupVolume *k8s.Volume       `yaml:"localBackupVolume"`
+		Databases         []string          `yaml:"databases"`
 	} `yaml:"postgres"`
 	Filesystem struct {
 		Enabled bool `yaml:"enabled"`
@@ -42,7 +43,7 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 		return nil
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("backup-job"), &cdk8s.ChartProps{
-		Namespace: GetNamespace(scope),
+		Namespace: helpers.GetNamespace(scope),
 	})
 	NewExternalSecret(chart, jsii.String("external-secret-pg"), &ExternalSecretProps{
 		Name: jsii.String("backup-restore-job-postgres"),
@@ -76,7 +77,7 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 			Name: jsii.String("backup-job-scripts"),
 		},
 		Data: &map[string]*string{
-			"take-postgres-dump.sh": GoTemplate(strings.TrimSpace(dedent.String(`
+			"take-postgres-dump.sh": helpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
 				set -o pipefail
@@ -89,7 +90,7 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 				pg_dump -Fc {{ $database }} > "$FOLDER/$FILENAME"
 				{{- end }}
 			`)), props.Postgres.Databases),
-			"kopia-postgres-snapshot.sh": GoTemplate(strings.TrimSpace(dedent.String(`
+			"kopia-postgres-snapshot.sh": helpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
 				set -o pipefail
@@ -97,7 +98,7 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 				kopia repository connect s3 --bucket=$S3_BUCKET --access-key=$S3_ACCESS_KEY --secret-access-key=$S3_SECRET_KEY --endpoint=$S3_ENDPOINT --override-username kopia
 				kopia snapshot create $FOLDER
 			`)), props.Kopia),
-			"kopia-filesystem-snapshot.sh": GoTemplate(strings.TrimSpace(dedent.String(`
+			"kopia-filesystem-snapshot.sh": helpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
 				set -o pipefail
@@ -224,7 +225,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 			Name: jsii.String("restore-job-scripts"),
 		},
 		Data: &map[string]*string{
-			"kopia-restore.sh": GoTemplate(strings.TrimSpace(dedent.String(`
+			"kopia-restore.sh": helpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
 				set -o pipefail
@@ -235,7 +236,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 				kopia snapshot restore /pgdumps --snapshot-time latest
 				ls -lah /pgdumps
 			`)), props.Kopia),
-			"restore-postgres-dump.sh": GoTemplate(strings.TrimSpace(dedent.String(`
+			"restore-postgres-dump.sh": helpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
 				set -o pipefail
