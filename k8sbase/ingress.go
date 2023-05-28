@@ -3,6 +3,7 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 )
 
 type IngressProps struct {
@@ -14,7 +15,7 @@ type IngressProps struct {
 func NewIngress(scope constructs.Construct, props IngressProps) constructs.Construct {
 	construct := constructs.NewConstruct(scope, jsii.String("ingress"))
 
-	NewNamespace(construct, "ingress")
+	helpers.NewNamespace(construct, "ingress")
 	NewCertManager(construct, props.CertManager)
 	NewCertIssuer(construct, props.CertIssuer)
 	NewTraefik(construct, props.Traefik)

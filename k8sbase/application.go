@@ -8,8 +8,10 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/externalsecretsio"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
+	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"golang.org/x/exp/slices"
 )
@@ -61,7 +63,7 @@ type ApplicationPersistence struct {
 
 type ApplicationContainer struct {
 	Name              string             `yaml:"name"`
-	ImageInfo         ImageInfo          `yaml:"image"`
+	ImageInfo         helpers.ImageInfo  `yaml:"image"`
 	Command           []string           `yaml:"command"`
 	Env               map[string]string  `yaml:"env"`
 	EnvFromSecretRef  []string           `yaml:"envFromSecretRef"`
@@ -108,7 +110,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		props.Kind = "Deployment"
 	}
 	chart := cdk8s.NewChart(scope, id, &cdk8s.ChartProps{
-		Namespace: GetNamespace(scope),
+		Namespace: helpers.GetNamespace(scope),
 	})
 	label := map[string]*string{"app": jsii.String(props.Name)}
 	var volumes []*k8s.Volume
@@ -180,7 +182,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubePersistentVolumeClaim(chart, jsii.String("pvc-"+pv.PersistentVolumeName), &k8s.KubePersistentVolumeClaimProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:      jsii.String(pv.PersistentVolumeName),
-				Namespace: GetNamespace(scope),
+				Namespace: helpers.GetNamespace(scope),
 			},
 			Spec: &k8s.PersistentVolumeClaimSpec{
 				AccessModes: &[]*string{jsii.String("ReadWriteOnce")},
@@ -189,7 +191,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 						"storage": k8s.Quantity_FromString(&pv.RequestsStorage),
 					},
 				},
-				StorageClassName: Ternary(
+				StorageClassName: helpers.Ternary(
 					pv.StorageClass == "",
 					nil,
 					jsii.String(pv.StorageClass),
@@ -261,13 +263,13 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		containers = append(containers, &k8s.Container{
 			Name:    jsii.String(container.Name),
 			Image:   container.ImageInfo.ToString(),
-			Command: Ternary(len(command) > 0, &command, nil),
+			Command: helpers.Ternary(len(command) > 0, &command, nil),
 			// ImagePullPolicy: jsii.String("IfNotPresent"),
-			Env:                      Ternary(len(env) > 0, &env, nil),
-			EnvFrom:                  Ternary(len(envFrom) > 0, &envFrom, nil),
+			Env:                      helpers.Ternary(len(env) > 0, &env, nil),
+			EnvFrom:                  helpers.Ternary(len(envFrom) > 0, &envFrom, nil),
 			Args:                     args,
-			VolumeMounts:             Ternary(len(volumeMounts) > 0, &volumeMounts, nil),
-			Ports:                    Ternary(len(ports) > 0, &ports, nil),
+			VolumeMounts:             helpers.Ternary(len(volumeMounts) > 0, &volumeMounts, nil),
+			Ports:                    helpers.Ternary(len(ports) > 0, &ports, nil),
 			LivenessProbe:            container.LivenessProbe,
 			ReadinessProbe:           container.ReadinessProbe,
 			StartupProbe:             container.StartupProbe,
@@ -295,15 +297,15 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			Annotations: &annotations,
 		},
 		Spec: &k8s.PodSpec{
-			Hostname:        Ternary(props.Hostname != "", &props.Hostname, nil),
+			Hostname:        helpers.Ternary(props.Hostname != "", &props.Hostname, nil),
 			SecurityContext: props.PodSecurityContext,
-			ImagePullSecrets: Ternary(props.ImagePullSecrets != "", &[]*k8s.LocalObjectReference{
+			ImagePullSecrets: helpers.Ternary(props.ImagePullSecrets != "", &[]*k8s.LocalObjectReference{
 				{Name: jsii.String(props.ImagePullSecrets)},
 			}, nil),
 			Containers:  &containers,
 			Volumes:     &volumes,
-			HostNetwork: Ternary(props.HostNetwork, jsii.Bool(true), nil),
-			DnsPolicy:   Ternary(props.DnsPolicy != "", &props.DnsPolicy, nil),
+			HostNetwork: helpers.Ternary(props.HostNetwork, jsii.Bool(true), nil),
+			DnsPolicy:   helpers.Ternary(props.DnsPolicy != "", &props.DnsPolicy, nil),
 		},
 	}
 	switch props.Kind {
@@ -311,7 +313,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubeDeployment(chart, jsii.String("deployment"), &k8s.KubeDeploymentProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:        jsii.String(props.Name),
-				Namespace:   GetNamespace(scope),
+				Namespace:   helpers.GetNamespace(scope),
 				Annotations: &topAnnotations,
 			},
 			Spec: &k8s.DeploymentSpec{
@@ -327,7 +329,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubeStatefulSet(chart, jsii.String("statefuleset"), &k8s.KubeStatefulSetProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:        jsii.String(props.Name),
-				Namespace:   GetNamespace(scope),
+				Namespace:   helpers.GetNamespace(scope),
 				Annotations: &topAnnotations,
 			},
 			Spec: &k8s.StatefulSetSpec{
@@ -348,7 +350,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubeConfigMap(chart, jsii.String("configmap"), &k8s.KubeConfigMapProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:      jsii.String(props.ConfigMap.Name),
-				Namespace: GetNamespace(scope),
+				Namespace: helpers.GetNamespace(scope),
 			},
 			Data: data,
 		})
@@ -365,8 +367,8 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubeService(chart, jsii.String("service"), &k8s.KubeServiceProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:        jsii.String(props.Name),
-				Namespace:   GetNamespace(scope),
-				Annotations: JSIIMap(serviceAnnotations),
+				Namespace:   helpers.GetNamespace(scope),
+				Annotations: helpers.JSIIMap(serviceAnnotations),
 			},
 			Spec: &k8s.ServiceSpec{
 				Selector: &label,
@@ -405,9 +407,9 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			k8s.NewKubeIngress(chart, jsii.String("ingress"), &k8s.KubeIngressProps{
 				Metadata: &k8s.ObjectMeta{
 					Name:      jsii.String(props.Name),
-					Namespace: GetNamespace(scope),
-					Annotations: JSIIMap(MergeMaps(
-						GetCertIssuerAnnotation(scope),
+					Namespace: helpers.GetNamespace(scope),
+					Annotations: helpers.JSIIMap(helpers.MergeMaps(
+						infraglobal.GetCertIssuerAnnotation(scope),
 						props.IngressAnnotations,
 					)),
 				},
@@ -415,7 +417,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 					Rules: &ingressRules,
 					Tls: &[]*k8s.IngressTls{
 						{
-							Hosts:      JSIISlice(MapKeys(tlsHosts)...),
+							Hosts:      helpers.JSIISlice(helpers.MapKeys(tlsHosts)...),
 							SecretName: jsii.String(fmt.Sprintf("%s-tls", props.Name)),
 						},
 					},
@@ -432,7 +434,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			Name:            jsii.String(externalSecret.Name),
 			RefreshInterval: jsii.String("10m"),
 			Secrets:         externalSecret.RemoteRefs,
-			Template: Ternary(len(templateData) > 0, &externalsecretsio.ExternalSecretV1Beta1SpecTargetTemplate{
+			Template: helpers.Ternary(len(templateData) > 0, &externalsecretsio.ExternalSecretV1Beta1SpecTargetTemplate{
 				Data: &templateData,
 			}, nil),
 		})
@@ -445,7 +447,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubeSecret(chart, jsii.String("secret-"+secret.Name), &k8s.KubeSecretProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:      jsii.String(secret.Name),
-				Namespace: GetNamespace(scope),
+				Namespace: helpers.GetNamespace(scope),
 			},
 			StringData: &secrets,
 		})

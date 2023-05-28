@@ -5,6 +5,7 @@ import (
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/externalsecretsio"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
+	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
@@ -29,7 +30,7 @@ func NewClusterSecretStore(scope constructs.Construct, props ClusterSecretStoreP
 	})
 	externalsecretsio.NewClusterSecretStoreV1Beta1(chart, jsii.String("cluster-secret-store"), &externalsecretsio.ClusterSecretStoreV1Beta1Props{
 		Metadata: &cdk8s.ApiObjectMetadata{
-			Name: jsii.String(GetGlobal(scope).ClusterExternalSecretStoreName),
+			Name: jsii.String(infraglobal.GetGlobal(scope).ClusterExternalSecretStoreName),
 		},
 		Spec: &externalsecretsio.ClusterSecretStoreV1Beta1Spec{
 			//   # controller: doppler  # like ingressClassName definition

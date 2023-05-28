@@ -3,19 +3,21 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
+	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type GrafanaProps struct {
-	Enabled              bool      `yaml:"enabled"`
-	HelmChartInfo        ChartInfo `yaml:"helm"`
-	AnonymousAuthEnabled bool      `yaml:"anonymousAuthEnabled"`
-	AuthProxyEnabled     bool      `yaml:"authProxyEnabled"`
-	Namespaced           bool      `yaml:"namespaced"`
-	DatasourceLabel      *string   `yaml:"datasourceLabel"`
-	DatasourceLabelValue *string   `yaml:"datasourceLabelValue"`
-	DashboardLabel       *string   `yaml:"dashboardLabel"`
-	DashboardLabelValue  *string   `yaml:"dashboardLabelValue"`
+	Enabled              bool              `yaml:"enabled"`
+	HelmChartInfo        helpers.ChartInfo `yaml:"helm"`
+	AnonymousAuthEnabled bool              `yaml:"anonymousAuthEnabled"`
+	AuthProxyEnabled     bool              `yaml:"authProxyEnabled"`
+	Namespaced           bool              `yaml:"namespaced"`
+	DatasourceLabel      *string           `yaml:"datasourceLabel"`
+	DatasourceLabelValue *string           `yaml:"datasourceLabelValue"`
+	DashboardLabel       *string           `yaml:"dashboardLabel"`
+	DashboardLabelValue  *string           `yaml:"dashboardLabelValue"`
 	Ingress              struct {
 		SubDomain string `yaml:"subDomain"`
 	} `yaml:"ingress"`
@@ -27,28 +29,28 @@ func NewGrafana(scope constructs.Construct, props GrafanaProps) cdk8s.Chart {
 		return nil
 	}
 	cprops := cdk8s.ChartProps{
-		Namespace: GetNamespace(scope),
+		Namespace: helpers.GetNamespace(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("grafana"), &cprops)
 
-	NewHelmCached(chart, jsii.String("helm"), &HelmProps{
+	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("grafana"),
 		Namespace:   chart.Namespace(),
 		Values: &map[string]interface{}{
-			"env": MergeMaps(
+			"env": helpers.MergeMaps(
 				map[string]string{
 					"GF_SERVER_ENABLE_GZIP":                      "true",
 					"GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION": "true",
 				},
-				Ternary(props.AnonymousAuthEnabled, map[string]string{
+				helpers.Ternary(props.AnonymousAuthEnabled, map[string]string{
 					"GF_AUTH_ANONYMOUS_HIDE_VERSION": "true",
 					"GF_AUTH_ANONYMOUS_ENABLED":      "true",
 					"GF_AUTH_ANONYMOUS_ORG_NAME":     "Main Org.",
 					"GF_AUTH_ANONYMOUS_ORG_ROLE":     "Admin",
 					"GF_AUTH_DISABLE_LOGIN_FORM":     "true",
 				}, nil),
-				Ternary(props.AuthProxyEnabled, map[string]string{
+				helpers.Ternary(props.AuthProxyEnabled, map[string]string{
 					"GF_AUTH_PROXY_ENABLED":            "true",
 					"GF_AUTH_PROXY_HEADER_NAME":        "Remote-User",
 					"GF_AUTH_PROXY_HEADER_PROPERTY":    "username",
@@ -66,7 +68,7 @@ func NewGrafana(scope constructs.Construct, props GrafanaProps) cdk8s.Chart {
 				"hosts": []string{
 					props.Ingress.SubDomain + "." + GetDomain(scope),
 				},
-				"annotations": GetCertIssuerAnnotation(scope),
+				"annotations": infraglobal.GetCertIssuerAnnotation(scope),
 				"tls": []map[string]interface{}{
 					{
 						"hosts": []string{

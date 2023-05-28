@@ -3,14 +3,15 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 )
 
 type KopiaProps struct {
-	Enabled   bool      `yaml:"enabled"`
-	ImageInfo ImageInfo `yaml:"image"`
-	Hostname  string    `yaml:"hostname"`
-	User      string    `yaml:"user"`
+	Enabled   bool              `yaml:"enabled"`
+	ImageInfo helpers.ImageInfo `yaml:"image"`
+	Hostname  string            `yaml:"hostname"`
+	User      string            `yaml:"user"`
 }
 
 // https://kopia.io/docs/installation/#docker-images
@@ -69,7 +70,7 @@ func NewKopia(scope constructs.Construct, props KopiaProps) constructs.Construct
 			{
 				Name: "kopia-config",
 				Template: map[string]string{
-					"repository.config": ToJSONString(map[string]any{
+					"repository.config": helpers.ToJSONString(map[string]any{
 						"storage": map[string]any{
 							"type": "s3",
 							"config": map[string]any{

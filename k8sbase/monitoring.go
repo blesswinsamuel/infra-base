@@ -3,6 +3,7 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 )
 
 type MonitoringProps struct {
@@ -24,7 +25,7 @@ type MonitoringProps struct {
 func NewMonitoring(scope constructs.Construct, props MonitoringProps) constructs.Construct {
 	construct := constructs.NewConstruct(scope, jsii.String("monitoring"))
 
-	NewNamespace(construct, "monitoring")
+	helpers.NewNamespace(construct, "monitoring")
 
 	NewGrafana(construct, props.Grafana)
 	NewKubeStateMetrics(construct, props.KubeStateMetrics)

@@ -5,14 +5,16 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
+	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"github.com/muesli/reflow/dedent"
 )
 
 type VectorProps struct {
-	Enabled       bool      `yaml:"enabled"`
-	HelmChartInfo ChartInfo `yaml:"helm"`
+	Enabled       bool              `yaml:"enabled"`
+	HelmChartInfo helpers.ChartInfo `yaml:"helm"`
 	SyslogServer  struct {
 		Enabled bool `yaml:"enabled"`
 	} `yaml:"syslogServer"`
@@ -30,11 +32,11 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 		return nil
 	}
 	cprops := cdk8s.ChartProps{
-		Namespace: GetNamespace(scope),
+		Namespace: helpers.GetNamespace(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("vector"), &cprops)
 
-	NewHelmCached(chart, jsii.String("helm"), &HelmProps{
+	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("vector"),
 		Namespace:   chart.Namespace(),
@@ -45,9 +47,9 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 			// #   annotations:
 			// #     prometheus.io/port: "9090"
 			// #     prometheus.io/scrape: "true"
-			"ingress": Ternary(props.Ingress.Enabled, map[string]interface{}{
+			"ingress": helpers.Ternary(props.Ingress.Enabled, map[string]interface{}{
 				"enabled":     true,
-				"annotations": GetCertIssuerAnnotation(scope),
+				"annotations": infraglobal.GetCertIssuerAnnotation(scope),
 				"hosts": []map[string]interface{}{
 					{
 						"host": props.Ingress.SubDomain + "." + GetDomain(scope),
@@ -76,8 +78,8 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 					"address":    "0.0.0.0:8686",
 					"playground": false,
 				},
-				"sources": MergeMaps(
-					Ternary(props.SyslogServer.Enabled, map[string]interface{}{
+				"sources": helpers.MergeMaps(
+					helpers.Ternary(props.SyslogServer.Enabled, map[string]interface{}{
 						"syslog_server": map[string]interface{}{
 							"type":       "syslog",
 							"address":    "0.0.0.0:514",
@@ -111,8 +113,8 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 						},
 					},
 				),
-				"transforms": MergeMaps(
-					Ternary(props.SyslogServer.Enabled, map[string]interface{}{
+				"transforms": helpers.MergeMaps(
+					helpers.Ternary(props.SyslogServer.Enabled, map[string]interface{}{
 						"syslog_transform": map[string]interface{}{
 							"type":   "remap",
 							"inputs": []string{"syslog_server"},
@@ -167,9 +169,9 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 					},
 					"loki_sink": map[string]interface{}{
 						"type": "loki",
-						"inputs": MergeLists(
+						"inputs": helpers.MergeLists(
 							[]string{"kubernetes_log_transform"},
-							Ternary(props.SyslogServer.Enabled, []string{"syslog_transform"}, nil),
+							helpers.Ternary(props.SyslogServer.Enabled, []string{"syslog_transform"}, nil),
 						),
 						"endpoint": "http://loki:3100",
 						"labels": map[string]interface{}{
@@ -203,7 +205,7 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 		k8s.NewKubeService(chart, jsii.String("syslog-service"), &k8s.KubeServiceProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:      jsii.String("vector-syslog-server"),
-				Namespace: GetNamespace(scope),
+				Namespace: helpers.GetNamespace(scope),
 			},
 			Spec: &k8s.ServiceSpec{
 				Type: jsii.String("NodePort"),

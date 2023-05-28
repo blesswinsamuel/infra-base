@@ -3,6 +3,7 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/certmanagerio"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
@@ -25,8 +26,8 @@ func letsEncryptIssuer(chart constructs.Construct, props CertIssuerProps, name s
 				PrivateKeySecretRef: &certmanagerio.ClusterIssuerSpecAcmePrivateKeySecretRef{
 					Name: jsii.String(name),
 				},
-				Solvers: Ptr(MergeLists(
-					Ternary(props.Solver == "http", []*certmanagerio.ClusterIssuerSpecAcmeSolvers{
+				Solvers: helpers.Ptr(helpers.MergeLists(
+					helpers.Ternary(props.Solver == "http", []*certmanagerio.ClusterIssuerSpecAcmeSolvers{
 						{
 							Http01: &certmanagerio.ClusterIssuerSpecAcmeSolversHttp01{
 								Ingress: &certmanagerio.ClusterIssuerSpecAcmeSolversHttp01Ingress{
@@ -35,7 +36,7 @@ func letsEncryptIssuer(chart constructs.Construct, props CertIssuerProps, name s
 							},
 						},
 					}, nil),
-					Ternary(props.Solver == "dns", []*certmanagerio.ClusterIssuerSpecAcmeSolvers{
+					helpers.Ternary(props.Solver == "dns", []*certmanagerio.ClusterIssuerSpecAcmeSolvers{
 						{
 							Dns01: &certmanagerio.ClusterIssuerSpecAcmeSolversDns01{
 								Cloudflare: &certmanagerio.ClusterIssuerSpecAcmeSolversDns01Cloudflare{

@@ -3,16 +3,15 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/imports/certmanagerio"
-	"github.com/blesswinsamuel/infra-base/k8sbase/imports/ingressroute_traefikio"
+	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/middlewares_traefikio"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type TraefikProps struct {
-	Enabled          bool      `yaml:"enabled"`
-	ChartInfo        ChartInfo `yaml:"helm"`
-	TrustedIPs       []string  `yaml:"trustedIPs"`
+	Enabled          bool              `yaml:"enabled"`
+	ChartInfo        helpers.ChartInfo `yaml:"helm"`
+	TrustedIPs       []string          `yaml:"trustedIPs"`
 	DashboardIngress struct {
 		Enabled   bool   `yaml:"enabled"`
 		SubDomain string `yaml:"subDomain"`
@@ -30,11 +29,11 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 		return nil
 	}
 	cprops := cdk8s.ChartProps{
-		Namespace: GetNamespace(scope),
+		Namespace: helpers.GetNamespace(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("traefik"), &cprops)
 
-	NewHelmCached(chart, jsii.String("traefik"), &HelmProps{
+	helpers.NewHelmCached(chart, jsii.String("traefik"), &helpers.HelmProps{
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: jsii.String("traefik"),
 		Namespace:   chart.Namespace(),
@@ -124,52 +123,12 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 	})
 
 	if props.DashboardIngress.Enabled {
-		certmanagerio.NewCertificate(chart, jsii.String("traefik-dashboard-cert"), &certmanagerio.CertificateProps{
-			Metadata: &cdk8s.ApiObjectMetadata{
-				Name: jsii.String("traefik-dashboard"),
+		helpers.NewIngress(chart, jsii.String("traefik-dashboard-external"), &helpers.IngressProps{
+			Name: "traefik-dashboard",
+			Hosts: []helpers.Host{
+				{Host: props.DashboardIngress.SubDomain + "." + GetDomain(chart), Paths: []helpers.Path{{Path: "/", ServiceName: "api@internal"}}, Tls: true},
 			},
-			Spec: &certmanagerio.CertificateSpec{
-				DnsNames: jsii.PtrSlice(
-					props.DashboardIngress.SubDomain + "." + GetDomain(chart),
-				),
-				SecretName: jsii.String("traefik-dashboard-tls"),
-				IssuerRef: &certmanagerio.CertificateSpecIssuerRef{
-					Name: jsii.String(GetCertIssuer(scope)),
-					Kind: jsii.String("ClusterIssuer"),
-				},
-			},
-		})
-
-		ingressroute_traefikio.NewIngressRoute(chart, jsii.String("traefik-dashboard-external"), &ingressroute_traefikio.IngressRouteProps{
-			Metadata: &cdk8s.ApiObjectMetadata{
-				Name: jsii.String("traefik-dashboard-external"),
-			},
-			Spec: &ingressroute_traefikio.IngressRouteSpec{
-				EntryPoints: jsii.PtrSlice("websecure"),
-				Routes: &[]*ingressroute_traefikio.IngressRouteSpecRoutes{
-					{
-						Match: jsii.String("Host(`" + props.DashboardIngress.SubDomain + "." + GetDomain(chart) + "`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))"),
-						Kind:  ingressroute_traefikio.IngressRouteSpecRoutesKind_RULE,
-						Services: &[]*ingressroute_traefikio.IngressRouteSpecRoutesServices{
-							{
-								Name: jsii.String("api@internal"),
-								Kind: ingressroute_traefikio.IngressRouteSpecRoutesServicesKind_TRAEFIK_SERVICE,
-							},
-						},
-						Middlewares: &[]*ingressroute_traefikio.IngressRouteSpecRoutesMiddlewares{
-							GetTraefikCRAuthMiddleware(chart),
-						},
-					},
-				},
-				Tls: &ingressroute_traefikio.IngressRouteSpecTls{
-					SecretName: jsii.String("traefik-dashboard-tls"),
-					Domains: &[]*ingressroute_traefikio.IngressRouteSpecTlsDomains{
-						{
-							Main: jsii.String(props.DashboardIngress.SubDomain + "." + GetDomain(chart)),
-						},
-					},
-				},
-			},
+			IngressType: "traefik",
 		})
 	}
 
