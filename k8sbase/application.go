@@ -88,6 +88,10 @@ type ApplicationExternalSecret struct {
 	Name       string            `yaml:"name"`
 	Template   map[string]string `yaml:"template"`
 	RemoteRefs map[string]string `yaml:"remoteRefs"`
+	MountName  string            `yaml:"mountName"`
+	MountPath  string            `yaml:"mountPath"`
+	SubPath    string            `yaml:"subPath"`
+	ReadOnly   bool              `yaml:"readOnly"`
 }
 
 type ApplicationSecret struct {
@@ -139,6 +143,25 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		annotations["configmap/checksum"] = jsii.String(fmt.Sprintf("%x", hash.Sum(nil)))
 	}
 	for _, secret := range props.Secrets {
+		if secret.MountName != "" {
+			volumes = append(volumes, &k8s.Volume{
+				Name: jsii.String(secret.MountName),
+				Secret: &k8s.SecretVolumeSource{
+					SecretName: jsii.String(secret.Name),
+				},
+			})
+			if secret.MountPath != "" {
+				commonVolumeMounts = append(commonVolumeMounts, &k8s.VolumeMount{
+					Name:      jsii.String(secret.MountName),
+					MountPath: jsii.String(secret.MountPath),
+					SubPath:   jsii.String(secret.SubPath),
+					ReadOnly:  jsii.Bool(secret.ReadOnly),
+				})
+				secretReloadAnnotationValue = append(secretReloadAnnotationValue, secret.Name)
+			}
+		}
+	}
+	for _, secret := range props.ExternalSecrets {
 		if secret.MountName != "" {
 			volumes = append(volumes, &k8s.Volume{
 				Name: jsii.String(secret.MountName),
