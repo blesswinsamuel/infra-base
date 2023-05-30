@@ -92,11 +92,15 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 			// 	},
 			// },
 			"additionalArguments": []string{
+				"--api.insecure=true", // to expose the api for homepage dashboard via kubernetes service created below
 				"--accesslog=true",
 				"--accesslog.format=json",
 				"--log.format=json",
 			},
 			"ports": map[string]any{
+				// "traefik": map[string]any{
+				// 	"expose": true,
+				// },
 				"web": map[string]any{
 					"redirectTo":       "websecure",
 					"forwardedHeaders": map[string]any{"trustedIPs": props.TrustedIPs},
@@ -117,6 +121,30 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 				"ipFamilyPolicy": "PreferDualStack",
 				"spec": map[string]any{
 					"externalTrafficPolicy": "Local", // So that traefik gets the real IP - https://github.com/k3s-io/k3s/discussions/2997#discussioncomment-413904
+				},
+			},
+			"extraObjects": []map[string]any{
+				{
+					"apiVersion": "v1",
+					"kind":       "Service",
+					"metadata": map[string]any{
+						"name": "traefik-api",
+					},
+					"spec": map[string]any{
+						"type": "ClusterIP",
+						"selector": map[string]any{
+							"app.kubernetes.io/name":     "traefik",
+							"app.kubernetes.io/instance": "traefik-ingress",
+						},
+						"ports": []map[string]any{
+							{
+								"port":       8080,
+								"name":       "traefik",
+								"targetPort": 9000,
+								"protocol":   "TCP",
+							},
+						},
+					},
 				},
 			},
 		},
