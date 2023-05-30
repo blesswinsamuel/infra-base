@@ -132,7 +132,7 @@ monitoring:
             id: node-exporter-2
             title: Node Exporter 2
 
-          - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmalert.json
+          - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/victoriametrics.json
             gnet_id: 10229
             id: victoriametrics-single
             title: VictoriaMetrics / single
