@@ -19,7 +19,9 @@ import (
 type ApplicationProps struct {
 	Kind                     string                  `yaml:"kind"`
 	Name                     string                  `yaml:"name"`
+	ServiceAccountName       string                  `yaml:"serviceAccountName"`
 	Hostname                 string                  `yaml:"hostname"`
+	EnableServiceLinks       bool                    `yaml:"enableServiceLinks"`
 	DeploymentUpdateStrategy *k8s.DeploymentStrategy `yaml:"strategy"`
 	TopAnnotations           map[string]string       `yaml:"topAnnotations"`
 	Annotations              map[string]string       `yaml:"annotations"`
@@ -116,7 +118,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 	chart := cdk8s.NewChart(scope, id, &cdk8s.ChartProps{
 		Namespace: helpers.GetNamespace(scope),
 	})
-	label := map[string]*string{"app": jsii.String(props.Name)}
+	label := map[string]*string{"app.kubernetes.io/name": jsii.String(props.Name)}
 	var volumes []*k8s.Volume
 	annotations := map[string]*string{}
 	var commonVolumeMounts []*k8s.VolumeMount
@@ -137,8 +139,8 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			})
 		}
 		hash := sha256.New()
-		for _, v := range props.ConfigMap.Data {
-			hash.Write([]byte(v))
+		for _, key := range helpers.MapKeys(props.ConfigMap.Data) {
+			hash.Write([]byte(props.ConfigMap.Data[key]))
 		}
 		annotations["configmap/checksum"] = jsii.String(fmt.Sprintf("%x", hash.Sum(nil)))
 	}
@@ -320,8 +322,11 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			Annotations: &annotations,
 		},
 		Spec: &k8s.PodSpec{
-			Hostname:        helpers.Ternary(props.Hostname != "", &props.Hostname, nil),
-			SecurityContext: props.PodSecurityContext,
+			ServiceAccountName:           helpers.Ternary(props.ServiceAccountName != "", &props.ServiceAccountName, nil),
+			AutomountServiceAccountToken: helpers.Ternary(props.ServiceAccountName != "", jsii.Bool(true), nil),
+			Hostname:                     helpers.Ternary(props.Hostname != "", &props.Hostname, nil),
+			EnableServiceLinks:           helpers.Ternary(props.EnableServiceLinks, &props.EnableServiceLinks, nil),
+			SecurityContext:              props.PodSecurityContext,
 			ImagePullSecrets: helpers.Ternary(props.ImagePullSecrets != "", &[]*k8s.LocalObjectReference{
 				{Name: jsii.String(props.ImagePullSecrets)},
 			}, nil),

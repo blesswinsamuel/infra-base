@@ -277,3 +277,20 @@ func JSIIMap[K comparable, V any](m map[K]V) *map[K]*V {
 	}
 	return &out
 }
+
+type IngressAnnotationsProps struct {
+	Group       string
+	Name        string
+	Icon        string
+	Description string
+}
+
+func HomepageIngressAnnotations(props IngressAnnotationsProps) map[string]string {
+	return map[string]string{
+		"gethomepage.dev/description": props.Description,
+		"gethomepage.dev/enabled":     "true",
+		"gethomepage.dev/group":       props.Group,
+		"gethomepage.dev/icon":        props.Icon,
+		"gethomepage.dev/name":        props.Name,
+	}
+}
