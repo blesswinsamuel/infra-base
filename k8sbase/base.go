@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"log"
 	"os"
+	"time"
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
@@ -24,7 +25,16 @@ type BaseProps struct {
 	Databases  DatabaseProps           `yaml:"databases"`
 }
 
+func logModuleTiming(moduleName string) func() {
+	startTime := time.Now()
+	log.Printf("Starting %q..", moduleName)
+	return func() {
+		log.Printf("Done %q in %s", moduleName, time.Since(startTime))
+	}
+}
+
 func NewBase(scope constructs.Construct, props BaseProps) constructs.Construct {
+	defer logModuleTiming("base")()
 	construct := constructs.NewConstruct(scope, jsii.String("base"))
 
 	// secrets

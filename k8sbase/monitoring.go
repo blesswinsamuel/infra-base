@@ -23,6 +23,7 @@ type MonitoringProps struct {
 }
 
 func NewMonitoring(scope constructs.Construct, props MonitoringProps) constructs.Construct {
+	defer logModuleTiming("monitoring")()
 	construct := constructs.NewConstruct(scope, jsii.String("monitoring"))
 
 	helpers.NewNamespace(construct, "monitoring")

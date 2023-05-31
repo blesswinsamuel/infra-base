@@ -14,6 +14,7 @@ type DatabaseProps struct {
 }
 
 func NewDatabase(scope constructs.Construct, props DatabaseProps) constructs.Construct {
+	defer logModuleTiming("database")()
 	construct := constructs.NewConstruct(scope, jsii.String("database"))
 
 	if props.Namespace != "" {

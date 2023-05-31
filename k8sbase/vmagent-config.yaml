@@ -15,27 +15,32 @@ scrape_configs:
 
     ## COPY from Prometheus helm chart https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus/values.yaml
 
-    # Scrape config for API servers.
-  - job_name: "kubernetes-apiservers"
-    kubernetes_sd_configs:
-      - role: endpoints
-    scheme: https
-    tls_config:
-      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      insecure_skip_verify: true
-    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-    honor_labels: true
-    relabel_configs:
-      - source_labels:
-          [
-            __meta_kubernetes_namespace,
-            __meta_kubernetes_service_name,
-            __meta_kubernetes_endpoint_port_name,
-          ]
-        action: keep
-        regex: default;kubernetes;https
-      - target_label: job
-        replacement: apiserver
+  # Scrape config for API servers.
+  # Disabled due to duplicate metrics emitted by K3s. Refer https://github.com/k3s-io/k3s/issues/3619#issuecomment-1425852034.
+  # - job_name: "kubernetes-apiservers"
+  #   kubernetes_sd_configs:
+  #     - role: endpoints
+  #   scheme: https
+  #   tls_config:
+  #     ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  #     insecure_skip_verify: true
+  #   bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+  #   honor_labels: true
+  #   relabel_configs:
+  #     - source_labels:
+  #         [
+  #           __meta_kubernetes_namespace,
+  #           __meta_kubernetes_service_name,
+  #           __meta_kubernetes_endpoint_port_name,
+  #         ]
+  #       action: keep
+  #       regex: default;kubernetes;https
+  #     - target_label: job
+  #       replacement: apiserver
+  #   # metric_relabel_configs:
+  #   #   - source_labels: [__name__]
+  #   #     regex: "(apiserver_(request|request_sli|request_slo)_duration_seconds_bucket|apiserver_response_sizes_bucket)"
+  #   #     action: drop
   - job_name: "kubernetes-nodes"
     scheme: https
     tls_config:
@@ -54,10 +59,36 @@ scrape_configs:
         regex: (.+)
         target_label: __metrics_path__
         replacement: /api/v1/nodes/$1/proxy/metrics
-      - target_label: job
-        replacement: kubelet
       - target_label: metrics_path
         replacement: /metrics
+      - source_labels: [__meta_kubernetes_node_name]
+        action: replace
+        target_label: node
+      - target_label: job
+        # replacement: kubelet
+        replacement: apiserver
+    metric_relabel_configs:
+      # k3s exposes all metrics on all endpoints, relabel jobs that belong to other components
+      - source_labels: [__name__]
+        regex: "scheduler_(.+)"
+        target_label: "job"
+        replacement: "kube-scheduler"
+      - source_labels: [__name__]
+        regex: "kubeproxy_(.+)"
+        target_label: "job"
+        replacement: "kube-proxy"
+      # - source_labels: [__name__]
+      #   regex: "apiserver_(.+)"
+      #   target_label: "job"
+      #   replacement: "apiserver"
+      # - source_labels: [__name__]
+      #   regex: "kube_apiserver_(.+)"
+      #   target_label: "job"
+      #   replacement: "apiserver"
+      - source_labels: [__name__]
+        regex: "kubelet_(.+)"
+        target_label: "job"
+        replacement: "kubelet"
   - job_name: "kubernetes-nodes-cadvisor"
     scheme: https
     tls_config:

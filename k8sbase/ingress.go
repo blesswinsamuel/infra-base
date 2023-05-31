@@ -13,6 +13,7 @@ type IngressProps struct {
 }
 
 func NewIngress(scope constructs.Construct, props IngressProps) constructs.Construct {
+	defer logModuleTiming("ingress")()
 	construct := constructs.NewConstruct(scope, jsii.String("ingress"))
 
 	helpers.NewNamespace(construct, "ingress")

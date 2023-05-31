@@ -13,13 +13,13 @@ import (
 
 type Resources struct {
 	Requests struct {
-		CPU    string `yaml:"cpu"`
-		Memory string `yaml:"memory"`
-	}
+		CPU    string `yaml:"cpu" json:"cpu"`
+		Memory string `yaml:"memory" json:"memory"`
+	} `yaml:"requests" json:"requests"`
 	Limits struct {
-		CPU    string `yaml:"cpu"`
-		Memory string `yaml:"memory"`
-	}
+		CPU    string `yaml:"cpu" json:"cpu"`
+		Memory string `yaml:"memory" json:"memory"`
+	} `yaml:"limits" json:"limits"`
 }
 
 type VmagentProps struct {
@@ -58,6 +58,9 @@ func NewVmagent(scope constructs.Construct, props VmagentProps) cdk8s.Chart {
 			},
 			"extraScrapeConfigs": props.ExtraScrapeConfigs,
 			"resources":          props.Resources,
+			"extraArgs": map[string]any{
+				"promscrape.streamParse": "true",
+			},
 			// # extraArgs:
 			// #  http.pathPrefix: /vmagent
 			"service": map[string]any{

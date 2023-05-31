@@ -13,6 +13,7 @@ type SecretsProps struct {
 }
 
 func NewSecrets(scope constructs.Construct, props SecretsProps) constructs.Construct {
+	defer logModuleTiming("secrets")()
 	construct := constructs.NewConstruct(scope, jsii.String("secrets"))
 
 	helpers.NewNamespace(construct, "secrets")
