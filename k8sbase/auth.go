@@ -14,6 +14,7 @@ type AuthProps struct {
 }
 
 func NewAuth(scope constructs.Construct, props AuthProps) constructs.Construct {
+	defer logModuleTiming("auth")()
 	construct := constructs.NewConstruct(scope, jsii.String("auth"))
 
 	helpers.NewNamespace(construct, props.Namespace)

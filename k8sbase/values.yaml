@@ -97,6 +97,8 @@ monitoring:
             gnet_id: 15762
             id: k8s-system-coredns
             title: Kubernetes / System / CoreDNS
+            replacements:
+              'job=\"coredns\"': 'job=\"kube-dns\"'
           - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-global.json
             gnet_id: 15757
             id: k8s-views-global
@@ -152,6 +154,9 @@ monitoring:
           - url: https://grafana.com/api/dashboards/3590/revisions/3/download # 3590
             id: grafana-internals
             title: Grafana Internals
+            replacements:
+              kubernetes_pod_name: pod
+              grafana_info: grafana_build_info
 
       # Traefik
       community-ingress:
@@ -203,16 +208,31 @@ monitoring:
     rules:
       community-rules:
         urls:
-          - url: https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/main/manifests/alertmanager-prometheusRule.yaml
-          - url: https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/main/manifests/kubernetesControlPlane-prometheusRule.yaml
-            skip:
-              - kubernetes-system-controller-manager
-              - kubernetes-system-scheduler
-          - url: https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/main/manifests/kubePrometheus-prometheusRule.yaml
-          - url: https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/main/manifests/kubeStateMetrics-prometheusRule.yaml
-          - url: https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/main/manifests/nodeExporter-prometheusRule.yaml
-          - url: https://raw.githubusercontent.com/VictoriaMetrics/VictoriaMetrics/master/deployment/docker/alerts.yml
+          - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/alertmanager-prometheusRule.yaml
+            id: alertmanager
+            replacements:
+              'job="alertmanager-main"': 'job="alertmanager"'
+          - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubernetesControlPlane-prometheusRule.yaml
+            id: kubernetes-control-plane
+            # skipGroups:
+            #   - kubernetes-system-controller-manager
+            #   - kubernetes-system-scheduler
+            skipAlerts:
+              - KubeControllerManagerDown
+              - KubeSchedulerDown
+              # - KubeletDown
+            replacements:
+              'up{job="kubelet", metrics_path="/metrics"}': 'up{job="apiserver", metrics_path="/metrics"}'
+          - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubePrometheus-prometheusRule.yaml
+            id: kube-prometheus
+          - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubeStateMetrics-prometheusRule.yaml
+            id: kube-state-metrics
+          - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/nodeExporter-prometheusRule.yaml
+            id: node-exporter
+          - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/deployment/docker/alerts.yml
+            id: victoriametrics
           - url: https://etcd.io/docs/v3.4/op-guide/etcd3_alert.rules.yml
+            id: etcd
   vmagent:
     enabled: true
     helm:
@@ -223,11 +243,11 @@ monitoring:
       subDomain: "vmagent"
     resources:
       requests:
-        memory: "128Mi"
-        cpu: "250m"
+        memory: "64Mi"
+        cpu: "25m"
       limits:
         memory: "512Mi"
-        cpu: "500m"
+        cpu: "300m"
   vmalert:
     enabled: true
     helm:
@@ -272,10 +292,10 @@ monitoring:
     resources:
       requests:
         memory: "384Mi"
-        cpu: "250m"
+        cpu: "100m"
       limits:
-        memory: "512Mi"
-        cpu: "500m"
+        memory: "768Mi"
+        cpu: "400m"
   loki:
     enabled: true
     helm:

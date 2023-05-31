@@ -14,6 +14,7 @@ type SystemProps struct {
 }
 
 func NewSystem(scope constructs.Construct, props SystemProps) constructs.Construct {
+	defer logModuleTiming("system")()
 	construct := constructs.NewConstruct(scope, jsii.String("system"))
 
 	helpers.NewNamespace(construct, "system")

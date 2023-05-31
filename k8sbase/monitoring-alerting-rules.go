@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
@@ -29,8 +30,11 @@ type AlertingRuleConfigProps struct {
 }
 
 type RuleURLProps struct {
-	URL  string   `yaml:"url"`
-	Skip []string `yaml:"skip"`
+	ID           string            `yaml:"id"`
+	URL          string            `yaml:"url"`
+	SkipGroups   []string          `yaml:"skipGroups"`
+	SkipAlerts   []string          `yaml:"skipAlerts"`
+	Replacements map[string]string `yaml:"replacements"`
 }
 
 func GetCachedAlertingRule(url string) []byte {
@@ -82,6 +86,9 @@ func NewAlertingRules(scope constructs.Construct, props AlertingRulesProps) cdk8
 			for _, urlConfig := range *rulesConfig.URLs {
 				groups := []interface{}{}
 				data := GetCachedAlertingRule(urlConfig.URL)
+				for k, v := range urlConfig.Replacements {
+					data = []byte(strings.ReplaceAll(string(data), k, v))
+				}
 				yamlRules := map[string]interface{}{}
 				if err := yaml.Unmarshal(data, &yamlRules); err != nil {
 					panic(err)
@@ -93,24 +100,39 @@ func NewAlertingRules(scope constructs.Construct, props AlertingRulesProps) cdk8
 						groups = g.([]interface{})
 					}
 				}
+				groupsFiltered := []interface{}{}
 				for _, group := range groups {
+					rulesFiltered := []interface{}{}
 					group := group.(map[string]interface{})
 					groupName := group["name"].(string)
-					if slices.Contains(urlConfig.Skip, groupName) {
+					if slices.Contains(urlConfig.SkipGroups, groupName) {
 						continue
 					}
+					rules := group["rules"].([]interface{})
+					for _, rule := range rules {
+						rule := rule.(map[string]interface{})
+						ruleName, _ := rule["alert"].(string)
+						if slices.Contains(urlConfig.SkipAlerts, ruleName) {
+							continue
+						}
+						rulesFiltered = append(rulesFiltered, rule)
+					}
+					group["rules"] = rulesFiltered
+					if len(rulesFiltered) == 0 {
+						continue
+					}
+					groupsFiltered = append(groupsFiltered, group)
 					// buf := bytes.NewBufferString("")
 					// enc := yaml.NewEncoder(buf)
 					// enc.
-					bytes, err := yaml.Marshal(map[string]interface{}{"groups": []interface{}{group}})
-					if err != nil {
-						panic(err)
-					}
-					rules[groupName+".yaml"] = jsii.String(string(bytes))
 				}
+				outBytes, err := yaml.Marshal(map[string]interface{}{"groups": groupsFiltered})
+				if err != nil {
+					panic(err)
+				}
+				rules[urlConfig.ID+".yaml"] = jsii.String(string(outBytes))
 			}
 		}
-
 	}
 	k8s.NewKubeConfigMap(chart, jsii.String("config-map"), &k8s.KubeConfigMapProps{
 		Metadata: &k8s.ObjectMeta{
