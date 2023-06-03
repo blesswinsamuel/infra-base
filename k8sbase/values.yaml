@@ -161,6 +161,11 @@ monitoring:
               kubernetes_pod_name: pod
               grafana_info: grafana_build_info
 
+          # https://github.com/vectordotdev/vector/pull/14369#issuecomment-1292635356
+          - url: https://github.com/zamazan4ik/vector-community/raw/main/grafana_dashboards/full-dashboard.json
+            id: vector
+            title: Vector
+
       # Traefik
       community-ingress:
         folder: Ingress
