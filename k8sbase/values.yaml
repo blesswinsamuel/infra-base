@@ -93,6 +93,9 @@ monitoring:
             gnet_id: 15761
             id: k8s-system-api-server
             title: Kubernetes / System / API Server
+            replacements:
+              'sum(rate(apiserver_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (verb)': 'sum(rate(apiserver_request_duration_seconds_sum{job=\"apiserver\"}[$__rate_interval])) by (verb) / sum(rate(apiserver_request_duration_seconds_count{job=\"apiserver\"}[$__rate_interval])) by (verb)'
+              'sum(rate(apiserver_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (instance)': 'sum(rate(apiserver_request_duration_seconds_sum{job=\"apiserver\"}[$__rate_interval])) by (instance) / sum(rate(apiserver_request_duration_seconds_count{job=\"apiserver\"}[$__rate_interval])) by (instance)'
           - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-system-coredns.json
             gnet_id: 15762
             id: k8s-system-coredns
@@ -207,6 +210,8 @@ monitoring:
   alertingRules:
     rules:
       community-rules:
+        # files:
+        #   - glob: ./alerts/postgres.yaml
         urls:
           - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/alertmanager-prometheusRule.yaml
             id: alertmanager
