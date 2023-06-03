@@ -1,6 +1,6 @@
 import { Construct } from "constructs";
-import { GlobalProps } from "./global.ts";
-import { Secrets, SecretsProps } from "./secrets.ts";
+import { GlobalProps } from "./global";
+import { Secrets, SecretsProps } from "./secrets/secrets";
 
 export interface BaseProps {
   // Global     GlobalProps     `yaml:"global"`
@@ -20,7 +20,7 @@ export class Base extends Construct {
     super(scope, id);
 
     // secrets
-    new Secrets(this, "secrets", props.secrets);
+    logTimeToken("secrets", () => new Secrets(this, "secrets", props.secrets));
 
     // // ingress
     // new Ingress(this, "ingress", props.ingress);
@@ -37,4 +37,11 @@ export class Base extends Construct {
     // // auth
     // new Auth(this, "auth", props.auth);
   }
+}
+
+function logTimeToken(moduleName: string, fn: () => void) {
+  const startTime = Date.now();
+  fn();
+  const endTime = Date.now();
+  console.log(`${moduleName}: Time taken: ${endTime - startTime}ms`);
 }

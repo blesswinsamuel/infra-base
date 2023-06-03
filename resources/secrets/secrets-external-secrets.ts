@@ -1,6 +1,6 @@
 import { Chart } from "cdk8s";
 import { Construct } from "constructs";
-import { ChartInfo, HelmCached } from "./utils/helm.ts";
+import { ChartInfo, HelmCached } from "../helpers/helm";
 
 export interface ExternalSecretsProps {
   enabled: boolean;

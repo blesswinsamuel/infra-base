@@ -1,9 +1,0 @@
-{
-  "imports": {
-    "cdk8s": "npm:cdk8s@2.7.75"
-  },
-  "tasks": {
-    "dev": "deno run --watch main.ts",
-    "generate": "cdk8s import --output k8sbase/imports"
-  }
-}

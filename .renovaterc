@@ -30,7 +30,7 @@
   ],
   "enabledManagers": [
     "regex",
-    "gomod",
+    "npm",
     "github-actions"
   ],
   "prHourlyLimit": 30,

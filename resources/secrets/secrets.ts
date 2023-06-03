@@ -1,11 +1,11 @@
 import { Construct } from "constructs";
 // import { ClusterSecretStoreProps } from "./cluster-secret-store";
 // import { ExternalSecretsProps } from "./external-secrets";
-import { KubeNamespace } from "./imports/k8s.ts";
+import { KubeNamespace } from "../../imports/k8s";
 import {
   ExternalSecrets,
   ExternalSecretsProps,
-} from "./secrets-external-secrets.ts";
+} from "./secrets-external-secrets";
 // import { SecretsDockerCredsProps } from "./secrets-docker-creds";
 
 export interface SecretsProps {

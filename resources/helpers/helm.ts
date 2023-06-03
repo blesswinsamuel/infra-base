@@ -1,9 +1,8 @@
 import { Helm } from "cdk8s";
+import { execSync } from "child_process";
 import { Construct } from "constructs";
-import * as fs from "https://deno.land/std@0.177.1/fs/mod.ts";
-import { execSync } from "https://deno.land/std@0.177.1/node/child_process.ts";
-import process from "https://deno.land/std@0.177.1/node/process.ts";
-import * as path from "https://deno.land/std@0.177.1/path/mod.ts";
+import * as fs from "fs";
+import * as path from "path";
 
 export interface ImageInfo {
   readonly repository: string;
@@ -32,35 +31,38 @@ export class HelmCached extends Construct {
     super(scope, id);
 
     const chartsCacheDir = path.join(cacheDir, "charts");
-    fs.ensureDirSync(chartsCacheDir);
+    if (!fs.existsSync(chartsCacheDir)) {
+      fs.mkdirSync(chartsCacheDir, { recursive: true });
+    }
 
     if (props.chartInfo.repo === undefined) {
       throw new Error(
-        `props.chartInfo.repo is undefined for ${props.releaseName}`,
+        `props.chartInfo.repo is undefined for ${props.releaseName}`
       );
     }
 
-    let chartFileName =
-      `${props.chartInfo.chart}-${props.chartInfo.version}.tgz`;
+    let chartFileName = `${props.chartInfo.chart}-${props.chartInfo.version}.tgz`;
     if (props.chartFileNamePrefix) {
-      chartFileName =
-        `${props.chartFileNamePrefix}-${props.chartInfo.version}.tgz`;
+      chartFileName = `${props.chartFileNamePrefix}-${props.chartInfo.version}.tgz`;
     }
 
     const chartPath = `${chartsCacheDir}/${chartFileName}`;
-    const cmd =
-      `helm pull ${props.chartInfo.chart} --repo ${props.chartInfo.repo} --destination ${chartsCacheDir} --version ${props.chartInfo.version}`;
-    console.log(`cmd: ${cmd}`);
-    try {
-      const out = execSync(cmd, {});
-      console.log(
-        `Fetching chart '${props.chartInfo.chart}' from repo '${props.chartInfo.repo}' version '${props.chartInfo.version}' ...`,
-      );
-      if (out != null && out.length > 0) {
-        console.log(out.toString());
+    if (!fs.existsSync(chartPath)) {
+      const cmd = `helm pull ${props.chartInfo.chart} --repo ${props.chartInfo.repo} --destination ${chartsCacheDir} --version ${props.chartInfo.version}`;
+      console.log(`cmd: ${cmd}`);
+      try {
+        const out = execSync(cmd, {});
+        console.log(
+          `Fetching chart '${props.chartInfo.chart}' from repo '${props.chartInfo.repo}' version '${props.chartInfo.version}' ...`
+        );
+        if (out != null && out.length > 0) {
+          console.log(out.toString());
+        }
+      } catch (err) {
+        throw new Error(`Error occured during helm pull command: ${err}`);
       }
-    } catch (err) {
-      throw new Error(`Error occured during helm pull command: ${err}`);
+    } else {
+      console.log(`Using cached chart: ${chartPath}`);
     }
 
     new Helm(this, id, {
