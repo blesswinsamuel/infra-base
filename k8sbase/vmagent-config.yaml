@@ -67,6 +67,28 @@ scrape_configs:
       - target_label: job
         # replacement: kubelet
         replacement: apiserver
+      # drop unused high cardinality metrics
+      - source_labels: [__name__]
+        regex: "etcd_request_duration_seconds_bucket" # 8k
+        action: drop
+      - source_labels: [__name__]
+        regex: "apiserver_request_duration_seconds_bucket" # 11.7k
+        action: drop
+      - source_labels: [__name__]
+        regex: "apiserver_request_sli_duration_seconds_bucket" # 8k
+        action: drop
+      - source_labels: [__name__]
+        regex: "apiserver_response_sizes_bucket" # ~2k
+        action: drop
+      - source_labels: [__name__]
+        regex: "workqueue_(queue|work)_duration_seconds_bucket" # ~800 * 2
+        action: drop
+      - source_labels: [__name__]
+        regex: "container_tasks_state" # ~800
+        action: drop
+      - source_labels: [__name__]
+        regex: "scheduler_plugin_execution_duration_seconds_bucket" # ~600
+        action: drop
     metric_relabel_configs:
       # k3s exposes all metrics on all endpoints, relabel jobs that belong to other components
       - source_labels: [__name__]

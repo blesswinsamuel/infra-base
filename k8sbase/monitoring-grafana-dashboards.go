@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"io"
 	"log"
 	"net/http"
@@ -40,13 +41,20 @@ type DashboardURLProps struct {
 	Replacements map[string]string `yaml:"replacements"`
 }
 
-func GetCachedDashboard(url string, id string) []byte {
+func hash(s string) string {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return fmt.Sprintf("%v", h.Sum32())
+}
+
+func GetCachedDashboard(url string) []byte {
+	fileName := hash(url) + ".json"
 	dashboardsCacheDir := fmt.Sprintf("%s/%s", helpers.CacheDir, "dashboards")
 	if err := os.MkdirAll(dashboardsCacheDir, os.ModePerm); err != nil {
 		log.Fatalln("GetCachedDashboard MkdirAll failed", err)
 	}
 
-	if _, err := os.Stat(dashboardsCacheDir + "/" + id); err != nil {
+	if _, err := os.Stat(dashboardsCacheDir + "/" + fileName); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			log.Println("GetCachedDashboard downloading", url)
 			resp, err := http.Get(url)
@@ -61,14 +69,14 @@ func GetCachedDashboard(url string, id string) []byte {
 			if err != nil {
 				panic(err)
 			}
-			if err := os.WriteFile(dashboardsCacheDir+"/"+id, data, 0644); err != nil {
+			if err := os.WriteFile(dashboardsCacheDir+"/"+fileName, data, 0644); err != nil {
 				panic(err)
 			}
 		} else {
 			log.Fatalln("GetCachedDashboard Stat failed", err)
 		}
 	}
-	data, err := os.ReadFile(dashboardsCacheDir + "/" + id)
+	data, err := os.ReadFile(dashboardsCacheDir + "/" + fileName)
 	if err != nil {
 		panic(err)
 	}
@@ -124,7 +132,7 @@ func NewGrafanaDashboards(scope constructs.Construct, props GrafanaDashboardsPro
 		}
 		if dashboardConfig.URL != nil {
 			for _, url := range *dashboardConfig.URL {
-				dashboardContents := GetCachedDashboard(url.URL, url.ID)
+				dashboardContents := GetCachedDashboard(url.URL)
 				dashboard := map[string]interface{}{}
 				if err := json.Unmarshal(dashboardContents, &dashboard); err != nil {
 					panic(err)
