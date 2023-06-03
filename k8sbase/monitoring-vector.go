@@ -42,11 +42,11 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 		Namespace:   chart.Namespace(),
 		Values: &map[string]interface{}{
 			"role": "Agent",
-			// # Prometheus scrape is disabled because it's creating duplicate metrics. Also, there is a peer_addr which blows up the cardinality
-			// # service:
-			// #   annotations:
-			// #     prometheus.io/port: "9090"
-			// #     prometheus.io/scrape: "true"
+			// Prometheus scrape is disabled because it's creating duplicate metrics. Also, there is a peer_addr which blows up the cardinality
+			"podAnnotations": map[string]interface{}{
+				"prometheus.io/port":   "9090",
+				"prometheus.io/scrape": "true",
+			},
 			"ingress": helpers.Ternary(props.Ingress.Enabled, map[string]interface{}{
 				"enabled":     true,
 				"annotations": infraglobal.GetCertIssuerAnnotation(scope),
@@ -92,22 +92,22 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 						"kubernetes_logs": map[string]interface{}{
 							"type": "kubernetes_logs",
 						},
-						// # vector_logs:
-						// #   type: internal_logs
-						"host_metrics": map[string]interface{}{
-							"type": "host_metrics",
-							"filesystem": map[string]interface{}{
-								"devices": map[string]interface{}{
-									"excludes": []string{"binfmt_misc"},
-								},
-								"filesystems": map[string]interface{}{
-									"excludes": []string{"binfmt_misc"},
-								},
-								"mountPoints": map[string]interface{}{
-									"excludes": []string{"*/proc/sys/fs/binfmt_misc"},
-								},
-							},
-						},
+						// // # vector_logs:
+						// // #   type: internal_logs
+						// "host_metrics": map[string]interface{}{
+						// 	"type": "host_metrics",
+						// 	"filesystem": map[string]interface{}{
+						// 		"devices": map[string]interface{}{
+						// 			"excludes": []string{"binfmt_misc"},
+						// 		},
+						// 		"filesystems": map[string]interface{}{
+						// 			"excludes": []string{"binfmt_misc"},
+						// 		},
+						// 		"mountPoints": map[string]interface{}{
+						// 			"excludes": []string{"*/proc/sys/fs/binfmt_misc"},
+						// 		},
+						// 	},
+						// },
 						"internal_metrics": map[string]interface{}{
 							"type": "internal_metrics",
 						},
@@ -163,8 +163,11 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 				),
 				"sinks": map[string]interface{}{
 					"prom_exporter": map[string]interface{}{
-						"type":    "prometheus_exporter",
-						"inputs":  []string{"host_metrics", "internal_metrics"},
+						"type": "prometheus_exporter",
+						"inputs": []string{
+							// "host_metrics",
+							"internal_metrics",
+						},
 						"address": "0.0.0.0:9090",
 					},
 					"loki_sink": map[string]interface{}{
