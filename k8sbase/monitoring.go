@@ -2,7 +2,6 @@ package k8sbase
 
 import (
 	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 )
 
@@ -24,25 +23,23 @@ type MonitoringProps struct {
 
 func NewMonitoring(scope constructs.Construct, props MonitoringProps) constructs.Construct {
 	defer logModuleTiming("monitoring")()
-	construct := constructs.NewConstruct(scope, jsii.String("monitoring"))
+	chart := k8sapp.NewNamespaceChart(scope, "monitoring")
 
-	k8sapp.NewNamespaceChart(construct, "monitoring")
+	NewGrafana(chart, props.Grafana)
+	NewKubeStateMetrics(chart, props.KubeStateMetrics)
+	NewGrafanaDashboards(chart, props.GrafanaDashboards)
+	NewAlertingRules(chart, props.AlertingRules)
+	NewNodeExporter(chart, props.NodeExporter)
+	NewVector(chart, props.Vector)
+	NewVictoriaMetrics(chart, props.Victoriametrics)
+	NewAlertmanager(chart, props.Alertmanager)
+	NewVmagent(chart, props.Vmagent)
+	NewVmalert(chart, props.Vmalert)
+	NewLoki(chart, props.Loki)
+	NewCrowdsec(chart, props.Crowdsec)
+	NewCrowdsecTraefikBouncer(chart, props.CrowdsecTraefikBouncer)
 
-	NewGrafana(construct, props.Grafana)
-	NewKubeStateMetrics(construct, props.KubeStateMetrics)
-	NewGrafanaDashboards(construct, props.GrafanaDashboards)
-	NewAlertingRules(construct, props.AlertingRules)
-	NewNodeExporter(construct, props.NodeExporter)
-	NewVector(construct, props.Vector)
-	NewVictoriaMetrics(construct, props.Victoriametrics)
-	NewAlertmanager(construct, props.Alertmanager)
-	NewVmagent(construct, props.Vmagent)
-	NewVmalert(construct, props.Vmalert)
-	NewLoki(construct, props.Loki)
-	NewCrowdsec(construct, props.Crowdsec)
-	NewCrowdsecTraefikBouncer(construct, props.CrowdsecTraefikBouncer)
+	NewGrafanaDatasource(chart, GrafanaDatasourceProps{})
 
-	NewGrafanaDatasource(construct, GrafanaDatasourceProps{})
-
-	return construct
+	return chart
 }

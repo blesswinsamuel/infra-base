@@ -2,7 +2,6 @@ package k8sbase
 
 import (
 	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 )
 
@@ -14,13 +13,11 @@ type SecretsProps struct {
 
 func NewSecrets(scope constructs.Construct, props SecretsProps) constructs.Construct {
 	defer logModuleTiming("secrets")()
-	construct := constructs.NewConstruct(scope, jsii.String("secrets"))
 
-	k8sapp.NewNamespaceChart(construct, "secrets")
+	chart := k8sapp.NewNamespaceChart(scope, "secrets")
 
-	NewExternalSecrets(construct, props.ExternalSecrets)
-
-	NewSecretsDockerCreds(construct, props.DockerCreds)
-	NewClusterSecretStore(construct, props.ClusterSecretStore)
-	return construct
+	NewExternalSecrets(chart, props.ExternalSecrets)
+	NewSecretsDockerCreds(chart, props.DockerCreds)
+	NewClusterSecretStore(chart, props.ClusterSecretStore)
+	return chart
 }
