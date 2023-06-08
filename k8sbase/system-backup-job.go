@@ -22,6 +22,7 @@ type BackupJobProps struct {
 		Enabled           bool              `yaml:"enabled"`
 		Image             helpers.ImageInfo `yaml:"image"`
 		Schedule          string            `yaml:"schedule"`
+		Host              string            `yaml:"host"`
 		LocalBackupVolume *k8s.Volume       `yaml:"localBackupVolume"`
 		Databases         []string          `yaml:"databases"`
 	} `yaml:"postgres"`
@@ -49,7 +50,7 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 		Name: jsii.String("backup-restore-job-postgres"),
 		Template: &externalsecretsio.ExternalSecretV1Beta1SpecTargetTemplate{
 			Data: &map[string]*string{
-				"PGHOST":     jsii.String("postgres.database.svc.cluster.local"),
+				"PGHOST":     jsii.String(props.Postgres.Host),
 				"PGPORT":     jsii.String("5432"),
 				"PGUSER":     jsii.String("{{ .PGUSER }}"),
 				"PGPASSWORD": jsii.String("{{ .PGPASSWORD }}"),
@@ -195,7 +196,7 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 							Containers: &[]*k8s.Container{
 								{
 									Name:  jsii.String("job-done"),
-									Image: jsii.String("curlimages/curl"),
+									Image: jsii.String("curlimages/curl:8.1.0"),
 									Command: jsii.PtrSlice(
 										"sh",
 										"-c",
