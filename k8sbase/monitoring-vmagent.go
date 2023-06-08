@@ -5,10 +5,10 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
-	"github.com/blesswinsamuel/infra-base/k8sbase/utils"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
@@ -47,7 +47,7 @@ func NewVmagent(scope constructs.Construct, props VmagentProps) cdk8s.Chart {
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("vmagent"), &cprops)
 
-	vmagentConfig := utils.FromYamlString[map[string]any](vmagentConfig)
+	vmagentConfig := infrahelpers.FromYamlString[map[string]any](vmagentConfig)
 
 	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

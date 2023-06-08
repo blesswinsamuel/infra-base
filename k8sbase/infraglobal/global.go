@@ -3,7 +3,7 @@ package infraglobal
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/utils"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 )
 
 type GlobalProps struct {
@@ -15,7 +15,7 @@ type GlobalProps struct {
 
 func GetGlobal(scope constructs.Construct) GlobalProps {
 	globalValues := scope.Node().TryGetContext(jsii.String("global")).(string)
-	return utils.FromYamlString[GlobalProps](globalValues)
+	return infrahelpers.FromYamlString[GlobalProps](globalValues)
 }
 
 func GetCertIssuer(scope constructs.Construct) string {

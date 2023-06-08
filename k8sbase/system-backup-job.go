@@ -120,9 +120,9 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 	if !props.Postgres.Enabled {
 		return
 	}
-	NewExternalSecret(chart, jsii.String("external-secret-heartbeat"), &ExternalSecretProps{
-		Name: jsii.String("backup-job-heartbeat"),
-		Secrets: map[string]string{
+	k8sapp.NewExternalSecret(chart, jsii.String("external-secret-heartbeat"), &k8sapp.ExternalSecretProps{
+		Name: "backup-job-heartbeat",
+		RemoteRefs: map[string]string{
 			"HEARTBEAT_URL": "DB_BACKUP_HEARTBEAT_URL",
 		},
 	})

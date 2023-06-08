@@ -39,10 +39,9 @@ func NewMariaDB(scope constructs.Construct, props MariaDBProps) cdk8s.Chart {
 		},
 	})
 
-	NewExternalSecret(chart, jsii.String("external-secret"), &ExternalSecretProps{
-		Name:            jsii.String("mariadb-passwords"),
-		RefreshInterval: jsii.String("2m"),
-		Secrets: map[string]string{
+	k8sapp.NewExternalSecret(chart, jsii.String("external-secret"), &k8sapp.ExternalSecretProps{
+		Name: "mariadb-passwords",
+		RemoteRefs: map[string]string{
 			"mariadb-password":             "MARIADB_PASSWORD",
 			"mariadb-root-password":        "MARIADB_ROOT_PASSWORD",
 			"mariadb-replication-password": "MARIADB_REPLICATION_PASSWORD",

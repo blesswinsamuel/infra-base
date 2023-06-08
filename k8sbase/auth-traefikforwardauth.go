@@ -92,10 +92,9 @@ func NewTraefikForwardAuth(scope constructs.Construct, props TraefikForwardAuthP
 		},
 	})
 
-	NewExternalSecret(chart, jsii.String("external-secret"), &ExternalSecretProps{
-		Name:            jsii.String("traefik-forward-auth"),
-		RefreshInterval: jsii.String("2m"),
-		Secrets: map[string]string{
+	k8sapp.NewExternalSecret(chart, jsii.String("external-secret"), &k8sapp.ExternalSecretProps{
+		Name: "traefik-forward-auth",
+		RemoteRefs: map[string]string{
 			"PROVIDERS_GOOGLE_CLIENT_SECRET": "AUTH_GOOGLE_CLIENT_SECRET",
 			"PROVIDERS_GOOGLE_CLIENT_ID":     "AUTH_GOOGLE_CLIENT_ID",
 			"SECRET":                         "AUTH_COOKIE_SECRET",
