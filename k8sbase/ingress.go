@@ -2,7 +2,6 @@ package k8sbase
 
 import (
 	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 )
 
@@ -14,12 +13,11 @@ type IngressProps struct {
 
 func NewIngress(scope constructs.Construct, props IngressProps) constructs.Construct {
 	defer logModuleTiming("ingress")()
-	construct := constructs.NewConstruct(scope, jsii.String("ingress"))
 
-	k8sapp.NewNamespaceChart(construct, "ingress")
-	NewCertManager(construct, props.CertManager)
-	NewCertIssuer(construct, props.CertIssuer)
-	NewTraefik(construct, props.Traefik)
+	chart := k8sapp.NewNamespaceChart(scope, "ingress")
+	NewCertManager(chart, props.CertManager)
+	NewCertIssuer(chart, props.CertIssuer)
+	NewTraefik(chart, props.Traefik)
 
-	return construct
+	return chart
 }

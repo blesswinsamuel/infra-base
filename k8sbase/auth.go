@@ -2,7 +2,6 @@ package k8sbase
 
 import (
 	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 )
 
@@ -15,13 +14,11 @@ type AuthProps struct {
 
 func NewAuth(scope constructs.Construct, props AuthProps) constructs.Construct {
 	defer logModuleTiming("auth")()
-	construct := constructs.NewConstruct(scope, jsii.String("auth"))
+	chart := k8sapp.NewNamespaceChart(scope, props.Namespace)
 
-	k8sapp.NewNamespaceChart(construct, props.Namespace)
+	NewTraefikForwardAuth(chart, props.TraefikForwardAuth)
+	NewAuthelia(chart, props.Authelia)
+	NewLLDAP(chart, props.LLDAP)
 
-	NewTraefikForwardAuth(construct, props.TraefikForwardAuth)
-	NewAuthelia(construct, props.Authelia)
-	NewLLDAP(construct, props.LLDAP)
-
-	return construct
+	return chart
 }
