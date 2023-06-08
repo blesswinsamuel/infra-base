@@ -106,9 +106,6 @@ scrape_configs:
         regex: "workqueue_(queue|work)_duration_seconds_bucket" # ~800 * 2
         action: drop
       - source_labels: [__name__]
-        regex: "container_tasks_state" # ~800
-        action: drop
-      - source_labels: [__name__]
         regex: "scheduler_plugin_execution_duration_seconds_bucket" # ~600
         action: drop
   - job_name: "kubernetes-nodes-cadvisor"
@@ -133,6 +130,10 @@ scrape_configs:
         replacement: kubelet
       - target_label: metrics_path
         replacement: /metrics/cadvisor
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "container_tasks_state" # ~800
+        action: drop
 
   # Scrape config for service endpoints.
   - job_name: "kubernetes-service-endpoints"

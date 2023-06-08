@@ -260,10 +260,9 @@ monitoring:
         cpu: "300m"
   vmalert:
     enabled: true
-    helm:
-      repo: https://victoriametrics.github.io/helm-charts
-      chart: victoria-metrics-alert
-      version: "0.6.1"
+    image:
+      repository: victoriametrics/vmalert
+      tag: v1.91.0
     ingress:
       enabled: true
       subDomain: "vmalert"
@@ -424,3 +423,4 @@ system:
       image:
         repository: postgres
         tag: "14.8"
+      host: "postgres.database.svc.cluster.local"
