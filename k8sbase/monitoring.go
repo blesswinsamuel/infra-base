@@ -6,6 +6,7 @@ import (
 )
 
 type MonitoringProps struct {
+	Enabled                bool                        `yaml:"enabled"`
 	Grafana                GrafanaProps                `yaml:"grafana"`
 	GrafanaDashboards      GrafanaDashboardsProps      `yaml:"grafanaDashboards"`
 	AlertingRules          AlertingRulesProps          `yaml:"alertingRules"`
@@ -22,6 +23,9 @@ type MonitoringProps struct {
 }
 
 func NewMonitoring(scope constructs.Construct, props MonitoringProps) constructs.Construct {
+	if !props.Enabled {
+		return nil
+	}
 	defer logModuleTiming("monitoring")()
 	chart := k8sapp.NewNamespaceChart(scope, "monitoring")
 

@@ -9,7 +9,6 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"golang.org/x/exp/slices"
@@ -174,7 +173,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			},
 		})
 		addVolumeMount(configmap.MountToContainers, configmap.MountName, configmap.MountPath, configmap.SubPath, configmap.ReadOnly)
-		for _, key := range helpers.MapKeys(configmap.Data) {
+		for _, key := range infrahelpers.MapKeys(configmap.Data) {
 			configmapHash.Write([]byte(configmap.Data[key]))
 			addConfigMapHash = true
 		}
@@ -398,7 +397,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubeService(scope, jsii.String("service"), &k8s.KubeServiceProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:        jsii.String(props.Name),
-				Annotations: helpers.JSIIMap(serviceAnnotations),
+				Annotations: infrahelpers.PtrMap(serviceAnnotations),
 			},
 			Spec: &k8s.ServiceSpec{
 				Selector: infrahelpers.PtrMap(commonLabels),

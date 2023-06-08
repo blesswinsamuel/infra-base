@@ -6,13 +6,16 @@ import (
 )
 
 type DatabaseProps struct {
-	Namespace string        `yaml:"namespace"`
-	MariaDB   MariaDBProps  `yaml:"mariadb"`
-	Postgres  PostgresProps `yaml:"postgres"`
-	Redis     RedisProps    `yaml:"redis"`
+	Enabled  bool          `yaml:"enabled"`
+	MariaDB  MariaDBProps  `yaml:"mariadb"`
+	Postgres PostgresProps `yaml:"postgres"`
+	Redis    RedisProps    `yaml:"redis"`
 }
 
 func NewDatabase(scope constructs.Construct, props DatabaseProps) constructs.Construct {
+	if !props.Enabled {
+		return nil
+	}
 	defer logModuleTiming("database")()
 
 	chart := k8sapp.NewNamespaceChart(scope, "database")
