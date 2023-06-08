@@ -70,11 +70,9 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 		},
 	}
 	if props.AuthMode == "file" {
-		NewExternalSecret(chart, jsii.String("users-db"), &ExternalSecretProps{
-			Name:            jsii.String("authelia-users-db"),
-			Namespace:       k8sapp.GetNamespaceContextPtr(scope),
-			RefreshInterval: jsii.String("10m"),
-			Secrets: map[string]string{
+		k8sapp.NewExternalSecret(chart, jsii.String("users-db"), &k8sapp.ExternalSecretProps{
+			Name: "authelia-users-db",
+			RemoteRefs: map[string]string{
 				"users_database.yml": "AUTHELIA_USERS_DATABASE_YML",
 			},
 		})
@@ -234,11 +232,9 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 		secrets["OIDC_PRIVATE_KEY"] = "AUTHELIA_OIDC_PRIVATE_KEY"
 		secrets["OIDC_HMAC_SECRET"] = "AUTHELIA_OIDC_HMAC_SECRET"
 	}
-	NewExternalSecret(chart, jsii.String("external-secrets"), &ExternalSecretProps{
-		Name:            jsii.String("authelia"),
-		Namespace:       k8sapp.GetNamespaceContextPtr(scope),
-		RefreshInterval: jsii.String("10m"),
-		Secrets:         secrets,
+	k8sapp.NewExternalSecret(chart, jsii.String("external-secrets"), &k8sapp.ExternalSecretProps{
+		Name:       "authelia",
+		RemoteRefs: secrets,
 	})
 	return chart
 }

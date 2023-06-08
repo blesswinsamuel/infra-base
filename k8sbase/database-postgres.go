@@ -41,10 +41,9 @@ func NewPostgres(scope constructs.Construct, props PostgresProps) cdk8s.Chart {
 		},
 	})
 
-	NewExternalSecret(chart, jsii.String("external-secret"), &ExternalSecretProps{
-		Name:            jsii.String("postgres-passwords"),
-		RefreshInterval: jsii.String("2m"),
-		Secrets: map[string]string{
+	k8sapp.NewExternalSecret(chart, jsii.String("external-secret"), &k8sapp.ExternalSecretProps{
+		Name: "postgres-passwords",
+		RemoteRefs: map[string]string{
 			"postgres-password":    "POSTGRES_ADMIN_PASSWORD",
 			"password":             "POSTGRES_USER_PASSWORD",
 			"replication-password": "POSTGRES_REPLICATION_PASSWORD",

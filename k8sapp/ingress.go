@@ -96,7 +96,7 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 					DnsNames:   infrahelpers.PtrSlice(infrahelpers.MapKeys(tlsHosts)...),
 					SecretName: jsii.String(fmt.Sprintf("%s-tls", props.Name)),
 					IssuerRef: &certmanagerio.CertificateSpecIssuerRef{
-						Name: jsii.String(infrahelpers.UseOrDefault(props.CertIssuer.Name, globals.DefaultSecretStoreName)),
+						Name: jsii.String(infrahelpers.UseOrDefault(props.CertIssuer.Name, globals.DefaultCertIssuerName)),
 						Kind: jsii.String(infrahelpers.UseOrDefault(props.CertIssuer.Kind, globals.DefaultCertIssuerKind)),
 					},
 				},
@@ -153,7 +153,7 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 		}
 		traefikMiddlwareNames := []string{}
 		for _, traefikMiddleware := range props.TraefikMiddlewareNames {
-			traefikMiddlwareNames = append(traefikMiddlwareNames, fmt.Sprintf("%s-%s", traefikMiddleware.Name, traefikMiddleware.Namespace))
+			traefikMiddlwareNames = append(traefikMiddlwareNames, fmt.Sprintf("%s-%s@kubernetescrd", traefikMiddleware.Namespace, traefikMiddleware.Name))
 		}
 		annotations := map[string]string{}
 		clusterIssuerAnnotationKey := map[string]string{

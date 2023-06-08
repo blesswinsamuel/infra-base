@@ -3,6 +3,7 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/certmanagerio"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
@@ -69,10 +70,9 @@ func NewCertIssuer(scope constructs.Construct, props CertIssuerProps) cdk8s.Char
 	letsEncryptIssuer(chart, props, "letsencrypt-staging", "https://acme-staging-v02.api.letsencrypt.org/directory")
 
 	if props.Solver == "dns" {
-		NewExternalSecret(chart, jsii.String("cloudflare-externalsecret"), &ExternalSecretProps{
-			Name:            jsii.String("cloudflare-api-token"),
-			RefreshInterval: jsii.String("2m"),
-			Secrets: map[string]string{
+		k8sapp.NewExternalSecret(chart, jsii.String("cloudflare-externalsecret"), &k8sapp.ExternalSecretProps{
+			Name: "cloudflare-api-token",
+			RemoteRefs: map[string]string{
 				"api-token": "CLOUDFLARE_API_TOKEN",
 			},
 		})

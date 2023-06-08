@@ -123,10 +123,9 @@ func NewCrowdsec(scope constructs.Construct, props CrowdsecProps) cdk8s.Chart {
 	// 	}
 	// }
 
-	NewExternalSecret(chart, jsii.String("crowdsec-keys"), &ExternalSecretProps{
-		Name:      jsii.String("crowdsec-keys"),
-		Namespace: chart.Namespace(),
-		Secrets: map[string]string{
+	k8sapp.NewExternalSecret(chart, jsii.String("crowdsec-keys"), &k8sapp.ExternalSecretProps{
+		Name: "crowdsec-keys",
+		RemoteRefs: map[string]string{
 			"ENROLL_KEY": "CROWDSEC_ENROLL_KEY",
 		},
 	})
