@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
-	"github.com/blesswinsamuel/infra-base/k8sbase/imports/externalsecretsio"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"github.com/muesli/reflow/dedent"
@@ -16,15 +16,15 @@ import (
 type BackupJobProps struct {
 	Enabled bool `yaml:"enabled"`
 	Kopia   struct {
-		Image helpers.ImageInfo `yaml:"image"`
+		Image k8sapp.ImageInfo `yaml:"image"`
 	} `yaml:"kopia"`
 	Postgres struct {
-		Enabled           bool              `yaml:"enabled"`
-		Image             helpers.ImageInfo `yaml:"image"`
-		Schedule          string            `yaml:"schedule"`
-		Host              string            `yaml:"host"`
-		LocalBackupVolume *k8s.Volume       `yaml:"localBackupVolume"`
-		Databases         []string          `yaml:"databases"`
+		Enabled           bool             `yaml:"enabled"`
+		Image             k8sapp.ImageInfo `yaml:"image"`
+		Schedule          string           `yaml:"schedule"`
+		Host              string           `yaml:"host"`
+		LocalBackupVolume *k8s.Volume      `yaml:"localBackupVolume"`
+		Databases         []string         `yaml:"databases"`
 	} `yaml:"postgres"`
 	Filesystem struct {
 		Enabled bool `yaml:"enabled"`
@@ -44,27 +44,24 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 		return nil
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("backup-job"), &cdk8s.ChartProps{
-		Namespace: helpers.GetNamespace(scope),
+		Namespace: k8sapp.GetNamespaceContextPtr(scope),
 	})
-	NewExternalSecret(chart, jsii.String("external-secret-pg"), &ExternalSecretProps{
-		Name: jsii.String("backup-restore-job-postgres"),
-		Template: &externalsecretsio.ExternalSecretV1Beta1SpecTargetTemplate{
-			Data: &map[string]*string{
-				"PGHOST":     jsii.String(props.Postgres.Host),
-				"PGPORT":     jsii.String("5432"),
-				"PGUSER":     jsii.String("{{ .PGUSER }}"),
-				"PGPASSWORD": jsii.String("{{ .PGPASSWORD }}"),
-			},
+	k8sapp.NewExternalSecret(chart, jsii.String("external-secret-pg"), &k8sapp.ExternalSecretProps{
+		Name: "backup-restore-job-postgres",
+		Template: map[string]string{
+			"PGHOST":     props.Postgres.Host,
+			"PGPORT":     "5432",
+			"PGUSER":     "{{ .PGUSER }}",
+			"PGPASSWORD": "{{ .PGPASSWORD }}",
 		},
-		Secrets: map[string]string{
+		RemoteRefs: map[string]string{
 			"PGUSER":     "POSTGRES_USERNAME",
 			"PGPASSWORD": "POSTGRES_USER_PASSWORD",
 		},
 	})
-	NewExternalSecret(chart, jsii.String("external-secret-s3"), &ExternalSecretProps{
-		Name:            jsii.String("backup-restore-job-s3"),
-		RefreshInterval: jsii.String("2m"),
-		Secrets: map[string]string{
+	k8sapp.NewExternalSecret(chart, jsii.String("external-secret-s3"), &k8sapp.ExternalSecretProps{
+		Name: "backup-restore-job-s3",
+		RemoteRefs: map[string]string{
 			"S3_ACCESS_KEY":  "BACKUP_S3_ACCESS_KEY",
 			"S3_SECRET_KEY":  "BACKUP_S3_SECRET_KEY",
 			"S3_ENDPOINT":    "BACKUP_S3_ENDPOINT",
@@ -78,7 +75,7 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 			Name: jsii.String("backup-job-scripts"),
 		},
 		Data: &map[string]*string{
-			"take-postgres-dump.sh": helpers.GoTemplate(strings.TrimSpace(dedent.String(`
+			"take-postgres-dump.sh": infrahelpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
 				set -o pipefail
@@ -91,7 +88,7 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 				pg_dump -Fc {{ $database }} > "$FOLDER/$FILENAME"
 				{{- end }}
 			`)), props.Postgres.Databases),
-			"kopia-postgres-snapshot.sh": helpers.GoTemplate(strings.TrimSpace(dedent.String(`
+			"kopia-postgres-snapshot.sh": infrahelpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
 				set -o pipefail
@@ -99,7 +96,7 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 				kopia repository connect s3 --bucket=$S3_BUCKET --access-key=$S3_ACCESS_KEY --secret-access-key=$S3_SECRET_KEY --endpoint=$S3_ENDPOINT --override-username kopia
 				kopia snapshot create $FOLDER
 			`)), props.Kopia),
-			"kopia-filesystem-snapshot.sh": helpers.GoTemplate(strings.TrimSpace(dedent.String(`
+			"kopia-filesystem-snapshot.sh": infrahelpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
 				set -o pipefail
@@ -160,7 +157,7 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 							InitContainers: &[]*k8s.Container{
 								{
 									Name:  jsii.String("take-dump"),
-									Image: props.Postgres.Image.ToString(),
+									Image: jsii.String(props.Postgres.Image.String()),
 									Command: &[]*string{
 										jsii.String("/script/take-postgres-dump.sh"),
 									},
@@ -177,7 +174,7 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 								},
 								{
 									Name:  jsii.String("kopia-snapshot"),
-									Image: props.Kopia.Image.ToString(),
+									Image: jsii.String(props.Kopia.Image.String()),
 									Command: &[]*string{
 										jsii.String("/script/kopia-postgres-snapshot.sh"),
 									},
@@ -226,7 +223,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 			Name: jsii.String("restore-job-scripts"),
 		},
 		Data: &map[string]*string{
-			"kopia-restore.sh": helpers.GoTemplate(strings.TrimSpace(dedent.String(`
+			"kopia-restore.sh": infrahelpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
 				set -o pipefail
@@ -237,7 +234,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 				kopia snapshot restore /pgdumps --snapshot-time latest
 				ls -lah /pgdumps
 			`)), props.Kopia),
-			"restore-postgres-dump.sh": helpers.GoTemplate(strings.TrimSpace(dedent.String(`
+			"restore-postgres-dump.sh": infrahelpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
 				set -o pipefail
@@ -288,7 +285,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 							InitContainers: &[]*k8s.Container{
 								{
 									Name:  jsii.String("kopia-restore"),
-									Image: props.Kopia.Image.ToString(),
+									Image: jsii.String(props.Kopia.Image.String()),
 									Command: &[]*string{
 										jsii.String("/script/kopia-restore.sh"),
 									},
@@ -303,7 +300,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 								},
 								{
 									Name:  jsii.String("restore-dump"),
-									Image: props.Postgres.Image.ToString(),
+									Image: jsii.String(props.Postgres.Image.String()),
 									Command: &[]*string{
 										jsii.String("/script/restore-postgres-dump.sh"),
 									},
@@ -377,7 +374,7 @@ func NewBackupJobFilesystem(chart constructs.Construct, props BackupJobProps) {
 								InitContainers: &[]*k8s.Container{
 									{
 										Name:  jsii.String("kopia-snapshot"),
-										Image: props.Kopia.Image.ToString(),
+										Image: jsii.String(props.Kopia.Image.String()),
 										Command: &[]*string{
 											jsii.String("/script/kopia-filesystem-snapshot.sh"),
 										},

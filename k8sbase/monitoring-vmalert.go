@@ -3,14 +3,14 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 )
 
 type VmalertProps struct {
-	Enabled   bool              `yaml:"enabled"`
-	ImageInfo helpers.ImageInfo `yaml:"image"`
-	Resources *Resources        `yaml:"resources"`
+	Enabled   bool             `yaml:"enabled"`
+	ImageInfo k8sapp.ImageInfo `yaml:"image"`
+	Resources *Resources       `yaml:"resources"`
 	Ingress   struct {
 		Enabled   bool   `yaml:"enabled"`
 		SubDomain string `yaml:"subDomain"`
@@ -23,11 +23,11 @@ func NewVmalert(scope constructs.Construct, props VmalertProps) constructs.Const
 		return nil
 	}
 
-	return NewApplication(scope, jsii.String("vmalert"), &ApplicationProps{
+	return k8sapp.NewApplicationChart(scope, "vmalert", &k8sapp.ApplicationProps{
 		Name: "vmalert",
-		Containers: []ApplicationContainer{{
-			Name:      "vmalert",
-			ImageInfo: props.ImageInfo,
+		Containers: []k8sapp.ApplicationContainer{{
+			Name:  "vmalert",
+			Image: props.ImageInfo,
 			Args: []string{
 				`-rule=/config/alert-rules.yaml`,
 				`-datasource.url=http://victoriametrics-victoria-metrics-single-server:8428`,
@@ -47,7 +47,7 @@ func NewVmalert(scope constructs.Construct, props VmalertProps) constructs.Const
 				// # - "-evaluationInterval=30s"
 				// # - "-rule=/config/alert_rules.yml"
 			},
-			Ports: []ContainerPort{{Name: "http", Port: 8880}},
+			Ports: []k8sapp.ContainerPort{{Name: "http", Port: 8880, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}}},
 			LivenessProbe: &k8s.Probe{
 				InitialDelaySeconds: jsii.Number(5),
 				PeriodSeconds:       jsii.Number(15),
@@ -62,10 +62,6 @@ func NewVmalert(scope constructs.Construct, props VmalertProps) constructs.Const
 			ExtraVolumeMounts: []*k8s.VolumeMount{
 				{Name: jsii.String("alerts-config"), MountPath: jsii.String("/config")},
 			},
-		}},
-		Ingress: []ApplicationIngress{{
-			Host:     props.Ingress.SubDomain + "." + GetDomain(scope),
-			PortName: "http",
 		}},
 		ExtraVolumes: []*k8s.Volume{
 			{Name: jsii.String("alerts-config"), ConfigMap: &k8s.ConfigMapVolumeSource{Name: jsii.String("alerting-rules")}},

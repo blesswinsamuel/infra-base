@@ -3,7 +3,8 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
@@ -16,7 +17,7 @@ type GrafanaDatasourceProps struct {
 
 func NewGrafanaDatasource(scope constructs.Construct, props GrafanaDatasourceProps) cdk8s.Chart {
 	cprops := cdk8s.ChartProps{
-		Namespace: helpers.GetNamespace(scope),
+		Namespace: k8sapp.GetNamespaceContextPtr(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("grafana-datasource"), &cprops)
 
@@ -28,7 +29,7 @@ func NewGrafanaDatasource(scope constructs.Construct, props GrafanaDatasourcePro
 			},
 		},
 		Data: &map[string]*string{
-			"victoriametrics.yaml": helpers.ToYamlString(map[string]interface{}{
+			"victoriametrics.yaml": jsii.String(infrahelpers.ToYamlString(map[string]interface{}{
 				"apiVersion": 1,
 				"deleteDatasources": []map[string]interface{}{
 					{
@@ -51,7 +52,7 @@ func NewGrafanaDatasource(scope constructs.Construct, props GrafanaDatasourcePro
 						// #   alertmanagerUid: alertmanager
 					},
 				},
-			}),
+			})),
 		},
 	})
 
@@ -63,7 +64,7 @@ func NewGrafanaDatasource(scope constructs.Construct, props GrafanaDatasourcePro
 			},
 		},
 		Data: &map[string]*string{
-			"loki.yaml": helpers.ToYamlString(map[string]interface{}{
+			"loki.yaml": jsii.String(infrahelpers.ToYamlString(map[string]interface{}{
 				"apiVersion": 1,
 				"deleteDatasources": []map[string]interface{}{
 					{
@@ -85,7 +86,7 @@ func NewGrafanaDatasource(scope constructs.Construct, props GrafanaDatasourcePro
 						},
 					},
 				},
-			}),
+			})),
 		},
 	})
 

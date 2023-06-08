@@ -2,7 +2,10 @@ package infrahelpers
 
 import (
 	"bytes"
+	"encoding/json"
+	"text/template"
 
+	"github.com/aws/jsii-runtime-go"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
@@ -29,6 +32,9 @@ func ToYamlString(v any) string {
 }
 
 func PtrMap[K comparable, V any](m map[K]V) *map[K]*V {
+	if len(m) == 0 {
+		return nil
+	}
 	out := make(map[K]*V)
 	for k, v := range m {
 		v := v
@@ -91,4 +97,25 @@ func MapKeys[K constraints.Ordered, V any](m map[K]V) []K {
 	}
 	slices.Sort(keys)
 	return keys
+}
+
+func ToJSONString(v any) string {
+	out, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return string(out)
+}
+
+func GoTemplate(s string, data interface{}) *string {
+	tmpl, err := template.New("tmpl").Parse(s)
+	if err != nil {
+		panic(err)
+	}
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
+		panic(err)
+	}
+	return jsii.String(buf.String())
 }

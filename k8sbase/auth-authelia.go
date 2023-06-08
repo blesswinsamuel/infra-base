@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
@@ -56,7 +57,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 		return nil
 	}
 	cprops := cdk8s.ChartProps{
-		Namespace: helpers.GetNamespace(scope),
+		Namespace: k8sapp.GetNamespaceContextPtr(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("authelia"), &cprops)
 	pod := map[string]interface{}{
@@ -71,7 +72,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 	if props.AuthMode == "file" {
 		NewExternalSecret(chart, jsii.String("users-db"), &ExternalSecretProps{
 			Name:            jsii.String("authelia-users-db"),
-			Namespace:       helpers.GetNamespace(scope),
+			Namespace:       k8sapp.GetNamespaceContextPtr(scope),
 			RefreshInterval: jsii.String("10m"),
 			Secrets: map[string]string{
 				"users_database.yml": "AUTHELIA_USERS_DATABASE_YML",
@@ -235,7 +236,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 	}
 	NewExternalSecret(chart, jsii.String("external-secrets"), &ExternalSecretProps{
 		Name:            jsii.String("authelia"),
-		Namespace:       helpers.GetNamespace(scope),
+		Namespace:       k8sapp.GetNamespaceContextPtr(scope),
 		RefreshInterval: jsii.String("10m"),
 		Secrets:         secrets,
 	})
