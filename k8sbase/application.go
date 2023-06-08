@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/externalsecretsio"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
@@ -116,7 +117,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		props.Kind = "Deployment"
 	}
 	chart := cdk8s.NewChart(scope, id, &cdk8s.ChartProps{
-		Namespace: helpers.GetNamespace(scope),
+		Namespace: k8sapp.GetNamespaceContextPtr(scope),
 	})
 	label := map[string]*string{"app.kubernetes.io/name": jsii.String(props.Name)}
 	var volumes []*k8s.Volume
@@ -207,7 +208,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubePersistentVolumeClaim(chart, jsii.String("pvc-"+pv.PersistentVolumeName), &k8s.KubePersistentVolumeClaimProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:      jsii.String(pv.PersistentVolumeName),
-				Namespace: helpers.GetNamespace(scope),
+				Namespace: k8sapp.GetNamespaceContextPtr(scope),
 			},
 			Spec: &k8s.PersistentVolumeClaimSpec{
 				AccessModes: &[]*string{jsii.String("ReadWriteOnce")},
@@ -341,7 +342,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubeDeployment(chart, jsii.String("deployment"), &k8s.KubeDeploymentProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:        jsii.String(props.Name),
-				Namespace:   helpers.GetNamespace(scope),
+				Namespace:   k8sapp.GetNamespaceContextPtr(scope),
 				Annotations: &topAnnotations,
 			},
 			Spec: &k8s.DeploymentSpec{
@@ -357,7 +358,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubeStatefulSet(chart, jsii.String("statefuleset"), &k8s.KubeStatefulSetProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:        jsii.String(props.Name),
-				Namespace:   helpers.GetNamespace(scope),
+				Namespace:   k8sapp.GetNamespaceContextPtr(scope),
 				Annotations: &topAnnotations,
 			},
 			Spec: &k8s.StatefulSetSpec{
@@ -378,7 +379,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubeConfigMap(chart, jsii.String("configmap"), &k8s.KubeConfigMapProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:      jsii.String(props.ConfigMap.Name),
-				Namespace: helpers.GetNamespace(scope),
+				Namespace: k8sapp.GetNamespaceContextPtr(scope),
 			},
 			Data: data,
 		})
@@ -395,7 +396,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubeService(chart, jsii.String("service"), &k8s.KubeServiceProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:        jsii.String(props.Name),
-				Namespace:   helpers.GetNamespace(scope),
+				Namespace:   k8sapp.GetNamespaceContextPtr(scope),
 				Annotations: helpers.JSIIMap(serviceAnnotations),
 			},
 			Spec: &k8s.ServiceSpec{
@@ -435,7 +436,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			k8s.NewKubeIngress(chart, jsii.String("ingress"), &k8s.KubeIngressProps{
 				Metadata: &k8s.ObjectMeta{
 					Name:      jsii.String(props.Name),
-					Namespace: helpers.GetNamespace(scope),
+					Namespace: k8sapp.GetNamespaceContextPtr(scope),
 					Annotations: helpers.JSIIMap(helpers.MergeMaps(
 						infraglobal.GetCertIssuerAnnotation(scope),
 						props.IngressAnnotations,
@@ -475,7 +476,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		k8s.NewKubeSecret(chart, jsii.String("secret-"+secret.Name), &k8s.KubeSecretProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:      jsii.String(secret.Name),
-				Namespace: helpers.GetNamespace(scope),
+				Namespace: k8sapp.GetNamespaceContextPtr(scope),
 			},
 			StringData: &secrets,
 		})

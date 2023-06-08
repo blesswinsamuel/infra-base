@@ -5,32 +5,32 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 )
 
 type LLDAPProps struct {
-	Enabled     bool              `yaml:"enabled"`
-	ImageInfo   helpers.ImageInfo `yaml:"image"`
-	BaseDN      string            `yaml:"base_dn"`
-	EmailDomain string            `yaml:"email_domain"`
+	Enabled     bool             `yaml:"enabled"`
+	ImageInfo   k8sapp.ImageInfo `yaml:"image"`
+	BaseDN      string           `yaml:"base_dn"`
+	EmailDomain string           `yaml:"email_domain"`
 }
 
 func NewLLDAP(scope constructs.Construct, props LLDAPProps) constructs.Construct {
 	if !props.Enabled {
 		return nil
 	}
-	return NewApplication(scope, jsii.String("lldap"), &ApplicationProps{
+	return k8sapp.NewApplicationChart(scope, "lldap", &k8sapp.ApplicationProps{
 		Name: "lldap",
-		Containers: []ApplicationContainer{{
-			Name:      "lldap",
-			ImageInfo: props.ImageInfo,
+		Containers: []k8sapp.ApplicationContainer{{
+			Name:  "lldap",
+			Image: props.ImageInfo,
 			Command: []string{
 				"/bin/sh", "-c",
 				`echo -n "$LLDAP_PRIVATE_KEY" | base64 -d  > "$LLDAP_KEY_FILE"  && /app/lldap run --config-file /app/lldap_config.docker_template.toml`,
 			},
-			Ports: []ContainerPort{
-				{Name: "web", Port: 17170},
+			Ports: []k8sapp.ContainerPort{
+				{Name: "web", Port: 17170, Ingress: &k8sapp.ApplicationIngress{Host: fmt.Sprintf("lldap.%s", GetDomain(scope))}},
 				{Name: "ldap", Port: 3890},
 			},
 			Env: map[string]string{
@@ -55,10 +55,7 @@ func NewLLDAP(scope constructs.Construct, props LLDAPProps) constructs.Construct
 				HttpGet: &k8s.HttpGetAction{Path: jsii.String("/health"), Port: k8s.IntOrString_FromNumber(jsii.Number(17170))},
 			},
 		}},
-		Ingress: []ApplicationIngress{
-			{Host: "lldap." + GetDomain(scope), PortName: "web"},
-		},
-		ExternalSecrets: []ApplicationExternalSecret{
+		ExternalSecrets: []k8sapp.ApplicationExternalSecret{
 			{
 				Name: "lldap",
 				RemoteRefs: map[string]string{

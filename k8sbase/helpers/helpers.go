@@ -1,8 +1,6 @@
 package helpers
 
 import (
-	"bytes"
-	"encoding/json"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,7 +13,6 @@ import (
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
-	"gopkg.in/yaml.v3"
 )
 
 var CacheDir = os.Getenv("CACHE_DIR")
@@ -24,34 +21,6 @@ func init() {
 	if CacheDir == "" {
 		CacheDir = "./cache"
 	}
-}
-
-type NamespaceProps struct {
-	Name string
-}
-
-func NewNamespace(scope constructs.Construct, namespaceName string) constructs.Construct {
-	scope.Node().SetContext(jsii.String("namespace"), namespaceName)
-	chart := cdk8s.NewChart(scope, jsii.String("namespace"), &cdk8s.ChartProps{
-		DisableResourceNameHashes: jsii.Bool(true),
-	})
-	return k8s.NewKubeNamespace(chart, jsii.String("namespace"), &k8s.KubeNamespaceProps{
-		Metadata: &k8s.ObjectMeta{
-			Name: jsii.String(namespaceName),
-			Labels: &map[string]*string{
-				"name": jsii.String(namespaceName),
-			},
-		},
-	})
-}
-
-func UseNamespace(scope constructs.Construct, namespaceName string) constructs.Construct {
-	scope.Node().SetContext(jsii.String("namespace"), namespaceName)
-	return nil
-}
-
-func GetNamespace(scope constructs.Construct) *string {
-	return jsii.String(scope.Node().TryGetContext(jsii.String("namespace")).(string))
 }
 
 func MergeAnnotations(annotations ...map[string]string) map[string]string {
@@ -130,38 +99,6 @@ func JSIISlice[V any](ss ...V) *[]*V {
 		jsiiSlice = append(jsiiSlice, &s)
 	}
 	return &jsiiSlice
-}
-
-func ToYamlString(v any) *string {
-	buf := bytes.NewBuffer(nil)
-	enc := yaml.NewEncoder(buf)
-	enc.SetIndent(2)
-	err := enc.Encode(v)
-	if err != nil {
-		panic(err)
-	}
-	return jsii.String(buf.String())
-}
-
-func ToJSONString(v any) string {
-	out, err := json.Marshal(v)
-	if err != nil {
-		panic(err)
-	}
-	return string(out)
-}
-
-func GoTemplate(s string, data interface{}) *string {
-	tmpl, err := template.New("tmpl").Parse(s)
-	if err != nil {
-		panic(err)
-	}
-	var buf bytes.Buffer
-	err = tmpl.Execute(&buf, data)
-	if err != nil {
-		panic(err)
-	}
-	return jsii.String(buf.String())
 }
 
 func NewApp(outputDir string) cdk8s.App {

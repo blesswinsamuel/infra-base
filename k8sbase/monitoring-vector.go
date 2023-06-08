@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
@@ -32,7 +33,7 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 		return nil
 	}
 	cprops := cdk8s.ChartProps{
-		Namespace: helpers.GetNamespace(scope),
+		Namespace: k8sapp.GetNamespaceContextPtr(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("vector"), &cprops)
 
@@ -208,7 +209,7 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 		k8s.NewKubeService(chart, jsii.String("syslog-service"), &k8s.KubeServiceProps{
 			Metadata: &k8s.ObjectMeta{
 				Name:      jsii.String("vector-syslog-server"),
-				Namespace: helpers.GetNamespace(scope),
+				Namespace: k8sapp.GetNamespaceContextPtr(scope),
 			},
 			Spec: &k8s.ServiceSpec{
 				Type: jsii.String("NodePort"),

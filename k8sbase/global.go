@@ -3,13 +3,13 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/ingressroute_traefikio"
 	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 )
 
 func SetGlobalContext(scope constructs.Construct, props infraglobal.GlobalProps) {
-	scope.Node().SetContext(jsii.String("global"), helpers.ToYamlString(props))
+	scope.Node().SetContext(jsii.String("global"), infrahelpers.ToYamlString(props))
 }
 
 func GetDomain(scope constructs.Construct) string {

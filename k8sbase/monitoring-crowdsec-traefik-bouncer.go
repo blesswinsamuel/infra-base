@@ -3,6 +3,7 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
@@ -18,7 +19,7 @@ func NewCrowdsecTraefikBouncer(scope constructs.Construct, props CrowdsecTraefik
 		return nil
 	}
 	cprops := cdk8s.ChartProps{
-		Namespace: helpers.GetNamespace(scope),
+		Namespace: k8sapp.GetNamespaceContextPtr(scope),
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("crowdsec-traefik-bouncer"), &cprops)
 
@@ -29,7 +30,7 @@ func NewCrowdsecTraefikBouncer(scope constructs.Construct, props CrowdsecTraefik
 		Values: &map[string]any{
 			"bouncer": map[string]any{
 				"crowdsec_bouncer_api_key": "test", // TODO
-				"crowdsec_agent_host":      "crowdsec-service." + *helpers.GetNamespace(scope) + ".svc.cluster.local:8080",
+				"crowdsec_agent_host":      "crowdsec-service." + *k8sapp.GetNamespaceContextPtr(scope) + ".svc.cluster.local:8080",
 			},
 		},
 	})

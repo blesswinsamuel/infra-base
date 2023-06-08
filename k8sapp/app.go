@@ -43,6 +43,8 @@ type ApplicationProps struct {
 	ExtraVolumes             []*k8s.Volume
 	HostNetwork              bool
 	DnsPolicy                string
+	IngressMiddlewares       []NameNamespace
+	// IngressAnnotations       map[string]string
 }
 
 type ApplicationPersistentVolume struct {
@@ -93,13 +95,14 @@ type ApplicationSecret struct {
 
 type ApplicationContainer struct {
 	Name              string
-	ImageInfo         ImageInfo
+	Image             ImageInfo
 	Command           []string
 	Env               map[string]string
 	EnvFromSecretRef  []string
 	Args              []string
 	Ports             []ContainerPort
 	ExtraVolumeMounts []*k8s.VolumeMount
+	SecurityContext   *k8s.SecurityContext
 	LivenessProbe     *k8s.Probe
 	ReadinessProbe    *k8s.Probe
 	StartupProbe      *k8s.Probe
@@ -113,9 +116,8 @@ type ContainerPort struct {
 }
 
 type ApplicationIngress struct {
-	Host        string
-	Path        string // defaults to "/"
-	Annotations map[string]string
+	Host string
+	Path string // defaults to "/"
 }
 
 type ApplicationPrometheusScrape struct {
@@ -124,7 +126,7 @@ type ApplicationPrometheusScrape struct {
 
 func NewApplicationChart(scope constructs.Construct, id string, props *ApplicationProps) cdk8s.Chart {
 	chart := cdk8s.NewChart(scope, jsii.String(id), &cdk8s.ChartProps{
-		Namespace: helpers.GetNamespace(scope),
+		Namespace: GetNamespaceContextPtr(scope),
 	})
 	NewApplication(chart, jsii.String("application"), props)
 	return chart
@@ -315,7 +317,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 
 		containers = append(containers, &k8s.Container{
 			Name:    jsii.String(container.Name),
-			Image:   jsii.String(container.ImageInfo.String()),
+			Image:   jsii.String(container.Image.String()),
 			Command: infrahelpers.PtrIfLenGt0(command),
 			// ImagePullPolicy: jsii.String("IfNotPresent"),
 			Env:                      infrahelpers.PtrIfLenGt0(env),
@@ -327,6 +329,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			ReadinessProbe:           container.ReadinessProbe,
 			StartupProbe:             container.StartupProbe,
 			TerminationMessagePolicy: jsii.String("FallbackToLogsOnError"),
+			SecurityContext:          container.SecurityContext,
 		})
 	}
 	for _, vol := range props.ExtraVolumes {
@@ -345,16 +348,16 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			Annotations: infrahelpers.PtrMap(podAnnotations),
 		},
 		Spec: &k8s.PodSpec{
-			ServiceAccountName:           infrahelpers.If(props.ServiceAccountName != "", &props.ServiceAccountName, nil),
-			AutomountServiceAccountToken: infrahelpers.If(props.ServiceAccountName != "", jsii.Bool(true), nil),
-			Hostname:                     infrahelpers.If(props.Hostname != "", &props.Hostname, nil),
-			EnableServiceLinks:           infrahelpers.If(props.EnableServiceLinks, &props.EnableServiceLinks, nil),
-			SecurityContext:              props.PodSecurityContext,
+			ServiceAccountName: infrahelpers.If(props.ServiceAccountName != "", &props.ServiceAccountName, nil),
+			// AutomountServiceAccountToken: infrahelpers.If(props.ServiceAccountName != "", jsii.Bool(true), nil),
+			Hostname:           infrahelpers.If(props.Hostname != "", &props.Hostname, nil),
+			EnableServiceLinks: infrahelpers.If(props.EnableServiceLinks, &props.EnableServiceLinks, nil),
+			SecurityContext:    props.PodSecurityContext,
 			ImagePullSecrets: infrahelpers.If(props.ImagePullSecrets != "", &[]*k8s.LocalObjectReference{
 				{Name: jsii.String(props.ImagePullSecrets)},
 			}, nil),
 			Containers:  &containers,
-			Volumes:     &volumes,
+			Volumes:     infrahelpers.PtrIfLenGt0(volumes),
 			HostNetwork: infrahelpers.If(props.HostNetwork, jsii.Bool(true), nil),
 			DnsPolicy:   infrahelpers.If(props.DnsPolicy != "", &props.DnsPolicy, nil),
 		},
@@ -404,8 +407,9 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		})
 		if len(ingressHosts) > 0 {
 			NewIngress(scope, jsii.String("ingress"), &IngressProps{
-				Name:  props.Name,
-				Hosts: ingressHosts,
+				Name:                   props.Name,
+				Hosts:                  ingressHosts,
+				TraefikMiddlewareNames: props.IngressMiddlewares,
 			})
 		}
 	}

@@ -20,6 +20,7 @@ type ExternalSecretProps struct {
 	RefreshInterval string // optional
 	RemoteRefs      map[string]string
 	Template        map[string]string
+	SecretType      string
 	SecretStore     ExternalSecretStoreProps
 }
 
@@ -40,6 +41,7 @@ func NewExternalSecret(scope constructs.Construct, id *string, props *ExternalSe
 	if len(props.Template) > 0 {
 		target = &externalsecretsio.ExternalSecretV1Beta1SpecTarget{
 			Template: &externalsecretsio.ExternalSecretV1Beta1SpecTargetTemplate{
+				Type: infrahelpers.PtrIfNonEmpty(props.SecretType),
 				Data: infrahelpers.PtrMap(props.Template),
 			},
 		}

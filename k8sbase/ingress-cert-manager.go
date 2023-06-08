@@ -3,6 +3,7 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
@@ -19,7 +20,7 @@ func NewCertManager(scope constructs.Construct, props CertManagerProps) construc
 		return nil
 	}
 	construct := constructs.NewConstruct(scope, jsii.String("cert-manager"))
-	helpers.NewNamespace(construct, "cert-manager")
+	k8sapp.NewNamespaceChart(construct, "cert-manager")
 
 	chart := cdk8s.NewChart(construct, jsii.String("cert-manager"), &cdk8s.ChartProps{
 		Namespace:                 jsii.String("cert-manager"),

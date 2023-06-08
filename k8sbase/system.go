@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 )
 
 type SystemProps struct {
@@ -17,7 +17,7 @@ func NewSystem(scope constructs.Construct, props SystemProps) constructs.Constru
 	defer logModuleTiming("system")()
 	construct := constructs.NewConstruct(scope, jsii.String("system"))
 
-	helpers.NewNamespace(construct, "system")
+	k8sapp.NewNamespaceChart(construct, "system")
 
 	NewReloader(construct, props.Reloader)
 	NewKubernetesDashboard(construct, props.KubernetesDashboard)

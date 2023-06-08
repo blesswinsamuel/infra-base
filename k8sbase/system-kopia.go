@@ -3,15 +3,16 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 )
 
 type KopiaProps struct {
-	Enabled   bool              `yaml:"enabled"`
-	ImageInfo helpers.ImageInfo `yaml:"image"`
-	Hostname  string            `yaml:"hostname"`
-	User      string            `yaml:"user"`
+	Enabled   bool             `yaml:"enabled"`
+	ImageInfo k8sapp.ImageInfo `yaml:"image"`
+	Hostname  string           `yaml:"hostname"`
+	User      string           `yaml:"user"`
 }
 
 // https://kopia.io/docs/installation/#docker-images
@@ -19,14 +20,14 @@ func NewKopia(scope constructs.Construct, props KopiaProps) constructs.Construct
 	if !props.Enabled {
 		return nil
 	}
-	return NewApplication(scope, jsii.String("kopia"), &ApplicationProps{
+	return k8sapp.NewApplicationChart(scope, "kopia", &k8sapp.ApplicationProps{
 		Name:     "kopia",
 		Hostname: props.Hostname,
-		Containers: []ApplicationContainer{{
-			Name:      "kopia",
-			ImageInfo: props.ImageInfo,
-			Ports: []ContainerPort{
-				{Name: "web", Port: 51515},
+		Containers: []k8sapp.ApplicationContainer{{
+			Name:  "kopia",
+			Image: props.ImageInfo,
+			Ports: []k8sapp.ContainerPort{
+				{Name: "web", Port: 51515, Ingress: &k8sapp.ApplicationIngress{Host: "kopia." + GetDomain(scope)}},
 			},
 			Args: []string{
 				"server",
@@ -54,13 +55,10 @@ func NewKopia(scope constructs.Construct, props KopiaProps) constructs.Construct
 				{Name: jsii.String("kopia-config"), MountPath: jsii.String("/app/config/repository.config"), SubPath: jsii.String("repository.config"), ReadOnly: jsii.Bool(true)},
 			},
 		}},
-		Ingress: []ApplicationIngress{
-			{Host: "kopia." + GetDomain(scope), PortName: "web"},
-		},
 		ExtraVolumes: []*k8s.Volume{
 			{Name: jsii.String("kopia-config"), Secret: &k8s.SecretVolumeSource{SecretName: jsii.String("kopia-config")}},
 		},
-		ExternalSecrets: []ApplicationExternalSecret{
+		ExternalSecrets: []k8sapp.ApplicationExternalSecret{
 			{
 				Name: "kopia-password",
 				RemoteRefs: map[string]string{
@@ -70,7 +68,7 @@ func NewKopia(scope constructs.Construct, props KopiaProps) constructs.Construct
 			{
 				Name: "kopia-config",
 				Template: map[string]string{
-					"repository.config": helpers.ToJSONString(map[string]any{
+					"repository.config": infrahelpers.ToJSONString(map[string]any{
 						"storage": map[string]any{
 							"type": "s3",
 							"config": map[string]any{
