@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/externalsecretsio"
@@ -140,7 +141,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			})
 		}
 		hash := sha256.New()
-		for _, key := range helpers.MapKeys(props.ConfigMap.Data) {
+		for _, key := range infrahelpers.MapKeys(props.ConfigMap.Data) {
 			hash.Write([]byte(props.ConfigMap.Data[key]))
 		}
 		annotations["configmap/checksum"] = jsii.String(fmt.Sprintf("%x", hash.Sum(nil)))
@@ -446,7 +447,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 					Rules: &ingressRules,
 					Tls: &[]*k8s.IngressTls{
 						{
-							Hosts:      helpers.JSIISlice(helpers.MapKeys(tlsHosts)...),
+							Hosts:      infrahelpers.PtrSlice(infrahelpers.MapKeys(tlsHosts)...),
 							SecretName: jsii.String(fmt.Sprintf("%s-tls", props.Name)),
 						},
 					},

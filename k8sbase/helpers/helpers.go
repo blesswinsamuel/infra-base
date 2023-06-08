@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
-	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 )
 
@@ -65,15 +65,6 @@ func Fallback[V any](v *V, defv V) V {
 	return defv
 }
 
-func MapKeys[K constraints.Ordered, V any](m map[K]V) []K {
-	keys := make([]K, 0)
-	for k := range m {
-		keys = append(keys, k)
-	}
-	slices.Sort(keys)
-	return keys
-}
-
 func MapToEnvVars(m map[string]string) *[]*k8s.EnvVar {
 	envVars := make([]*k8s.EnvVar, 0)
 	for k, v := range m {
@@ -92,21 +83,19 @@ func Ptr[T any](v T) *T {
 	return &v
 }
 
-func JSIISlice[V any](ss ...V) *[]*V {
-	jsiiSlice := make([]*V, 0)
-	for _, s := range ss {
-		s := s
-		jsiiSlice = append(jsiiSlice, &s)
-	}
-	return &jsiiSlice
-}
-
 func NewApp(outputDir string) cdk8s.App {
 	app := cdk8s.NewApp(&cdk8s.AppProps{
 		Outdir:         jsii.String(outputDir),
 		YamlOutputType: cdk8s.YamlOutputType_FILE_PER_CHART,
 		// YamlOutputType: cdk8s.YamlOutputType_FOLDER_PER_CHART_FILE_PER_RESOURCE,
 		// RecordConstructMetadata: jsii.Bool(true),
+	})
+	k8sapp.SetGlobalContext(app, k8sapp.Globals{
+		DefaultSecretStoreName:               "secretstore",
+		DefaultSecretStoreKind:               "ClusterSecretStore",
+		DefaultExternalSecretRefreshInterval: "10m",
+		DefaultCertIssuerName:                "letsencrypt-prod",
+		DefaultCertIssuerKind:                "ClusterIssuer",
 	})
 	return app
 }

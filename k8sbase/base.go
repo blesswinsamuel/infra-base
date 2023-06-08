@@ -1,6 +1,7 @@
 package k8sbase
 
 import (
+	"bytes"
 	_ "embed"
 	"log"
 	"os"
@@ -73,7 +74,9 @@ func LoadValues[T any](values *T, valuesFiles []string) {
 		if err != nil {
 			log.Fatalf("ReadFile: %v", err)
 		}
-		if err := yaml.Unmarshal(valuesFileBytes, &values); err != nil {
+		decoder := yaml.NewDecoder(bytes.NewReader(valuesFileBytes))
+		decoder.KnownFields(true)
+		if err := decoder.Decode(&values); err != nil {
 			log.Fatalf("Unmarshal: %v", err)
 		}
 	}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/certmanagerio"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/ingressroute_traefikio"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
@@ -86,7 +87,7 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 					Name: jsii.String(props.Name),
 				},
 				Spec: &certmanagerio.CertificateSpec{
-					DnsNames:   JSIISlice(MapKeys(tlsHosts)...),
+					DnsNames:   infrahelpers.PtrSlice(infrahelpers.MapKeys(tlsHosts)...),
 					SecretName: jsii.String(fmt.Sprintf("%s-tls", props.Name)),
 					IssuerRef: &certmanagerio.CertificateSpecIssuerRef{
 						Name: jsii.String(infraglobal.GetCertIssuer(scope)),
@@ -95,7 +96,7 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 				},
 			})
 		}
-		for _, host := range MapKeys(tlsHosts) {
+		for _, host := range infrahelpers.MapKeys(tlsHosts) {
 			tlsDomains = append(tlsDomains, &ingressroute_traefikio.IngressRouteSpecTlsDomains{
 				Main: jsii.String(host),
 			})
@@ -161,7 +162,7 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 				Rules: &ingressRules,
 				Tls: &[]*k8s.IngressTls{
 					{
-						Hosts:      JSIISlice(MapKeys(tlsHosts)...),
+						Hosts:      infrahelpers.PtrSlice(infrahelpers.MapKeys(tlsHosts)...),
 						SecretName: jsii.String(fmt.Sprintf("%s-tls", props.Name)),
 					},
 				},

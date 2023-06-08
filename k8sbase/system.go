@@ -10,6 +10,8 @@ type SystemProps struct {
 	KubernetesDashboard KubernetesDashboardProps `yaml:"kubernetesDashboard"`
 	Kopia               KopiaProps               `yaml:"kopia"`
 	BackupJob           BackupJobProps           `yaml:"backupJob"`
+
+	HelmOps map[string]interface{} `yaml:"helmOps"` // not implemented
 }
 
 func NewSystem(scope constructs.Construct, props SystemProps) constructs.Construct {
