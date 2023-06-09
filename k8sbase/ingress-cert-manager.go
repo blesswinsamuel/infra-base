@@ -19,7 +19,7 @@ func NewCertManager(scope constructs.Construct, props CertManagerProps) construc
 	}
 	chart := k8sapp.NewNamespaceChart(scope, "cert-manager")
 
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("cert-manager"),
 		Namespace:   chart.Namespace(),

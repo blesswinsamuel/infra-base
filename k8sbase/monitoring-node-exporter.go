@@ -21,7 +21,7 @@ func NewNodeExporter(scope constructs.Construct, props NodeExporterProps) cdk8s.
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("node-exporter"), &cprops)
 
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("node-exporter"),
 		Namespace:   chart.Namespace(),

@@ -29,7 +29,7 @@ func NewLoki(scope constructs.Construct, props LokiProps) cdk8s.Chart {
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("loki"), &cprops)
 
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("loki"),
 		Namespace:   chart.Namespace(),

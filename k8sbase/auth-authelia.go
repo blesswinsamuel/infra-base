@@ -91,7 +91,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 			},
 		}
 	}
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: jsii.String("authelia"),
 		Namespace:   chart.Namespace(),

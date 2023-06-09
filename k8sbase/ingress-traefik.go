@@ -43,7 +43,7 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("traefik"), &cprops)
 
-	k8sapp.NewHelmCached(chart, jsii.String("traefik"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("traefik"), &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: jsii.String("traefik"),
 		Namespace:   chart.Namespace(),

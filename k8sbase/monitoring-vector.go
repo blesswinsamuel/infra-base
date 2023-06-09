@@ -37,7 +37,7 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("vector"), &cprops)
 
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("vector"),
 		Namespace:   chart.Namespace(),

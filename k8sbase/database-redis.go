@@ -21,7 +21,7 @@ func NewRedis(scope constructs.Construct, props RedisProps) cdk8s.Chart {
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("redis"), &cprops)
 
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("redis"),
 		Namespace:   chart.Namespace(),

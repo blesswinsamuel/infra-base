@@ -1,5 +1,5 @@
 {
     "search.exclude": {
-        "k8sbase/imports": true
+        "k8simports": true
     }
 }

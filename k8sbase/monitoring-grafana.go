@@ -33,7 +33,7 @@ func NewGrafana(scope constructs.Construct, props GrafanaProps) cdk8s.Chart {
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("grafana"), &cprops)
 
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("grafana"),
 		Namespace:   chart.Namespace(),

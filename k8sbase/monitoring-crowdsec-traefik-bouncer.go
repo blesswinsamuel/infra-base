@@ -22,7 +22,7 @@ func NewCrowdsecTraefikBouncer(scope constructs.Construct, props CrowdsecTraefik
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("crowdsec-traefik-bouncer"), &cprops)
 
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("crowdsec-traefik-bouncer"),
 		Namespace:   chart.Namespace(),
