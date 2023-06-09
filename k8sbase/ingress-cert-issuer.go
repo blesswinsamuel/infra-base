@@ -5,7 +5,7 @@ import (
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/imports/certmanagerio"
+	"github.com/blesswinsamuel/infra-base/k8simports/certmanagerio"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 

@@ -3,10 +3,10 @@ package infrahelpers
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"text/template"
 
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
