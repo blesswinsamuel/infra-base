@@ -10,18 +10,8 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
-	"golang.org/x/exp/slices"
 )
-
-var CacheDir = os.Getenv("CACHE_DIR")
-
-func init() {
-	if CacheDir == "" {
-		CacheDir = "./cache"
-	}
-}
 
 func MergeAnnotations(annotations ...map[string]string) map[string]string {
 	merged := make(map[string]string)
@@ -58,31 +48,6 @@ func Ternary[V any](cond bool, trueVal V, falseVal V) V {
 	return falseVal
 }
 
-func Fallback[V any](v *V, defv V) V {
-	if v != nil {
-		return *v
-	}
-	return defv
-}
-
-func MapToEnvVars(m map[string]string) *[]*k8s.EnvVar {
-	envVars := make([]*k8s.EnvVar, 0)
-	for k, v := range m {
-		envVars = append(envVars, &k8s.EnvVar{
-			Name:  jsii.String(k),
-			Value: jsii.String(v),
-		})
-	}
-	slices.SortFunc(envVars, func(i, j *k8s.EnvVar) bool {
-		return *i.Name < *j.Name
-	})
-	return &envVars
-}
-
-func Ptr[T any](v T) *T {
-	return &v
-}
-
 func NewApp(outputDir string) cdk8s.App {
 	app := cdk8s.NewApp(&cdk8s.AppProps{
 		Outdir:         jsii.String(outputDir),
@@ -90,12 +55,19 @@ func NewApp(outputDir string) cdk8s.App {
 		// YamlOutputType: cdk8s.YamlOutputType_FOLDER_PER_CHART_FILE_PER_RESOURCE,
 		// RecordConstructMetadata: jsii.Bool(true),
 	})
+
+	var cacheDir = os.Getenv("CACHE_DIR")
+	if cacheDir == "" {
+		cacheDir = "./cache"
+	}
+
 	k8sapp.SetGlobalContext(app, k8sapp.Globals{
 		DefaultSecretStoreName:               "secretstore",
 		DefaultSecretStoreKind:               "ClusterSecretStore",
 		DefaultExternalSecretRefreshInterval: "10m",
 		DefaultCertIssuerName:                "letsencrypt-prod",
 		DefaultCertIssuerKind:                "ClusterIssuer",
+		CacheDir:                             cacheDir,
 	})
 	return app
 }
@@ -193,15 +165,6 @@ func TemplateOutputFiles(app cdk8s.App, vars any) {
 		out.Execute(f, vars)
 		f.Close()
 	}
-}
-
-func JSIIMap[K comparable, V any](m map[K]V) *map[K]*V {
-	out := make(map[K]*V)
-	for k, v := range m {
-		v := v
-		out[k] = &v
-	}
-	return &out
 }
 
 type IngressAnnotationsProps struct {

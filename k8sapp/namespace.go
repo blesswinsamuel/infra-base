@@ -17,15 +17,6 @@ func NewNamespaceChart(scope constructs.Construct, namespaceName string) cdk8s.C
 	return chart
 }
 
-func NewNamespaceChartSkipCreate(scope constructs.Construct, namespaceName string) cdk8s.Chart {
-	chart := cdk8s.NewChart(scope, jsii.String(namespaceName), &cdk8s.ChartProps{
-		DisableResourceNameHashes: jsii.Bool(true),
-		Namespace:                 jsii.String(namespaceName),
-	})
-	SetNamespaceContext(chart, namespaceName)
-	return chart
-}
-
 func NewNamespace(scope constructs.Construct, id *string, namespaceName string) constructs.Construct {
 	return k8s.NewKubeNamespace(scope, id, &k8s.KubeNamespaceProps{
 		Metadata: &k8s.ObjectMeta{

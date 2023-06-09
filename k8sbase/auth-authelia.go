@@ -2,18 +2,18 @@ package k8sbase
 
 import (
 	"fmt"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
-	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type AutheliaProps struct {
-	Enabled   bool              `yaml:"enabled"`
-	ChartInfo helpers.ChartInfo `yaml:"helm"`
+	Enabled   bool             `yaml:"enabled"`
+	ChartInfo k8sapp.ChartInfo `yaml:"helm"`
 	Ingress   struct {
 		SubDomain string `yaml:"subDomain"`
 	} `yaml:"ingress"`
@@ -92,7 +92,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 			},
 		}
 	}
-	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
+	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: jsii.String("authelia"),
 		Namespace:   chart.Namespace(),
@@ -114,7 +114,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 					"disableIngressRoute": true,
 				},
 				"annotations": helpers.MergeAnnotations(
-					infraglobal.GetCertIssuerAnnotation(scope),
+					GetCertIssuerAnnotation(scope),
 					map[string]string{
 						"traefik.ingress.kubernetes.io/router.middlewares": "auth-chain-authelia@kubernetescrd",
 					},
@@ -157,12 +157,12 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 						"host":     props.SMTP.Host,
 						"port":     props.SMTP.Port,
 						"username": props.SMTP.Username,
-						"sender": helpers.Fallback(
+						"sender": infrahelpers.UseOrDefaultPtr(
 							props.SMTP.Sender,
 							fmt.Sprintf("Authelia <authelia@%s>", props.SMTP.EmailDomain),
 						),
 						"identifier":            props.SMTP.EmailDomain,
-						"subject":               helpers.Fallback(props.SMTP.Subject, "[authelia] {title}"),
+						"subject":               infrahelpers.UseOrDefaultPtr(props.SMTP.Subject, "[authelia] {title}"),
 						"startup_check_address": fmt.Sprintf("test@%s", props.SMTP.EmailDomain),
 						"enabledSecret":         true,
 					},

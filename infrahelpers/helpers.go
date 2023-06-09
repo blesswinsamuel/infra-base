@@ -3,6 +3,7 @@ package infrahelpers
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"text/template"
 
 	"github.com/aws/jsii-runtime-go"
@@ -90,6 +91,13 @@ func UseOrDefault[V comparable](val V, def V) V {
 	return val
 }
 
+func UseOrDefaultPtr[V any](val *V, def V) V {
+	if val == nil {
+		return def
+	}
+	return *val
+}
+
 func MapKeys[K constraints.Ordered, V any](m map[K]V) []K {
 	keys := make([]K, 0)
 	for k := range m {
@@ -118,4 +126,22 @@ func GoTemplate(s string, data interface{}) *string {
 		panic(err)
 	}
 	return jsii.String(buf.String())
+}
+
+func Ptr[T any](v T) *T {
+	return &v
+}
+
+func MapToEnvVars(m map[string]string) *[]*k8s.EnvVar {
+	envVars := make([]*k8s.EnvVar, 0)
+	for k, v := range m {
+		envVars = append(envVars, &k8s.EnvVar{
+			Name:  jsii.String(k),
+			Value: jsii.String(v),
+		})
+	}
+	slices.SortFunc(envVars, func(i, j *k8s.EnvVar) bool {
+		return *i.Name < *j.Name
+	})
+	return &envVars
 }

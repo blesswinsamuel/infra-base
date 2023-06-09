@@ -3,6 +3,7 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/certmanagerio"
@@ -27,7 +28,7 @@ func letsEncryptIssuer(chart constructs.Construct, props CertIssuerProps, name s
 				PrivateKeySecretRef: &certmanagerio.ClusterIssuerSpecAcmePrivateKeySecretRef{
 					Name: jsii.String(name),
 				},
-				Solvers: helpers.Ptr(helpers.MergeLists(
+				Solvers: infrahelpers.Ptr(helpers.MergeLists(
 					helpers.Ternary(props.Solver == "http", []*certmanagerio.ClusterIssuerSpecAcmeSolvers{
 						{
 							Http01: &certmanagerio.ClusterIssuerSpecAcmeSolversHttp01{

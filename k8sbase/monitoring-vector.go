@@ -8,14 +8,13 @@ import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
-	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"github.com/muesli/reflow/dedent"
 )
 
 type VectorProps struct {
-	Enabled       bool              `yaml:"enabled"`
-	HelmChartInfo helpers.ChartInfo `yaml:"helm"`
+	Enabled       bool             `yaml:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
 	SyslogServer  struct {
 		Enabled bool `yaml:"enabled"`
 	} `yaml:"syslogServer"`
@@ -37,7 +36,7 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("vector"), &cprops)
 
-	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
+	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("vector"),
 		Namespace:   chart.Namespace(),
@@ -50,7 +49,7 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 			},
 			"ingress": helpers.Ternary(props.Ingress.Enabled, map[string]interface{}{
 				"enabled":     true,
-				"annotations": infraglobal.GetCertIssuerAnnotation(scope),
+				"annotations": GetCertIssuerAnnotation(scope),
 				"hosts": []map[string]interface{}{
 					{
 						"host": props.Ingress.SubDomain + "." + GetDomain(scope),

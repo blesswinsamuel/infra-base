@@ -4,15 +4,14 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/middlewares_traefikio"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type TraefikProps struct {
-	Enabled          bool              `yaml:"enabled"`
-	ChartInfo        helpers.ChartInfo `yaml:"helm"`
-	TrustedIPs       []string          `yaml:"trustedIPs"`
+	Enabled          bool             `yaml:"enabled"`
+	ChartInfo        k8sapp.ChartInfo `yaml:"helm"`
+	TrustedIPs       []string         `yaml:"trustedIPs"`
 	DashboardIngress struct {
 		Enabled   bool   `yaml:"enabled"`
 		SubDomain string `yaml:"subDomain"`
@@ -22,6 +21,16 @@ type TraefikProps struct {
 			Enabled bool `yaml:"enabled"`
 		} `yaml:"stripPrefix"`
 	} `yaml:"middlewares"`
+}
+
+func getTraefikAuthMiddlewareName(scope constructs.Construct) string {
+	switch GetGlobal(scope).InternetAuthType {
+	case "traefik-forward-auth":
+		return "auth-traefik-forward-auth@kubernetescrd"
+	case "authelia":
+		return "auth-forwardauth-authelia@kubernetescrd"
+	}
+	panic("Invalid internetAuthType")
 }
 
 // https://github.com/traefik/traefik-helm-chart/tree/master/traefik
@@ -34,7 +43,7 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("traefik"), &cprops)
 
-	helpers.NewHelmCached(chart, jsii.String("traefik"), &helpers.HelmProps{
+	k8sapp.NewHelmCached(chart, jsii.String("traefik"), &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: jsii.String("traefik"),
 		Namespace:   chart.Namespace(),
@@ -114,7 +123,7 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 					// # works only from traefik v3
 					// # asDefault: true
 					"middlewares": []string{
-						GetTraefikAuthMiddlewareName(scope),
+						getTraefikAuthMiddlewareName(scope),
 					},
 				},
 			},
@@ -152,10 +161,10 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 	})
 
 	if props.DashboardIngress.Enabled {
-		helpers.NewIngress(chart, jsii.String("traefik-dashboard-external"), &helpers.IngressProps{
+		k8sapp.NewIngress(chart, jsii.String("traefik-dashboard-external"), &k8sapp.IngressProps{
 			Name: "traefik-dashboard",
-			Hosts: []helpers.Host{
-				{Host: props.DashboardIngress.SubDomain + "." + GetDomain(chart), Paths: []helpers.Path{{Path: "/", ServiceName: "api@internal"}}, Tls: true},
+			Hosts: []k8sapp.IngressHost{
+				{Host: props.DashboardIngress.SubDomain + "." + GetDomain(chart), Paths: []k8sapp.IngressHostPath{{Path: "/", ServiceName: "api@internal"}}, Tls: true},
 			},
 			IngressType: "traefik",
 		})

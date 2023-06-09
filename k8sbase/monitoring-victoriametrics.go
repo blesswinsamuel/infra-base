@@ -4,15 +4,13 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
-	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type VictoriametricsProps struct {
-	Enabled       bool              `yaml:"enabled"`
-	HelmChartInfo helpers.ChartInfo `yaml:"helm"`
-	Resources     *Resources        `yaml:"resources"`
+	Enabled       bool             `yaml:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
+	Resources     *Resources       `yaml:"resources"`
 	Ingress       struct {
 		Enabled   bool   `yaml:"enabled"`
 		SubDomain string `yaml:"subDomain"`
@@ -31,7 +29,7 @@ func NewVictoriaMetrics(scope constructs.Construct, props VictoriametricsProps) 
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("victoriametrics"), &cprops)
 
-	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
+	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("victoriametrics"),
 		Namespace:   chart.Namespace(),
@@ -48,7 +46,7 @@ func NewVictoriaMetrics(scope constructs.Construct, props VictoriametricsProps) 
 				},
 				"ingress": map[string]any{
 					"enabled":     props.Ingress.Enabled,
-					"annotations": infraglobal.GetCertIssuerAnnotation(scope),
+					"annotations": GetCertIssuerAnnotation(scope),
 					"hosts": []map[string]any{
 						{
 							"name": props.Ingress.SubDomain + "." + GetDomain(scope),

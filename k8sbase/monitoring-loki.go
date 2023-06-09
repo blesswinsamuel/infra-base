@@ -9,9 +9,9 @@ import (
 )
 
 type LokiProps struct {
-	Enabled       bool              `yaml:"enabled"`
-	HelmChartInfo helpers.ChartInfo `yaml:"helm"`
-	Storage       string            `yaml:"storage"`
+	Enabled       bool             `yaml:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
+	Storage       string           `yaml:"storage"`
 	S3            struct {
 		Endpoint        string `yaml:"endpoint"`
 		SecretAccessKey string `yaml:"secret_access_key"`
@@ -29,7 +29,7 @@ func NewLoki(scope constructs.Construct, props LokiProps) cdk8s.Chart {
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("loki"), &cprops)
 
-	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
+	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("loki"),
 		Namespace:   chart.Namespace(),

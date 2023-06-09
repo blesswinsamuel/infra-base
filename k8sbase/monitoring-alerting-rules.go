@@ -13,7 +13,6 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"golang.org/x/exp/slices"
@@ -38,8 +37,8 @@ type RuleURLProps struct {
 	Replacements map[string]string `yaml:"replacements"`
 }
 
-func GetCachedAlertingRule(url string) []byte {
-	alertsCacheDir := fmt.Sprintf("%s/%s", helpers.CacheDir, "alerts")
+func GetCachedAlertingRule(url string, cacheDir string) []byte {
+	alertsCacheDir := fmt.Sprintf("%s/%s", cacheDir, "alerts")
 	if err := os.MkdirAll(alertsCacheDir, os.ModePerm); err != nil {
 		log.Fatalln("GetCachedAlertingRule MkdirAll failed", err)
 	}
@@ -81,12 +80,13 @@ func NewAlertingRules(scope constructs.Construct, props AlertingRulesProps) cdk8
 	chart := cdk8s.NewChart(scope, jsii.String("alerting-rules"), &cprops)
 
 	rules := map[string]*string{}
+	cacheDir := k8sapp.GetGlobalContext(scope).CacheDir
 
 	for _, rulesConfig := range props.Rules {
 		if rulesConfig.URLs != nil {
 			for _, urlConfig := range *rulesConfig.URLs {
 				groups := []interface{}{}
-				data := GetCachedAlertingRule(urlConfig.URL)
+				data := GetCachedAlertingRule(urlConfig.URL, cacheDir)
 				for k, v := range urlConfig.Replacements {
 					data = []byte(strings.ReplaceAll(string(data), k, v))
 				}

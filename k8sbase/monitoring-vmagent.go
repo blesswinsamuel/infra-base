@@ -7,8 +7,6 @@ import (
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
-	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
@@ -24,10 +22,10 @@ type Resources struct {
 }
 
 type VmagentProps struct {
-	Enabled            bool              `yaml:"enabled"`
-	HelmChartInfo      helpers.ChartInfo `yaml:"helm"`
-	ExtraScrapeConfigs []map[string]any  `yaml:"extraScrapeConfigs"`
-	Resources          *Resources        `yaml:"resources"`
+	Enabled            bool             `yaml:"enabled"`
+	HelmChartInfo      k8sapp.ChartInfo `yaml:"helm"`
+	ExtraScrapeConfigs []map[string]any `yaml:"extraScrapeConfigs"`
+	Resources          *Resources       `yaml:"resources"`
 	Ingress            struct {
 		Enabled   bool   `yaml:"enabled"`
 		SubDomain string `yaml:"subDomain"`
@@ -49,7 +47,7 @@ func NewVmagent(scope constructs.Construct, props VmagentProps) cdk8s.Chart {
 
 	vmagentConfig := infrahelpers.FromYamlString[map[string]any](vmagentConfig)
 
-	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
+	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("vmagent"),
 		Namespace:   chart.Namespace(),
@@ -69,7 +67,7 @@ func NewVmagent(scope constructs.Construct, props VmagentProps) cdk8s.Chart {
 			},
 			"ingress": map[string]any{
 				"enabled":     props.Ingress.Enabled,
-				"annotations": infraglobal.GetCertIssuerAnnotation(scope),
+				"annotations": GetCertIssuerAnnotation(scope),
 				"hosts": []map[string]any{
 					{
 						"host": props.Ingress.SubDomain + "." + GetDomain(scope),

@@ -18,16 +18,16 @@ type NameNamespace struct {
 	Namespace string `yaml:"namespace"`
 }
 
-type Path struct {
+type IngressHostPath struct {
 	Path            string `yaml:"path"`
 	ServiceName     string `yaml:"serviceName"`
 	ServicePortName string `yaml:"servicePortName"`
 }
 
 type IngressHost struct {
-	Host  string `yaml:"host"`
-	Paths []Path `yaml:"paths"`
-	Tls   bool   `yaml:"tls"`
+	Host  string            `yaml:"host"`
+	Paths []IngressHostPath `yaml:"paths"`
+	Tls   bool              `yaml:"tls"`
 }
 
 type IngressProps struct {

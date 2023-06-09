@@ -23,6 +23,13 @@ func (i ImageInfo) String() string {
 	return fmt.Sprintf("%s:%s", i.Repository, i.Tag)
 }
 
+func (i *ImageInfo) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"repository": i.Repository,
+		"tag":        i.Tag,
+	}
+}
+
 type ApplicationProps struct {
 	Kind                     string
 	Name                     string
@@ -301,7 +308,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			if port.Ingress != nil {
 				ingressHosts = append(ingressHosts, IngressHost{
 					Host:  port.Ingress.Host,
-					Paths: []Path{{Path: port.Ingress.Path, ServiceName: props.Name, ServicePortName: port.Name}},
+					Paths: []IngressHostPath{{Path: port.Ingress.Path, ServiceName: props.Name, ServicePortName: port.Name}},
 					Tls:   true,
 				})
 			}

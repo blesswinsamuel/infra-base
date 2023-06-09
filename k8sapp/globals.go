@@ -13,6 +13,8 @@ type Globals struct {
 
 	DefaultCertIssuerName string
 	DefaultCertIssuerKind string
+
+	CacheDir string
 }
 
 func GetGlobalContext(scope constructs.Construct) Globals {
