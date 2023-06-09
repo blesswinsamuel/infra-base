@@ -26,7 +26,7 @@ type HelmProps struct {
 	Values              *map[string]interface{}
 }
 
-func NewHelmCached(scope constructs.Construct, id *string, props *HelmProps) cdk8s.Helm {
+func NewHelm(scope constructs.Construct, id *string, props *HelmProps) cdk8s.Helm {
 	globals := GetGlobalContext(scope)
 	chartsCacheDir := fmt.Sprintf("%s/%s", globals.CacheDir, "charts")
 	if err := os.MkdirAll(chartsCacheDir, os.ModePerm); err != nil {
@@ -59,12 +59,25 @@ func NewHelmCached(scope constructs.Construct, id *string, props *HelmProps) cdk
 			log.Fatalln("helm Stat failed", err)
 		}
 	}
+	namespace := props.Namespace
+	if namespace == nil {
+		namespace = GetNamespaceContextPtr(scope)
+	}
 
 	return cdk8s.NewHelm(scope, id, &cdk8s.HelmProps{
 		Chart:       jsii.String(chartPath),
 		ReleaseName: props.ReleaseName,
-		Namespace:   props.Namespace,
+		Namespace:   namespace,
 		Values:      props.Values,
 		HelmFlags:   jsii.Strings("--include-crds", "--skip-tests", "--no-hooks"),
 	})
+}
+
+func NewHelmChart(scope constructs.Construct, id *string, props *HelmProps) cdk8s.Chart {
+	cprops := cdk8s.ChartProps{
+		Namespace: GetNamespaceContextPtr(scope),
+	}
+	chart := cdk8s.NewChart(scope, id, &cprops)
+	NewHelm(chart, jsii.String("helm"), props)
+	return chart
 }

@@ -21,15 +21,10 @@ func NewKubernetesDashboard(scope constructs.Construct, props KubernetesDashboar
 	if !props.Enabled {
 		return nil
 	}
-	cprops := cdk8s.ChartProps{
-		Namespace: k8sapp.GetNamespaceContextPtr(scope),
-	}
-	chart := cdk8s.NewChart(scope, jsii.String("kubernetes-dashboard"), &cprops)
 
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	chart := k8sapp.NewHelmChart(scope, jsii.String("kubernetes-dashboard"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("kubernetes-dashboard"),
-		Namespace:   chart.Namespace(),
 		Values: &map[string]any{
 			"protocolHttp": true,
 			"extraArgs": []string{

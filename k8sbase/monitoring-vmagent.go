@@ -47,7 +47,7 @@ func NewVmagent(scope constructs.Construct, props VmagentProps) cdk8s.Chart {
 
 	vmagentConfig := infrahelpers.FromYamlString[map[string]any](vmagentConfig)
 
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("vmagent"),
 		Namespace:   chart.Namespace(),

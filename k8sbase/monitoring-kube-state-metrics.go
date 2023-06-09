@@ -21,7 +21,7 @@ func NewKubeStateMetrics(scope constructs.Construct, props KubeStateMetricsProps
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("kube-state-metrics"), &cprops)
 
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("kube-state-metrics"),
 		Namespace:   chart.Namespace(),

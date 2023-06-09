@@ -34,7 +34,7 @@ func NewTraefikForwardAuth(scope constructs.Construct, props TraefikForwardAuthP
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("traefik-forward-auth"), &cprops)
 
-	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("traefik-forward-auth"),
 		Namespace:   chart.Namespace(),

@@ -29,11 +29,9 @@ ingress:
     trustedIPs:
       # https://docs.k3s.io/helm#customizing-packaged-components-with-helmchartconfig
       - "10.0.0.0/8"
-    # middlewares:
-    #   redirectHttps:
-    #     enabled: false
-    #   stripPrefix:
-    #     enabled: false
+    middlewares:
+      stripPrefix:
+        enabled: false
 
 secrets:
   externalSecrets:
@@ -378,7 +376,6 @@ auth:
         host: "redis-master.database.svc.cluster.local"
 
 system:
-  # namespace: system
   reloader:
     enabled: false
     helm:
