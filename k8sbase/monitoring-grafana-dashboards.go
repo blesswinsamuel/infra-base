@@ -16,7 +16,6 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"golang.org/x/exp/slices"
@@ -48,9 +47,9 @@ func hash(s string) string {
 	return fmt.Sprintf("%v", h.Sum32())
 }
 
-func GetCachedDashboard(url string) []byte {
+func GetCachedDashboard(url string, cacheDir string) []byte {
 	fileName := hash(url) + ".json"
-	dashboardsCacheDir := fmt.Sprintf("%s/%s", helpers.CacheDir, "dashboards")
+	dashboardsCacheDir := fmt.Sprintf("%s/%s", cacheDir, "dashboards")
 	if err := os.MkdirAll(dashboardsCacheDir, os.ModePerm); err != nil {
 		log.Fatalln("GetCachedDashboard MkdirAll failed", err)
 	}
@@ -93,6 +92,7 @@ func NewGrafanaDashboards(scope constructs.Construct, props GrafanaDashboardsPro
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("grafana-dashboards"), &cprops)
 
+	cacheDir := k8sapp.GetGlobalContext(scope).CacheDir
 	type dashboardItem struct {
 		id              string
 		dashboardConfig GrafanaDashboardsConfigProps
@@ -133,7 +133,7 @@ func NewGrafanaDashboards(scope constructs.Construct, props GrafanaDashboardsPro
 		}
 		if dashboardConfig.URL != nil {
 			for _, url := range *dashboardConfig.URL {
-				dashboardContents := GetCachedDashboard(url.URL)
+				dashboardContents := GetCachedDashboard(url.URL, cacheDir)
 				dashboard := map[string]interface{}{}
 				if err := json.Unmarshal(dashboardContents, &dashboard); err != nil {
 					panic(err)

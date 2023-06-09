@@ -1,4 +1,4 @@
-package helpers
+package k8sapp
 
 import (
 	"errors"
@@ -11,22 +11,6 @@ import (
 	"github.com/aws/jsii-runtime-go"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
-
-type ImageInfo struct {
-	Repository *string `yaml:"repository"`
-	Tag        *string `yaml:"tag"`
-}
-
-func (i *ImageInfo) ToMap() map[string]interface{} {
-	return map[string]interface{}{
-		"repository": i.Repository,
-		"tag":        i.Tag,
-	}
-}
-
-func (i *ImageInfo) ToString() *string {
-	return jsii.String(fmt.Sprintf("%s:%s", *i.Repository, *i.Tag))
-}
 
 type ChartInfo struct {
 	Repo    *string `yaml:"repo"`
@@ -43,7 +27,8 @@ type HelmProps struct {
 }
 
 func NewHelmCached(scope constructs.Construct, id *string, props *HelmProps) cdk8s.Helm {
-	chartsCacheDir := fmt.Sprintf("%s/%s", CacheDir, "charts")
+	globals := GetGlobalContext(scope)
+	chartsCacheDir := fmt.Sprintf("%s/%s", globals.CacheDir, "charts")
 	if err := os.MkdirAll(chartsCacheDir, os.ModePerm); err != nil {
 		log.Fatalln("MkdirAll failed", err)
 	}

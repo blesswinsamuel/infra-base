@@ -5,20 +5,19 @@ import (
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
-	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type GrafanaProps struct {
-	Enabled              bool              `yaml:"enabled"`
-	HelmChartInfo        helpers.ChartInfo `yaml:"helm"`
-	AnonymousAuthEnabled bool              `yaml:"anonymousAuthEnabled"`
-	AuthProxyEnabled     bool              `yaml:"authProxyEnabled"`
-	Namespaced           bool              `yaml:"namespaced"`
-	DatasourceLabel      *string           `yaml:"datasourceLabel"`
-	DatasourceLabelValue *string           `yaml:"datasourceLabelValue"`
-	DashboardLabel       *string           `yaml:"dashboardLabel"`
-	DashboardLabelValue  *string           `yaml:"dashboardLabelValue"`
+	Enabled              bool             `yaml:"enabled"`
+	HelmChartInfo        k8sapp.ChartInfo `yaml:"helm"`
+	AnonymousAuthEnabled bool             `yaml:"anonymousAuthEnabled"`
+	AuthProxyEnabled     bool             `yaml:"authProxyEnabled"`
+	Namespaced           bool             `yaml:"namespaced"`
+	DatasourceLabel      *string          `yaml:"datasourceLabel"`
+	DatasourceLabelValue *string          `yaml:"datasourceLabelValue"`
+	DashboardLabel       *string          `yaml:"dashboardLabel"`
+	DashboardLabelValue  *string          `yaml:"dashboardLabelValue"`
 	Ingress              struct {
 		SubDomain string `yaml:"subDomain"`
 	} `yaml:"ingress"`
@@ -34,7 +33,7 @@ func NewGrafana(scope constructs.Construct, props GrafanaProps) cdk8s.Chart {
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("grafana"), &cprops)
 
-	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
+	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("grafana"),
 		Namespace:   chart.Namespace(),
@@ -69,7 +68,7 @@ func NewGrafana(scope constructs.Construct, props GrafanaProps) cdk8s.Chart {
 				"hosts": []string{
 					props.Ingress.SubDomain + "." + GetDomain(scope),
 				},
-				"annotations": infraglobal.GetCertIssuerAnnotation(scope),
+				"annotations": GetCertIssuerAnnotation(scope),
 				"tls": []map[string]interface{}{
 					{
 						"hosts": []string{

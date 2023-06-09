@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"gopkg.in/yaml.v3"
 )
 
@@ -17,13 +16,13 @@ import (
 var BaseValues []byte
 
 type BaseProps struct {
-	Global     infraglobal.GlobalProps `yaml:"global"`
-	Ingress    IngressProps            `yaml:"ingress"`
-	System     SystemProps             `yaml:"system"`
-	Secrets    SecretsProps            `yaml:"secrets"`
-	Auth       AuthProps               `yaml:"auth"`
-	Monitoring MonitoringProps         `yaml:"monitoring"`
-	Databases  DatabaseProps           `yaml:"databases"`
+	Global     GlobalProps     `yaml:"global"`
+	Ingress    IngressProps    `yaml:"ingress"`
+	System     SystemProps     `yaml:"system"`
+	Secrets    SecretsProps    `yaml:"secrets"`
+	Auth       AuthProps       `yaml:"auth"`
+	Monitoring MonitoringProps `yaml:"monitoring"`
+	Databases  DatabaseProps   `yaml:"databases"`
 }
 
 func logModuleTiming(moduleName string) func() {

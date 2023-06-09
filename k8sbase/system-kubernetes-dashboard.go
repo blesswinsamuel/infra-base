@@ -4,14 +4,12 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
-	"github.com/blesswinsamuel/infra-base/k8sbase/infraglobal"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type KubernetesDashboardProps struct {
-	Enabled       bool              `yaml:"enabled"`
-	HelmChartInfo helpers.ChartInfo `yaml:"helm"`
+	Enabled       bool             `yaml:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
 	Ingress       struct {
 		Enabled   bool   `yaml:"enabled"`
 		SubDomain string `yaml:"subDomain"`
@@ -28,7 +26,7 @@ func NewKubernetesDashboard(scope constructs.Construct, props KubernetesDashboar
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("kubernetes-dashboard"), &cprops)
 
-	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
+	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("kubernetes-dashboard"),
 		Namespace:   chart.Namespace(),
@@ -54,7 +52,7 @@ func NewKubernetesDashboard(scope constructs.Construct, props KubernetesDashboar
 			},
 			"ingress": map[string]any{
 				"enabled":     props.Ingress.Enabled,
-				"annotations": infraglobal.GetCertIssuerAnnotation(scope),
+				"annotations": GetCertIssuerAnnotation(scope),
 				"hosts": []string{
 					props.Ingress.SubDomain + "." + GetDomain(scope),
 				},

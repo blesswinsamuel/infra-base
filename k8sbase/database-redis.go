@@ -4,13 +4,12 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type RedisProps struct {
-	Enabled       bool              `yaml:"enabled"`
-	HelmChartInfo helpers.ChartInfo `yaml:"helm"`
+	Enabled       bool             `yaml:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
 }
 
 func NewRedis(scope constructs.Construct, props RedisProps) cdk8s.Chart {
@@ -22,7 +21,7 @@ func NewRedis(scope constructs.Construct, props RedisProps) cdk8s.Chart {
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("redis"), &cprops)
 
-	helpers.NewHelmCached(chart, jsii.String("helm"), &helpers.HelmProps{
+	k8sapp.NewHelmCached(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("redis"),
 		Namespace:   chart.Namespace(),
