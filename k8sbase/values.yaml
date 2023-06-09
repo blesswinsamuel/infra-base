@@ -29,11 +29,11 @@ ingress:
     trustedIPs:
       # https://docs.k3s.io/helm#customizing-packaged-components-with-helmchartconfig
       - "10.0.0.0/8"
-    middlewares:
-      redirectHttps:
-        enabled: false
-      stripPrefix:
-        enabled: false
+    # middlewares:
+    #   redirectHttps:
+    #     enabled: false
+    #   stripPrefix:
+    #     enabled: false
 
 secrets:
   externalSecrets:
@@ -268,16 +268,13 @@ monitoring:
       subDomain: "vmalert"
   alertmanager:
     enabled: true
-    helm:
-      repo: https://prometheus-community.github.io/helm-charts
-      chart: alertmanager
-      version: "0.32.1"
+    image:
+      repository: quay.io/prometheus/alertmanager
+      tag: "v0.25.0"
     ingress:
       enabled: true
       subDomain: "alertmanager"
     config:
-      watchdog:
-        webhookUrls: [https://betteruptime.com/api/v1/heartbeat/xxx]
       slack:
         channel: "#alertmanager"
       telegram:
@@ -338,7 +335,6 @@ databases:
       # 2023-03-18 16:30:09.021 GMT [1] DETAIL:  The data directory was initialized by PostgreSQL version 14, which is not compatible with this version 15.2.
       repository: bitnami/postgresql
       tag: 14.8.0
-    namespace: database
     database: null
     username: null
   redis:
@@ -347,7 +343,6 @@ databases:
       repo: https://charts.bitnami.com/bitnami
       chart: redis
       version: "17.11.3"
-    namespace: database
 
 auth:
   namespace: auth
@@ -383,7 +378,7 @@ auth:
         host: "redis-master.database.svc.cluster.local"
 
 system:
-  namespace: system
+  # namespace: system
   reloader:
     enabled: false
     helm:

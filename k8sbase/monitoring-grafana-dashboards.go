@@ -35,7 +35,7 @@ type GrafanaDashboardsConfigProps struct {
 
 type DashboardURLProps struct {
 	URL          string            `yaml:"url"`
-	GnetID       *int              `yaml:"gnetId"`
+	GnetID       *int              `yaml:"gnet_id"`
 	ID           string            `yaml:"id"`
 	Title        *string           `yaml:"title"`
 	Replacements map[string]string `yaml:"replacements"`

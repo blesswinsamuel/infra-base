@@ -60,8 +60,9 @@ func NewBase(scope constructs.Construct, props BaseProps) constructs.Construct {
 
 func GetBaseValues() BaseProps {
 	v := BaseProps{}
-	err := yaml.Unmarshal(BaseValues, &v)
-	if err != nil {
+	decoder := yaml.NewDecoder(bytes.NewReader(BaseValues))
+	decoder.KnownFields(true)
+	if err := decoder.Decode(&v); err != nil {
 		panic(err)
 	}
 	return v

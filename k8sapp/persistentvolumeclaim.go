@@ -14,7 +14,11 @@ type PersistentVolumeClaim struct {
 }
 
 func NewPersistentVolumeClaim(scope constructs.Construct, id *string, props *PersistentVolumeClaim) k8s.KubePersistentVolumeClaim {
-	return k8s.NewKubePersistentVolumeClaim(scope, id, &k8s.KubePersistentVolumeClaimProps{
+	return k8s.NewKubePersistentVolumeClaim(scope, id, NewPersistentVolumeClaimProps(props))
+}
+
+func NewPersistentVolumeClaimProps(props *PersistentVolumeClaim) *k8s.KubePersistentVolumeClaimProps {
+	return &k8s.KubePersistentVolumeClaimProps{
 		Metadata: &k8s.ObjectMeta{
 			Name: jsii.String(props.Name),
 		},
@@ -27,5 +31,5 @@ func NewPersistentVolumeClaim(scope constructs.Construct, id *string, props *Per
 			},
 			StorageClassName: infrahelpers.PtrIfNonEmpty(props.StorageClass),
 		},
-	})
+	}
 }
