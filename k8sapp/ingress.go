@@ -185,3 +185,20 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 
 	return scope
 }
+
+type HomepageIngressAnnotationsProps struct {
+	Group       string
+	Name        string
+	Icon        string
+	Description string
+}
+
+func HomepageIngressAnnotations(props HomepageIngressAnnotationsProps) map[string]string {
+	return map[string]string{
+		"gethomepage.dev/description": props.Description,
+		"gethomepage.dev/enabled":     "true",
+		"gethomepage.dev/group":       props.Group,
+		"gethomepage.dev/icon":        props.Icon,
+		"gethomepage.dev/name":        props.Name,
+	}
+}
