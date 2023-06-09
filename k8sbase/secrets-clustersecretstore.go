@@ -3,8 +3,8 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8sbase/imports/externalsecretsio"
-	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
+	"github.com/blesswinsamuel/infra-base/k8simports/externalsecretsio"
+	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 

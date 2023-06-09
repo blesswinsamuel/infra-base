@@ -1,5 +1,4 @@
 language: go
-app: go run .
 imports:
   - k8s
   # https://github.com/cdk8s-team/cdk8s/issues/885
