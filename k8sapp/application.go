@@ -31,25 +31,29 @@ func (i *ImageInfo) ToMap() map[string]interface{} {
 }
 
 type ApplicationProps struct {
-	Kind                     string
-	Name                     string
-	ServiceAccountName       string
-	Hostname                 string
-	EnableServiceLinks       bool
-	DeploymentUpdateStrategy *k8s.DeploymentStrategy
-	AppAnnotations           map[string]string
-	PodAnnotations           map[string]string
-	PodSecurityContext       *k8s.PodSecurityContext
-	ImagePullSecrets         string
-	Containers               []ApplicationContainer
-	ConfigMaps               []ApplicationConfigMap
-	ExternalSecrets          []ApplicationExternalSecret
-	Secrets                  []ApplicationSecret
-	PersistentVolumes        []ApplicationPersistentVolume
-	ExtraVolumes             []*k8s.Volume
-	HostNetwork              bool
-	DnsPolicy                string
-	IngressMiddlewares       []NameNamespace
+	Kind                            string
+	Name                            string
+	ServiceAccountName              string
+	Hostname                        string
+	CreateHeadlessService           bool
+	StatefulSetServiceName          string
+	EnableServiceLinks              bool
+	AutomountServiceAccountToken    bool
+	DeploymentUpdateStrategy        *k8s.DeploymentStrategy
+	AppAnnotations                  map[string]string
+	PodAnnotations                  map[string]string
+	PodSecurityContext              *k8s.PodSecurityContext
+	ImagePullSecrets                string
+	Containers                      []ApplicationContainer
+	ConfigMaps                      []ApplicationConfigMap
+	ExternalSecrets                 []ApplicationExternalSecret
+	Secrets                         []ApplicationSecret
+	PersistentVolumes               []ApplicationPersistentVolume
+	StatefulSetVolumeClaimTemplates []ApplicationPersistentVolume
+	ExtraVolumes                    []*k8s.Volume
+	HostNetwork                     bool
+	DnsPolicy                       string
+	IngressMiddlewares              []NameNamespace
 	// IngressAnnotations       map[string]string
 }
 
@@ -105,6 +109,7 @@ type ApplicationContainer struct {
 	Command           []string
 	Env               map[string]string
 	EnvFromSecretRef  []string
+	ExtraEnvs         []*k8s.EnvVar
 	Args              []string
 	Ports             []ContainerPort
 	ExtraVolumeMounts []*k8s.VolumeMount
@@ -250,6 +255,17 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			RequestsStorage: pv.RequestsStorage,
 		})
 	}
+	statefulSetVolumeClaimTemplates := []*k8s.KubePersistentVolumeClaimProps{}
+	for _, pv := range props.StatefulSetVolumeClaimTemplates {
+		if pv.MountName != "" {
+			addVolumeMount(pv.MountToContainers, pv.MountName, pv.MountPath, pv.SubPath, pv.ReadOnly)
+		}
+		statefulSetVolumeClaimTemplates = append(statefulSetVolumeClaimTemplates, NewPersistentVolumeClaimProps(&PersistentVolumeClaim{
+			Name:            pv.Name,
+			StorageClass:    pv.StorageClass,
+			RequestsStorage: pv.RequestsStorage,
+		}))
+	}
 	containers := []*k8s.Container{}
 	servicePorts := []*k8s.ServicePort{}
 	ingressHosts := []IngressHost{}
@@ -260,6 +276,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		containerVolumeMounts = append(containerVolumeMounts, container.ExtraVolumeMounts...)
 
 		env := []*k8s.EnvVar{}
+		env = append(env, container.ExtraEnvs...)
 		for k, v := range container.Env {
 			env = append(env, &k8s.EnvVar{Name: jsii.String(k), Value: jsii.String(v)})
 		}
@@ -354,18 +371,18 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			Annotations: infrahelpers.PtrMap(podAnnotations),
 		},
 		Spec: &k8s.PodSpec{
-			ServiceAccountName: infrahelpers.If(props.ServiceAccountName != "", &props.ServiceAccountName, nil),
-			// AutomountServiceAccountToken: infrahelpers.If(props.ServiceAccountName != "", jsii.Bool(true), nil),
-			Hostname:           infrahelpers.If(props.Hostname != "", &props.Hostname, nil),
-			EnableServiceLinks: infrahelpers.If(props.EnableServiceLinks, &props.EnableServiceLinks, nil),
-			SecurityContext:    props.PodSecurityContext,
+			ServiceAccountName:           infrahelpers.PtrIfNonEmpty(props.ServiceAccountName),
+			AutomountServiceAccountToken: infrahelpers.PtrIfNonEmpty(props.AutomountServiceAccountToken),
+			Hostname:                     infrahelpers.PtrIfNonEmpty(props.Hostname),
+			EnableServiceLinks:           infrahelpers.PtrIfNonEmpty(props.EnableServiceLinks),
+			SecurityContext:              props.PodSecurityContext,
 			ImagePullSecrets: infrahelpers.If(props.ImagePullSecrets != "", &[]*k8s.LocalObjectReference{
 				{Name: jsii.String(props.ImagePullSecrets)},
 			}, nil),
 			Containers:  &containers,
 			Volumes:     infrahelpers.PtrIfLenGt0(volumes),
-			HostNetwork: infrahelpers.If(props.HostNetwork, jsii.Bool(true), nil),
-			DnsPolicy:   infrahelpers.If(props.DnsPolicy != "", &props.DnsPolicy, nil),
+			HostNetwork: infrahelpers.PtrIfNonEmpty(props.HostNetwork),
+			DnsPolicy:   infrahelpers.PtrIfNonEmpty(props.DnsPolicy),
 		},
 	}
 	switch props.Kind {
@@ -392,11 +409,12 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			},
 			Spec: &k8s.StatefulSetSpec{
 				Replicas:    jsii.Number(1),
-				ServiceName: jsii.String(props.Name),
+				ServiceName: jsii.String(infrahelpers.UseOrDefault(props.StatefulSetServiceName, props.Name)),
 				Selector: &k8s.LabelSelector{
 					MatchLabels: infrahelpers.PtrMap(commonLabels),
 				},
-				Template: podTemplate,
+				Template:             podTemplate,
+				VolumeClaimTemplates: infrahelpers.PtrIfLenGt0(statefulSetVolumeClaimTemplates),
 			},
 		})
 	}
@@ -411,6 +429,18 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 				Ports:    &servicePorts,
 			},
 		})
+		if props.CreateHeadlessService {
+			k8s.NewKubeService(scope, jsii.String("service-headless"), &k8s.KubeServiceProps{
+				Metadata: &k8s.ObjectMeta{
+					Name: jsii.String(props.Name + "-headless"),
+				},
+				Spec: &k8s.ServiceSpec{
+					ClusterIp: jsii.String("None"),
+					Selector:  infrahelpers.PtrMap(commonLabels),
+					Ports:     &servicePorts,
+				},
+			})
+		}
 		if len(ingressHosts) > 0 {
 			NewIngress(scope, jsii.String("ingress"), &IngressProps{
 				Name:                   props.Name,
