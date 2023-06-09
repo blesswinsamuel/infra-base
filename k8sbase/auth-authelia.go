@@ -7,7 +7,6 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
@@ -113,7 +112,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 					"enabled":             true,
 					"disableIngressRoute": true,
 				},
-				"annotations": helpers.MergeAnnotations(
+				"annotations": infrahelpers.MergeAnnotations(
 					GetCertIssuerAnnotation(scope),
 					map[string]string{
 						"traefik.ingress.kubernetes.io/router.middlewares": "auth-chain-authelia@kubernetescrd",
@@ -135,7 +134,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 					"ban_time":    "5m",
 				},
 				"default_redirection_url": "https://" +
-					helpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") +
+					infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") +
 					GetDomain(scope),
 				"access_control": props.AccessControl,
 				"session": map[string]interface{}{

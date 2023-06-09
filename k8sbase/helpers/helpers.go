@@ -13,41 +13,6 @@ import (
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
-func MergeAnnotations(annotations ...map[string]string) map[string]string {
-	merged := make(map[string]string)
-	for _, annotation := range annotations {
-		for k, v := range annotation {
-			merged[k] = v
-		}
-	}
-	return merged
-}
-
-func MergeMaps[K comparable, V any](annotations ...map[K]V) map[K]V {
-	merged := make(map[K]V)
-	for _, annotation := range annotations {
-		for k, v := range annotation {
-			merged[k] = v
-		}
-	}
-	return merged
-}
-
-func MergeLists[T any](annotations ...[]T) []T {
-	merged := make([]T, 0)
-	for _, annotation := range annotations {
-		merged = append(merged, annotation...)
-	}
-	return merged
-}
-
-func Ternary[V any](cond bool, trueVal V, falseVal V) V {
-	if cond {
-		return trueVal
-	}
-	return falseVal
-}
-
 func NewApp(outputDir string) cdk8s.App {
 	app := cdk8s.NewApp(&cdk8s.AppProps{
 		Outdir:         jsii.String(outputDir),

@@ -3,8 +3,8 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
@@ -87,15 +87,15 @@ func NewLoki(scope constructs.Construct, props LokiProps) cdk8s.Chart {
 				"rulerConfig": map[string]any{
 					"alertmanager_url": "http://alertmanager:9093",
 				},
-				"storage": helpers.MergeMaps(
-					helpers.Ternary(
+				"storage": infrahelpers.MergeMaps(
+					infrahelpers.Ternary(
 						props.Storage == "local",
 						map[string]any{
 							"type": "filesystem",
 						},
 						nil,
 					),
-					helpers.Ternary(
+					infrahelpers.Ternary(
 						props.Storage == "s3",
 						map[string]any{
 							"type": "s3",

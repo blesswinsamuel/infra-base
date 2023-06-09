@@ -5,7 +5,6 @@ import (
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/certmanagerio"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
@@ -28,8 +27,8 @@ func letsEncryptIssuer(chart constructs.Construct, props CertIssuerProps, name s
 				PrivateKeySecretRef: &certmanagerio.ClusterIssuerSpecAcmePrivateKeySecretRef{
 					Name: jsii.String(name),
 				},
-				Solvers: infrahelpers.Ptr(helpers.MergeLists(
-					helpers.Ternary(props.Solver == "http", []*certmanagerio.ClusterIssuerSpecAcmeSolvers{
+				Solvers: infrahelpers.Ptr(infrahelpers.MergeLists(
+					infrahelpers.Ternary(props.Solver == "http", []*certmanagerio.ClusterIssuerSpecAcmeSolvers{
 						{
 							Http01: &certmanagerio.ClusterIssuerSpecAcmeSolversHttp01{
 								Ingress: &certmanagerio.ClusterIssuerSpecAcmeSolversHttp01Ingress{
@@ -38,7 +37,7 @@ func letsEncryptIssuer(chart constructs.Construct, props CertIssuerProps, name s
 							},
 						},
 					}, nil),
-					helpers.Ternary(props.Solver == "dns", []*certmanagerio.ClusterIssuerSpecAcmeSolvers{
+					infrahelpers.Ternary(props.Solver == "dns", []*certmanagerio.ClusterIssuerSpecAcmeSolvers{
 						{
 							Dns01: &certmanagerio.ClusterIssuerSpecAcmeSolversDns01{
 								Cloudflare: &certmanagerio.ClusterIssuerSpecAcmeSolversDns01Cloudflare{

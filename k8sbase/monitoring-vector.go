@@ -1,12 +1,12 @@
 package k8sbase
 
 import (
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"strings"
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/blesswinsamuel/infra-base/k8sbase/imports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"github.com/muesli/reflow/dedent"
@@ -47,7 +47,7 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 				"prometheus.io/port":   "9090",
 				"prometheus.io/scrape": "true",
 			},
-			"ingress": helpers.Ternary(props.Ingress.Enabled, map[string]interface{}{
+			"ingress": infrahelpers.Ternary(props.Ingress.Enabled, map[string]interface{}{
 				"enabled":     true,
 				"annotations": GetCertIssuerAnnotation(scope),
 				"hosts": []map[string]interface{}{
@@ -78,8 +78,8 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 					"address":    "0.0.0.0:8686",
 					"playground": false,
 				},
-				"sources": helpers.MergeMaps(
-					helpers.Ternary(props.SyslogServer.Enabled, map[string]interface{}{
+				"sources": infrahelpers.MergeMaps(
+					infrahelpers.Ternary(props.SyslogServer.Enabled, map[string]interface{}{
 						"syslog_server": map[string]interface{}{
 							"type":       "syslog",
 							"address":    "0.0.0.0:514",
@@ -113,8 +113,8 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 						},
 					},
 				),
-				"transforms": helpers.MergeMaps(
-					helpers.Ternary(props.SyslogServer.Enabled, map[string]interface{}{
+				"transforms": infrahelpers.MergeMaps(
+					infrahelpers.Ternary(props.SyslogServer.Enabled, map[string]interface{}{
 						"syslog_transform": map[string]interface{}{
 							"type":   "remap",
 							"inputs": []string{"syslog_server"},
@@ -172,9 +172,9 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 					},
 					"loki_sink": map[string]interface{}{
 						"type": "loki",
-						"inputs": helpers.MergeLists(
+						"inputs": infrahelpers.MergeLists(
 							[]string{"kubernetes_log_transform"},
-							helpers.Ternary(props.SyslogServer.Enabled, []string{"syslog_transform"}, nil),
+							infrahelpers.Ternary(props.SyslogServer.Enabled, []string{"syslog_transform"}, nil),
 						),
 						"endpoint": "http://loki:3100",
 						"labels": map[string]interface{}{
