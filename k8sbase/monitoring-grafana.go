@@ -3,8 +3,8 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
@@ -38,19 +38,19 @@ func NewGrafana(scope constructs.Construct, props GrafanaProps) cdk8s.Chart {
 		ReleaseName: jsii.String("grafana"),
 		Namespace:   chart.Namespace(),
 		Values: &map[string]interface{}{
-			"env": helpers.MergeMaps(
+			"env": infrahelpers.MergeMaps(
 				map[string]string{
 					"GF_SERVER_ENABLE_GZIP":                      "true",
 					"GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION": "true",
 				},
-				helpers.Ternary(props.AnonymousAuthEnabled, map[string]string{
+				infrahelpers.Ternary(props.AnonymousAuthEnabled, map[string]string{
 					"GF_AUTH_ANONYMOUS_HIDE_VERSION": "true",
 					"GF_AUTH_ANONYMOUS_ENABLED":      "true",
 					"GF_AUTH_ANONYMOUS_ORG_NAME":     "Main Org.",
 					"GF_AUTH_ANONYMOUS_ORG_ROLE":     "Admin",
 					"GF_AUTH_DISABLE_LOGIN_FORM":     "true",
 				}, nil),
-				helpers.Ternary(props.AuthProxyEnabled, map[string]string{
+				infrahelpers.Ternary(props.AuthProxyEnabled, map[string]string{
 					"GF_AUTH_PROXY_ENABLED":            "true",
 					"GF_AUTH_PROXY_HEADER_NAME":        "Remote-User",
 					"GF_AUTH_PROXY_HEADER_PROPERTY":    "username",

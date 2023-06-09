@@ -1,12 +1,12 @@
 package k8sbase
 
 import (
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"strings"
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8sbase/helpers"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
@@ -51,7 +51,7 @@ func NewTraefikForwardAuth(scope constructs.Construct, props TraefikForwardAuthP
 			"ingress": map[string]interface{}{
 				"main": map[string]interface{}{
 					"enabled": true,
-					"annotations": helpers.MergeAnnotations(
+					"annotations": infrahelpers.MergeAnnotations(
 						GetCertIssuerAnnotation(scope),
 						map[string]string{"traefik.ingress.kubernetes.io/router.middlewares": "auth-traefik-forward-auth@kubernetescrd"},
 					),
