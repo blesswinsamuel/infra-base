@@ -17,12 +17,10 @@ func NewCertManager(scope constructs.Construct, props CertManagerProps) construc
 	if !props.Enabled {
 		return nil
 	}
-	chart := k8sapp.NewNamespaceChart(scope, "cert-manager")
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	chart := k8sapp.NewHelmChart(scope, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("cert-manager"),
-		Namespace:   chart.Namespace(),
 		Values: &map[string]interface{}{
 			"installCRDs": "true",
 		},

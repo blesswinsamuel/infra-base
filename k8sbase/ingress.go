@@ -14,10 +14,16 @@ type IngressProps struct {
 func NewIngress(scope constructs.Construct, props IngressProps) constructs.Construct {
 	defer logModuleTiming("ingress")()
 
-	chart := k8sapp.NewNamespaceChart(scope, "ingress")
-	NewCertManager(chart, props.CertManager)
-	NewCertIssuer(chart, props.CertIssuer)
-	NewTraefik(chart, props.Traefik)
+	{
+		chart := k8sapp.NewNamespaceChart(scope, "cert-manager")
+		NewCertManager(chart, props.CertManager)
+		NewCertIssuer(chart, props.CertIssuer)
+	}
 
-	return chart
+	{
+		chart := k8sapp.NewNamespaceChart(scope, "ingress")
+		NewTraefik(chart, props.Traefik)
+	}
+
+	return scope
 }

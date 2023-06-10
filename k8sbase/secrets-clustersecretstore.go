@@ -3,9 +3,13 @@ package k8sbase
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8simports/externalsecretsio"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	externalsecretsmetav1 "github.com/external-secrets/external-secrets/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ClusterSecretStoreProps struct {
@@ -27,20 +31,19 @@ func NewClusterSecretStore(scope constructs.Construct, props ClusterSecretStoreP
 			"dopplerToken": jsii.String(props.DopplerServiceToken),
 		},
 	})
-	externalsecretsio.NewClusterSecretStoreV1Beta1(chart, jsii.String("cluster-secret-store"), &externalsecretsio.ClusterSecretStoreV1Beta1Props{
-		Metadata: &cdk8s.ApiObjectMetadata{
-			Name: jsii.String(GetGlobal(scope).ClusterExternalSecretStoreName),
-		},
-		Spec: &externalsecretsio.ClusterSecretStoreV1Beta1Spec{
-			//   # controller: doppler  # like ingressClassName definition
-			Provider: &externalsecretsio.ClusterSecretStoreV1Beta1SpecProvider{
-				Doppler: &externalsecretsio.ClusterSecretStoreV1Beta1SpecProviderDoppler{
-					Auth: &externalsecretsio.ClusterSecretStoreV1Beta1SpecProviderDopplerAuth{
-						SecretRef: &externalsecretsio.ClusterSecretStoreV1Beta1SpecProviderDopplerAuthSecretRef{
-							DopplerToken: &externalsecretsio.ClusterSecretStoreV1Beta1SpecProviderDopplerAuthSecretRefDopplerToken{
-								Name:      jsii.String("doppler-token-auth-api"),
-								Key:       jsii.String("dopplerToken"),
-								Namespace: jsii.String("default"),
+	k8sapp.NewK8sObject(chart, jsii.String("cluster-secret-store"), &externalsecretsv1beta1.ClusterSecretStore{
+		ObjectMeta: metav1.ObjectMeta{Name: GetGlobal(scope).ClusterExternalSecretStoreName},
+		Spec: externalsecretsv1beta1.SecretStoreSpec{
+			Controller:      "",
+			RefreshInterval: 0,
+			Provider: &externalsecretsv1beta1.SecretStoreProvider{
+				Doppler: &externalsecretsv1beta1.DopplerProvider{
+					Auth: &externalsecretsv1beta1.DopplerAuth{
+						SecretRef: externalsecretsv1beta1.DopplerAuthSecretRef{
+							DopplerToken: externalsecretsmetav1.SecretKeySelector{
+								Name:      "doppler-token-auth-api",
+								Namespace: infrahelpers.Ptr("default"),
+								Key:       "dopplerToken",
 							},
 						},
 					},

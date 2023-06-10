@@ -2,11 +2,12 @@ package k8sapp
 
 import (
 	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/k8simports/externalsecretsio"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	"golang.org/x/exp/slices"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ExternalSecretStoreProps struct {
@@ -24,38 +25,36 @@ type ExternalSecretProps struct {
 	SecretStore     ExternalSecretStoreProps
 }
 
-func NewExternalSecret(scope constructs.Construct, id *string, props *ExternalSecretProps) externalsecretsio.ExternalSecretV1Beta1 {
+func NewExternalSecret(scope constructs.Construct, id *string, props *ExternalSecretProps) cdk8s.ApiObject {
 	// construct := constructs.NewConstruct(scope, id)
-	var data []*externalsecretsio.ExternalSecretV1Beta1SpecData
+	var data []externalsecretsv1beta1.ExternalSecretData
 	for k, v := range props.RemoteRefs {
-		data = append(data, &externalsecretsio.ExternalSecretV1Beta1SpecData{
-			SecretKey: jsii.String(k),
-			RemoteRef: &externalsecretsio.ExternalSecretV1Beta1SpecDataRemoteRef{Key: jsii.String(v)},
+		data = append(data, externalsecretsv1beta1.ExternalSecretData{
+			SecretKey: k,
+			RemoteRef: externalsecretsv1beta1.ExternalSecretDataRemoteRef{Key: v},
 		})
 	}
-	slices.SortFunc(data, func(a *externalsecretsio.ExternalSecretV1Beta1SpecData, b *externalsecretsio.ExternalSecretV1Beta1SpecData) bool {
-		return *a.SecretKey < *b.SecretKey
+	slices.SortFunc(data, func(a externalsecretsv1beta1.ExternalSecretData, b externalsecretsv1beta1.ExternalSecretData) bool {
+		return a.SecretKey < b.SecretKey
 	})
 	globals := GetGlobalContext(scope)
-	var target *externalsecretsio.ExternalSecretV1Beta1SpecTarget
-	if len(props.Template) > 0 {
-		target = &externalsecretsio.ExternalSecretV1Beta1SpecTarget{
-			Template: &externalsecretsio.ExternalSecretV1Beta1SpecTargetTemplate{
-				Type: infrahelpers.PtrIfNonEmpty(props.SecretType),
-				Data: infrahelpers.PtrMap(props.Template),
+	externalsecret := externalsecretsv1beta1.ExternalSecret{
+		ObjectMeta: metav1.ObjectMeta{Name: props.Name}, // , Namespace: infrahelpers.StrPtrIfNonEmpty(props.Namespace)
+		Spec: externalsecretsv1beta1.ExternalSecretSpec{
+			RefreshInterval: infrahelpers.ToDuration(infrahelpers.UseOrDefault(props.RefreshInterval, globals.DefaultExternalSecretRefreshInterval)),
+			SecretStoreRef: externalsecretsv1beta1.SecretStoreRef{
+				Name: infrahelpers.UseOrDefault(props.SecretStore.Name, globals.DefaultSecretStoreName),
+				Kind: infrahelpers.UseOrDefault(props.SecretStore.Kind, globals.DefaultSecretStoreKind),
 			},
+			Data: data,
+		},
+	}
+	if len(props.Template) > 0 {
+		externalsecret.Spec.Target.Template = &externalsecretsv1beta1.ExternalSecretTemplate{
+			Type: corev1.SecretType(props.SecretType),
+			Data: props.Template,
 		}
 	}
-	return externalsecretsio.NewExternalSecretV1Beta1(scope, id, &externalsecretsio.ExternalSecretV1Beta1Props{
-		Metadata: &cdk8s.ApiObjectMetadata{Name: &props.Name}, // , Namespace: infrahelpers.StrPtrIfNonEmpty(props.Namespace)
-		Spec: &externalsecretsio.ExternalSecretV1Beta1Spec{
-			RefreshInterval: jsii.String(infrahelpers.UseOrDefault(props.RefreshInterval, globals.DefaultExternalSecretRefreshInterval)),
-			SecretStoreRef: &externalsecretsio.ExternalSecretV1Beta1SpecSecretStoreRef{
-				Name: jsii.String(infrahelpers.UseOrDefault(props.SecretStore.Name, globals.DefaultSecretStoreName)),
-				Kind: jsii.String(infrahelpers.UseOrDefault(props.SecretStore.Kind, globals.DefaultSecretStoreKind)),
-			},
-			Target: target,
-			Data:   &data,
-		},
-	})
+
+	return NewK8sObject(scope, id, &externalsecret)
 }

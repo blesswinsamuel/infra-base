@@ -7,7 +7,6 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/k8simports/certmanagerio"
 	"github.com/blesswinsamuel/infra-base/k8simports/ingressroute_traefikio"
 	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
@@ -88,18 +87,10 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 		}
 		tlsDomains := []*ingressroute_traefikio.IngressRouteSpecTlsDomains{}
 		if len(tlsHosts) > 0 {
-			certmanagerio.NewCertificate(scope, jsii.String(*id+"-cert"), &certmanagerio.CertificateProps{
-				Metadata: &cdk8s.ApiObjectMetadata{
-					Name: jsii.String(props.Name),
-				},
-				Spec: &certmanagerio.CertificateSpec{
-					DnsNames:   infrahelpers.PtrSlice(infrahelpers.MapKeys(tlsHosts)...),
-					SecretName: jsii.String(fmt.Sprintf("%s-tls", props.Name)),
-					IssuerRef: &certmanagerio.CertificateSpecIssuerRef{
-						Name: jsii.String(infrahelpers.UseOrDefault(props.CertIssuer.Name, globals.DefaultCertIssuerName)),
-						Kind: jsii.String(infrahelpers.UseOrDefault(props.CertIssuer.Kind, globals.DefaultCertIssuerKind)),
-					},
-				},
+			NewCertificate(scope, jsii.String(*id+"-cert"), &CertificateProps{
+				Name:       props.Name,
+				Hosts:      infrahelpers.MapKeys(tlsHosts),
+				CertIssuer: props.CertIssuer,
 			})
 		}
 		for _, host := range infrahelpers.MapKeys(tlsHosts) {
