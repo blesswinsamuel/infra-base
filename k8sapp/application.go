@@ -47,6 +47,7 @@ type ApplicationProps struct {
 	PodAnnotations                  map[string]string
 	PodSecurityContext              *corev1.PodSecurityContext
 	ImagePullSecrets                string
+	InitContainers                  []ApplicationContainer
 	Containers                      []ApplicationContainer
 	ConfigMaps                      []ApplicationConfigMap
 	ExternalSecrets                 []ApplicationExternalSecret
@@ -159,6 +160,9 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 	for _, container := range props.Containers {
 		allContainerNames = append(allContainerNames, container.Name)
 	}
+	for _, container := range props.InitContainers {
+		allContainerNames = append(allContainerNames, container.Name)
+	}
 	addVolumeMount := func(containerNames []string, mountName string, mountPath string, subPath string, readOnly bool) {
 		if mountPath != "" {
 			if containerNames == nil {
@@ -260,9 +264,41 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		}))
 	}
 	containers := []corev1.Container{}
+	initContainers := []corev1.Container{}
 	servicePorts := []corev1.ServicePort{}
 	ingressHosts := []IngressHost{}
 	serviceAnnotations := map[string]string{}
+	for _, container := range props.InitContainers {
+		var containerVolumeMounts []corev1.VolumeMount
+		containerVolumeMounts = append(containerVolumeMounts, containerVolumeMountsMap[container.Name]...)
+		containerVolumeMounts = append(containerVolumeMounts, container.ExtraVolumeMounts...)
+		env := []corev1.EnvVar{}
+		env = append(env, container.ExtraEnvs...)
+		for k, v := range container.Env {
+			env = append(env, corev1.EnvVar{Name: k, Value: v})
+		}
+		envFrom := []corev1.EnvFromSource{}
+		for _, v := range container.EnvFromSecretRef {
+			envFrom = append(envFrom, corev1.EnvFromSource{
+				SecretRef: &corev1.SecretEnvSource{LocalObjectReference: corev1.LocalObjectReference{Name: v}},
+			})
+		}
+		initContainers = append(initContainers, corev1.Container{
+			Name:    container.Name,
+			Image:   container.Image.String(),
+			Command: container.Command,
+			// ImagePullPolicy: jsii.String("IfNotPresent"),
+			Env:                      env,
+			EnvFrom:                  envFrom,
+			Args:                     container.Args,
+			VolumeMounts:             containerVolumeMounts,
+			LivenessProbe:            container.LivenessProbe,
+			ReadinessProbe:           container.ReadinessProbe,
+			StartupProbe:             container.StartupProbe,
+			TerminationMessagePolicy: "FallbackToLogsOnError",
+			SecurityContext:          container.SecurityContext,
+		})
+	}
 	for _, container := range props.Containers {
 		var containerVolumeMounts []corev1.VolumeMount
 		containerVolumeMounts = append(containerVolumeMounts, containerVolumeMountsMap[container.Name]...)
@@ -279,9 +315,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		envFrom := []corev1.EnvFromSource{}
 		for _, v := range container.EnvFromSecretRef {
 			envFrom = append(envFrom, corev1.EnvFromSource{
-				SecretRef: &corev1.SecretEnvSource{
-					LocalObjectReference: corev1.LocalObjectReference{Name: v},
-				},
+				SecretRef: &corev1.SecretEnvSource{LocalObjectReference: corev1.LocalObjectReference{Name: v}},
 			})
 			watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, v)
 		}
@@ -356,10 +390,11 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			ImagePullSecrets: infrahelpers.If(props.ImagePullSecrets != "", []corev1.LocalObjectReference{
 				{Name: props.ImagePullSecrets},
 			}, nil),
-			Containers:  containers,
-			Volumes:     volumes,
-			HostNetwork: props.HostNetwork,
-			DNSPolicy:   corev1.DNSPolicy(props.DnsPolicy),
+			Containers:     containers,
+			InitContainers: initContainers,
+			Volumes:        volumes,
+			HostNetwork:    props.HostNetwork,
+			DNSPolicy:      corev1.DNSPolicy(props.DnsPolicy),
 		},
 	}
 	switch props.Kind {

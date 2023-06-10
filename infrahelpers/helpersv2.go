@@ -12,6 +12,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -48,6 +49,9 @@ func init() {
 		panic(err)
 	}
 	if err := traefikv1alpha1.AddToScheme(Scheme); err != nil {
+		panic(err)
+	}
+	if err := rbacv1.AddToScheme(Scheme); err != nil {
 		panic(err)
 	}
 
