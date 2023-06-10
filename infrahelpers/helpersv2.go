@@ -10,6 +10,7 @@ import (
 	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -22,6 +23,9 @@ var jsonSerializer *k8sjson.Serializer
 
 func init() {
 	if err := corev1.AddToScheme(Scheme); err != nil {
+		panic(err)
+	}
+	if err := networkingv1.AddToScheme(Scheme); err != nil {
 		panic(err)
 	}
 	if err := externalsecretsv1beta1.AddToScheme(Scheme); err != nil {

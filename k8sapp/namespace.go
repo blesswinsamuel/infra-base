@@ -3,8 +3,9 @@ package k8sapp
 import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func NewNamespaceChart(scope constructs.Construct, namespaceName string) cdk8s.Chart {
@@ -18,11 +19,11 @@ func NewNamespaceChart(scope constructs.Construct, namespaceName string) cdk8s.C
 }
 
 func NewNamespace(scope constructs.Construct, id *string, namespaceName string) constructs.Construct {
-	return k8s.NewKubeNamespace(scope, id, &k8s.KubeNamespaceProps{
-		Metadata: &k8s.ObjectMeta{
-			Name: jsii.String(namespaceName),
-			Labels: &map[string]*string{
-				"name": jsii.String(namespaceName),
+	return NewK8sObject(scope, id, &corev1.Namespace{
+		ObjectMeta: v1.ObjectMeta{
+			Name: namespaceName,
+			Labels: map[string]string{
+				"name": namespaceName,
 			},
 		},
 	})

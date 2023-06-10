@@ -8,10 +8,10 @@ import (
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"github.com/muesli/reflow/dedent"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -151,11 +151,11 @@ func NewAlertmanager(scope constructs.Construct, props AlertmanagerProps) cdk8s.
 		}},
 	})
 
-	k8s.NewKubeServiceAccount(scope, jsii.String("alertmanager-sa"), &k8s.KubeServiceAccountProps{
-		Metadata: &k8s.ObjectMeta{
-			Name: jsii.String("alertmanager"),
+	k8sapp.NewK8sObject(scope, jsii.String("alertmanager-sa"), &corev1.ServiceAccount{
+		ObjectMeta: v1.ObjectMeta{
+			Name: "alertmanager",
 		},
-		AutomountServiceAccountToken: jsii.Bool(true),
+		AutomountServiceAccountToken: infrahelpers.Ptr(true),
 	})
 
 	return chart
