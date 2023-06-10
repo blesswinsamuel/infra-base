@@ -6,12 +6,12 @@ import (
 )
 
 type SystemProps struct {
-	Reloader            ReloaderProps            `yaml:"reloader"`
-	KubernetesDashboard KubernetesDashboardProps `yaml:"kubernetesDashboard"`
-	Kopia               KopiaProps               `yaml:"kopia"`
-	BackupJob           BackupJobProps           `yaml:"backupJob"`
+	Reloader            ReloaderProps            `json:"reloader"`
+	KubernetesDashboard KubernetesDashboardProps `json:"kubernetesDashboard"`
+	Kopia               KopiaProps               `json:"kopia"`
+	BackupJob           BackupJobProps           `json:"backupJob"`
 
-	HelmOps map[string]interface{} `yaml:"helmOps"` // not implemented
+	HelmOps map[string]interface{} `json:"helmOps"` // not implemented
 }
 
 func NewSystem(scope constructs.Construct, props SystemProps) constructs.Construct {

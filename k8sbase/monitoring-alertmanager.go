@@ -19,20 +19,20 @@ import (
 var alertmanagerTemplates string
 
 type AlertmanagerProps struct {
-	Enabled bool             `yaml:"enabled"`
-	Image   k8sapp.ImageInfo `yaml:"image"`
+	Enabled bool             `json:"enabled"`
+	Image   k8sapp.ImageInfo `json:"image"`
 	Ingress struct {
-		Enabled   bool   `yaml:"enabled"`
-		SubDomain string `yaml:"subDomain"`
-	} `yaml:"ingress"`
+		Enabled   bool   `json:"enabled"`
+		SubDomain string `json:"subDomain"`
+	} `json:"ingress"`
 	Config struct {
 		Slack struct {
-			Channel string `yaml:"channel"`
-		} `yaml:"slack"`
+			Channel string `json:"channel"`
+		} `json:"slack"`
 		Telegram struct {
-			ParseMode string `yaml:"parseMode"`
-		} `yaml:"telegram"`
-	} `yaml:"config"`
+			ParseMode string `json:"parseMode"`
+		} `json:"telegram"`
+	} `json:"config"`
 }
 
 // https://github.com/prometheus-community/helm-charts/blob/main/charts/alertmanager

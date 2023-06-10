@@ -18,8 +18,8 @@ import (
 )
 
 type ImageInfo struct {
-	Repository string `yaml:"repository"`
-	Tag        string `yaml:"tag"`
+	Repository string `json:"repository"`
+	Tag        string `json:"tag"`
 }
 
 func (i ImageInfo) String() string {

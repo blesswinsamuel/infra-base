@@ -8,8 +8,8 @@ import (
 )
 
 type ReloaderProps struct {
-	Enabled       bool             `yaml:"enabled"`
-	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
+	Enabled       bool             `json:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
 // https://github.com/stakater/Reloader/blob/master/deployments/kubernetes/chart/reloader

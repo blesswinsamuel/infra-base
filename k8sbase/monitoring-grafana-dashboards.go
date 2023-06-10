@@ -21,23 +21,23 @@ import (
 )
 
 type GrafanaDashboardsProps struct {
-	Enabled    bool                                    `yaml:"enabled"`
-	Dashboards map[string]GrafanaDashboardsConfigProps `yaml:"dashboards"`
+	Enabled    bool                                    `json:"enabled"`
+	Dashboards map[string]GrafanaDashboardsConfigProps `json:"dashboards"`
 }
 
 type GrafanaDashboardsConfigProps struct {
-	Type     string              `yaml:"type"` // local or remote
-	GlobPath *string             `yaml:"globPath"`
-	URL      []DashboardURLProps `yaml:"urls"`
-	Folder   string              `yaml:"folder"`
+	Type     string              `json:"type"` // local or remote
+	GlobPath *string             `json:"globPath"`
+	URL      []DashboardURLProps `json:"urls"`
+	Folder   string              `json:"folder"`
 }
 
 type DashboardURLProps struct {
-	URL          string            `yaml:"url"`
-	GnetID       *int              `yaml:"gnet_id"`
-	ID           string            `yaml:"id"`
-	Title        *string           `yaml:"title"`
-	Replacements map[string]string `yaml:"replacements"`
+	URL          string            `json:"url"`
+	GnetID       *int              `json:"gnet_id"`
+	ID           string            `json:"id"`
+	Title        *string           `json:"title"`
+	Replacements map[string]string `json:"replacements"`
 }
 
 func hash(s string) string {

@@ -8,13 +8,13 @@ import (
 )
 
 type VmalertProps struct {
-	Enabled   bool             `yaml:"enabled"`
-	ImageInfo k8sapp.ImageInfo `yaml:"image"`
-	Resources *Resources       `yaml:"resources"`
+	Enabled   bool                        `json:"enabled"`
+	ImageInfo k8sapp.ImageInfo            `json:"image"`
+	Resources corev1.ResourceRequirements `json:"resources"`
 	Ingress   struct {
-		Enabled   bool   `yaml:"enabled"`
-		SubDomain string `yaml:"subDomain"`
-	} `yaml:"ingress"`
+		Enabled   bool   `json:"enabled"`
+		SubDomain string `json:"subDomain"`
+	} `json:"ingress"`
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-agent

@@ -12,7 +12,7 @@ import (
 )
 
 type ClusterSecretStoreProps struct {
-	DopplerServiceToken string `yaml:"dopplerServiceToken"`
+	DopplerServiceToken string `json:"dopplerServiceToken"`
 }
 
 // https://external-secrets.io/v0.5.8/provider-kubernetes/

@@ -9,14 +9,14 @@ import (
 )
 
 type LokiProps struct {
-	Enabled       bool             `yaml:"enabled"`
-	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
-	Storage       string           `yaml:"storage"`
+	Enabled       bool             `json:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
+	Storage       string           `json:"storage"`
 	S3            struct {
-		Endpoint        string `yaml:"endpoint"`
-		SecretAccessKey string `yaml:"secret_access_key"`
-		AccessKeyID     string `yaml:"access_key_id"`
-	} `yaml:"s3"`
+		Endpoint        string `json:"endpoint"`
+		SecretAccessKey string `json:"secret_access_key"`
+		AccessKeyID     string `json:"access_key_id"`
+	} `json:"s3"`
 }
 
 // https://github.com/grafana/loki/tree/main/production/helm/loki

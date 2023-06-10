@@ -12,42 +12,42 @@ import (
 )
 
 type AutheliaProps struct {
-	Enabled   bool             `yaml:"enabled"`
-	ChartInfo k8sapp.ChartInfo `yaml:"helm"`
+	Enabled   bool             `json:"enabled"`
+	ChartInfo k8sapp.ChartInfo `json:"helm"`
 	Ingress   struct {
-		SubDomain string `yaml:"subDomain"`
-	} `yaml:"ingress"`
-	AccessControl map[string]interface{} `yaml:"accessControl"`
+		SubDomain string `json:"subDomain"`
+	} `json:"ingress"`
+	AccessControl map[string]interface{} `json:"accessControl"`
 	OIDC          struct {
-		Enabled                bool                     `yaml:"enabled"`
-		IssuerCertificateChain string                   `yaml:"issuer_certificate_chain"`
-		Clients                []map[string]interface{} `yaml:"clients"`
-	} `yaml:"oidc"`
-	AuthMode string `yaml:"authMode"` // ldap or file
+		Enabled                bool                     `json:"enabled"`
+		IssuerCertificateChain string                   `json:"issuer_certificate_chain"`
+		Clients                []map[string]interface{} `json:"clients"`
+	} `json:"oidc"`
+	AuthMode string `json:"authMode"` // ldap or file
 	LDAP     struct {
-		BaseDN string `yaml:"baseDN"`
-	} `yaml:"ldap"`
+		BaseDN string `json:"baseDN"`
+	} `json:"ldap"`
 	SMTP struct {
-		Host        string  `yaml:"host"`
-		Port        int     `yaml:"port"`
-		Username    string  `yaml:"username"`
-		EmailDomain string  `yaml:"emailDomain"`
-		Sender      *string `yaml:"sender"`
-		Subject     *string `yaml:"subject"`
-	} `yaml:"smtp"`
+		Host        string  `json:"host"`
+		Port        int     `json:"port"`
+		Username    string  `json:"username"`
+		EmailDomain string  `json:"emailDomain"`
+		Sender      *string `json:"sender"`
+		Subject     *string `json:"subject"`
+	} `json:"smtp"`
 	Database struct {
 		Postgres struct {
-			Host     *string `yaml:"host"`
-			Port     *int    `yaml:"port"`
-			Database *string `yaml:"database"`
-			Username *string `yaml:"username"`
-			Schema   *string `yaml:"schema"`
-		} `yaml:"postgres"`
+			Host     *string `json:"host"`
+			Port     *int    `json:"port"`
+			Database *string `json:"database"`
+			Username *string `json:"username"`
+			Schema   *string `json:"schema"`
+		} `json:"postgres"`
 		Redis struct {
-			Host *string `yaml:"host"`
-		} `yaml:"redis"`
-	} `yaml:"database"`
-	RedirectionSubDomain string `yaml:"redirectionSubDomain"`
+			Host *string `json:"host"`
+		} `json:"redis"`
+	} `json:"database"`
+	RedirectionSubDomain string `json:"redirectionSubDomain"`
 }
 
 // https://github.com/authelia/chartrepo/tree/master/charts/authelia

@@ -5,6 +5,8 @@ github.com/BurntSushi/toml v1.2.1 h1:9F2/+DoOYIOksmaJFPw1tGFy1eDnIJXg+UHjuD8lTak
 github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0rYXWg0=
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
+github.com/Velocidex/yaml v2.1.0+incompatible h1:XtpJSzJ95+UbheJ5ZwHZOUH8sHhYpypGaL3zmaL2klc=
+github.com/Velocidex/yaml v2.1.0+incompatible/go.mod h1:CzH+PG+PA8o7RiH4/ZkHx5rHDWFZlzZVc3R6pe/gJMg=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/aws/constructs-go/constructs/v10 v10.2.47 h1:qYtu4+KW4xejxaw1u0z4s7z2nSH6FCB+5bPfjEtxhMQ=
 github.com/aws/constructs-go/constructs/v10 v10.2.47/go.mod h1:qX/p30/tAfbvCxNCcqYD5jyPzrJdx91hs365qtPwLwk=

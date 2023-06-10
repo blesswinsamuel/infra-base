@@ -8,10 +8,10 @@ import (
 )
 
 type KopiaProps struct {
-	Enabled   bool             `yaml:"enabled"`
-	ImageInfo k8sapp.ImageInfo `yaml:"image"`
-	Hostname  string           `yaml:"hostname"`
-	User      string           `yaml:"user"`
+	Enabled   bool             `json:"enabled"`
+	ImageInfo k8sapp.ImageInfo `json:"image"`
+	Hostname  string           `json:"hostname"`
+	User      string           `json:"user"`
 }
 
 // https://kopia.io/docs/installation/#docker-images

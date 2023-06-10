@@ -6,10 +6,10 @@ import (
 )
 
 type DatabaseProps struct {
-	Enabled  bool          `yaml:"enabled"`
-	MariaDB  MariaDBProps  `yaml:"mariadb"`
-	Postgres PostgresProps `yaml:"postgres"`
-	Redis    RedisProps    `yaml:"redis"`
+	Enabled  bool          `json:"enabled"`
+	MariaDB  MariaDBProps  `json:"mariadb"`
+	Postgres PostgresProps `json:"postgres"`
+	Redis    RedisProps    `json:"redis"`
 }
 
 func NewDatabase(scope constructs.Construct, props DatabaseProps) constructs.Construct {

@@ -8,10 +8,10 @@ import (
 )
 
 type MariaDBProps struct {
-	Enabled       bool             `yaml:"enabled"`
-	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
-	Database      string           `yaml:"database"`
-	Username      string           `yaml:"username"`
+	Enabled       bool             `json:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
+	Database      string           `json:"database"`
+	Username      string           `json:"username"`
 }
 
 func NewMariaDB(scope constructs.Construct, props MariaDBProps) cdk8s.Chart {

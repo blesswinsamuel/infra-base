@@ -6,9 +6,9 @@ import (
 )
 
 type SecretsProps struct {
-	ExternalSecrets    ExternalSecretsProps    `yaml:"externalSecrets"`
-	DockerCreds        SecretsDockerCredsProps `yaml:"dockerCreds"`
-	ClusterSecretStore ClusterSecretStoreProps `yaml:"clusterSecretStore"`
+	ExternalSecrets    ExternalSecretsProps    `json:"externalSecrets"`
+	DockerCreds        SecretsDockerCredsProps `json:"dockerCreds"`
+	ClusterSecretStore ClusterSecretStoreProps `json:"clusterSecretStore"`
 }
 
 func NewSecrets(scope constructs.Construct, props SecretsProps) constructs.Construct {

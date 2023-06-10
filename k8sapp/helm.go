@@ -13,9 +13,9 @@ import (
 )
 
 type ChartInfo struct {
-	Repo    *string `yaml:"repo"`
-	Chart   *string `yaml:"chart"`
-	Version *string `yaml:"version"`
+	Repo    *string `json:"repo"`
+	Chart   *string `json:"chart"`
+	Version *string `json:"version"`
 }
 
 type HelmProps struct {

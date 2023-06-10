@@ -8,8 +8,8 @@ import (
 )
 
 type KubeStateMetricsProps struct {
-	Enabled       bool             `yaml:"enabled"`
-	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
+	Enabled       bool             `json:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
 func NewKubeStateMetrics(scope constructs.Construct, props KubeStateMetricsProps) cdk8s.Chart {

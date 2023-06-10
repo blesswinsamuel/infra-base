@@ -7,10 +7,10 @@ import (
 )
 
 type GlobalProps struct {
-	Domain                         string `yaml:"domain"`
-	CertIssuer                     string `yaml:"clusterCertIssuerName"`
-	ClusterExternalSecretStoreName string `yaml:"clusterExternalSecretStoreName"`
-	InternetAuthType               string `yaml:"internetAuthType"`
+	Domain                         string `json:"domain"`
+	CertIssuer                     string `json:"clusterCertIssuerName"`
+	ClusterExternalSecretStoreName string `json:"clusterExternalSecretStoreName"`
+	InternetAuthType               string `json:"internetAuthType"`
 }
 
 func GetGlobal(scope constructs.Construct) GlobalProps {

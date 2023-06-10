@@ -19,21 +19,21 @@ import (
 )
 
 type AlertingRulesProps struct {
-	Rules map[string]AlertingRuleConfigProps `yaml:"rules"`
+	Rules map[string]AlertingRuleConfigProps `json:"rules"`
 }
 
 type AlertingRuleConfigProps struct {
-	Type string `yaml:"type"` // local or remote
-	// URLs *string              `yaml:"globPath"`
-	URLs *[]RuleURLProps `yaml:"urls"`
+	Type string `json:"type"` // local or remote
+	// URLs *string              `json:"globPath"`
+	URLs *[]RuleURLProps `json:"urls"`
 }
 
 type RuleURLProps struct {
-	ID           string            `yaml:"id"`
-	URL          string            `yaml:"url"`
-	SkipGroups   []string          `yaml:"skipGroups"`
-	SkipAlerts   []string          `yaml:"skipAlerts"`
-	Replacements map[string]string `yaml:"replacements"`
+	ID           string            `json:"id"`
+	URL          string            `json:"url"`
+	SkipGroups   []string          `json:"skipGroups"`
+	SkipAlerts   []string          `json:"skipAlerts"`
+	Replacements map[string]string `json:"replacements"`
 }
 
 func GetCachedAlertingRule(url string, cacheDir string) []byte {

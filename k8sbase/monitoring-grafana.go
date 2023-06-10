@@ -9,18 +9,18 @@ import (
 )
 
 type GrafanaProps struct {
-	Enabled              bool             `yaml:"enabled"`
-	HelmChartInfo        k8sapp.ChartInfo `yaml:"helm"`
-	AnonymousAuthEnabled bool             `yaml:"anonymousAuthEnabled"`
-	AuthProxyEnabled     bool             `yaml:"authProxyEnabled"`
-	Namespaced           bool             `yaml:"namespaced"`
-	DatasourceLabel      *string          `yaml:"datasourceLabel"`
-	DatasourceLabelValue *string          `yaml:"datasourceLabelValue"`
-	DashboardLabel       *string          `yaml:"dashboardLabel"`
-	DashboardLabelValue  *string          `yaml:"dashboardLabelValue"`
+	Enabled              bool             `json:"enabled"`
+	HelmChartInfo        k8sapp.ChartInfo `json:"helm"`
+	AnonymousAuthEnabled bool             `json:"anonymousAuthEnabled"`
+	AuthProxyEnabled     bool             `json:"authProxyEnabled"`
+	Namespaced           bool             `json:"namespaced"`
+	DatasourceLabel      *string          `json:"datasourceLabel"`
+	DatasourceLabelValue *string          `json:"datasourceLabelValue"`
+	DashboardLabel       *string          `json:"dashboardLabel"`
+	DashboardLabelValue  *string          `json:"dashboardLabelValue"`
 	Ingress              struct {
-		SubDomain string `yaml:"subDomain"`
-	} `yaml:"ingress"`
+		SubDomain string `json:"subDomain"`
+	} `json:"ingress"`
 }
 
 // https://github.com/grafana/helm-charts/tree/main/charts/grafana

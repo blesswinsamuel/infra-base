@@ -14,15 +14,15 @@ import (
 )
 
 type VectorProps struct {
-	Enabled       bool             `yaml:"enabled"`
-	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
+	Enabled       bool             `json:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 	SyslogServer  struct {
-		Enabled bool `yaml:"enabled"`
-	} `yaml:"syslogServer"`
+		Enabled bool `json:"enabled"`
+	} `json:"syslogServer"`
 	Ingress struct {
-		Enabled   bool   `yaml:"enabled"`
-		SubDomain string `yaml:"subDomain"`
-	} `yaml:"ingress"`
+		Enabled   bool   `json:"enabled"`
+		SubDomain string `json:"subDomain"`
+	} `json:"ingress"`
 }
 
 // https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector

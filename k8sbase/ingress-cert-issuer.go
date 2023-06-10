@@ -12,9 +12,9 @@ import (
 )
 
 type CertIssuerProps struct {
-	Enabled bool   `yaml:"enabled"`
-	Email   string `yaml:"email"`
-	Solver  string `yaml:"solver"` // dns or http
+	Enabled bool   `json:"enabled"`
+	Email   string `json:"email"`
+	Solver  string `json:"solver"` // dns or http
 }
 
 func letsEncryptIssuer(chart constructs.Construct, props CertIssuerProps, name string, server string) {
