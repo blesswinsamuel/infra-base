@@ -26,10 +26,10 @@ type GrafanaDashboardsProps struct {
 }
 
 type GrafanaDashboardsConfigProps struct {
-	Type     string               `yaml:"type"` // local or remote
-	GlobPath *string              `yaml:"globPath"`
-	URL      *[]DashboardURLProps `yaml:"urls"`
-	Folder   string               `yaml:"folder"`
+	Type     string              `yaml:"type"` // local or remote
+	GlobPath *string             `yaml:"globPath"`
+	URL      []DashboardURLProps `yaml:"urls"`
+	Folder   string              `yaml:"folder"`
 }
 
 type DashboardURLProps struct {
@@ -128,75 +128,73 @@ func NewGrafanaDashboards(scope constructs.Construct, props GrafanaDashboardsPro
 				})
 			}
 		}
-		if dashboardConfig.URL != nil {
-			for _, url := range *dashboardConfig.URL {
-				dashboardContents := GetCachedDashboard(url.URL, cacheDir)
-				dashboard := map[string]interface{}{}
-				if err := json.Unmarshal(dashboardContents, &dashboard); err != nil {
-					panic(err)
-				}
-				if url.GnetID != nil {
-					dashboard["gnet_id"] = *url.GnetID
-				}
-				if url.Title != nil {
-					dashboard["title"] = *url.Title
-				}
-				dashboard["uid"] = url.ID
-				if dashboard["__inputs"] != nil {
-					inputs := dashboard["__inputs"].([]any)
-					for _, input := range inputs {
-						input := input.(map[string]any)
-						inputName := input["name"].(string)
-						templating := dashboard["templating"].(map[string]any)
-						templatingList := templating["list"].([]any)
-						isAlreadyTemplated := false
-						for _, templatingItem := range templatingList {
-							templatingItem := templatingItem.(map[string]any)
-							if templatingItem["name"] == inputName {
-								isAlreadyTemplated = true
-							}
-						}
-						if !isAlreadyTemplated {
-							templatingList = append(templatingList, map[string]any{
-								"hide":    0,
-								"label":   "datasource",
-								"name":    inputName,
-								"options": []any{},
-								"query":   "prometheus",
-								"refresh": 1,
-								"regex":   "",
-								"type":    "datasource",
-							})
-						}
-						templating["list"] = templatingList
-					}
-				}
-
-				buf := new(bytes.Buffer)
-				enc := json.NewEncoder(buf)
-				enc.SetIndent("", "  ")
-				if err := enc.Encode(dashboard); err != nil {
-					panic(err)
-				}
-				outStr := buf.String()
-				for k, v := range url.Replacements {
-					outStr = strings.ReplaceAll(outStr, k, v)
-				}
-
-				k8sapp.NewConfigMap(chart, jsii.String(url.ID), &k8sapp.ConfigmapProps{
-					Name: "grafana-dashboard-" + url.ID + "-json",
-					// Name: jsii.String("grafana-dashboards-" + id + "-" + baseName),
-					Labels: map[string]string{
-						"grafana_dashboard": "1",
-					},
-					Annotations: map[string]string{
-						"grafana_folder": dashboardConfig.Folder,
-					},
-					Data: map[string]string{
-						url.ID + ".json": outStr,
-					},
-				})
+		for _, url := range dashboardConfig.URL {
+			dashboardContents := GetCachedDashboard(url.URL, cacheDir)
+			dashboard := map[string]interface{}{}
+			if err := json.Unmarshal(dashboardContents, &dashboard); err != nil {
+				panic(err)
 			}
+			if url.GnetID != nil {
+				dashboard["gnet_id"] = *url.GnetID
+			}
+			if url.Title != nil {
+				dashboard["title"] = *url.Title
+			}
+			dashboard["uid"] = url.ID
+			if dashboard["__inputs"] != nil {
+				inputs := dashboard["__inputs"].([]any)
+				for _, input := range inputs {
+					input := input.(map[string]any)
+					inputName := input["name"].(string)
+					templating := dashboard["templating"].(map[string]any)
+					templatingList := templating["list"].([]any)
+					isAlreadyTemplated := false
+					for _, templatingItem := range templatingList {
+						templatingItem := templatingItem.(map[string]any)
+						if templatingItem["name"] == inputName {
+							isAlreadyTemplated = true
+						}
+					}
+					if !isAlreadyTemplated {
+						templatingList = append(templatingList, map[string]any{
+							"hide":    0,
+							"label":   "datasource",
+							"name":    inputName,
+							"options": []any{},
+							"query":   "prometheus",
+							"refresh": 1,
+							"regex":   "",
+							"type":    "datasource",
+						})
+					}
+					templating["list"] = templatingList
+				}
+			}
+
+			buf := new(bytes.Buffer)
+			enc := json.NewEncoder(buf)
+			enc.SetIndent("", "  ")
+			if err := enc.Encode(dashboard); err != nil {
+				panic(err)
+			}
+			outStr := buf.String()
+			for k, v := range url.Replacements {
+				outStr = strings.ReplaceAll(outStr, k, v)
+			}
+
+			k8sapp.NewConfigMap(chart, jsii.String(url.ID), &k8sapp.ConfigmapProps{
+				Name: "grafana-dashboard-" + url.ID + "-json",
+				// Name: jsii.String("grafana-dashboards-" + id + "-" + baseName),
+				Labels: map[string]string{
+					"grafana_dashboard": "1",
+				},
+				Annotations: map[string]string{
+					"grafana_folder": dashboardConfig.Folder,
+				},
+				Data: map[string]string{
+					url.ID + ".json": outStr,
+				},
+			})
 		}
 	}
 
