@@ -3,7 +3,6 @@ module github.com/blesswinsamuel/infra-base
 go 1.20
 
 require (
-	github.com/Velocidex/yaml v2.1.0+incompatible
 	github.com/aws/constructs-go/constructs/v10 v10.2.47
 	github.com/aws/jsii-runtime-go v1.83.0
 	github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2 v2.7.77
