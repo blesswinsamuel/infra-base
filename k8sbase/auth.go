@@ -6,10 +6,10 @@ import (
 )
 
 type AuthProps struct {
-	Namespace          string                  `yaml:"namespace"`
-	TraefikForwardAuth TraefikForwardAuthProps `yaml:"traefikForwardAuth"`
-	Authelia           AutheliaProps           `yaml:"authelia"`
-	LLDAP              LLDAPProps              `yaml:"lldap"`
+	Namespace          string                  `json:"namespace"`
+	TraefikForwardAuth TraefikForwardAuthProps `json:"traefikForwardAuth"`
+	Authelia           AutheliaProps           `json:"authelia"`
+	LLDAP              LLDAPProps              `json:"lldap"`
 }
 
 func NewAuth(scope constructs.Construct, props AuthProps) constructs.Construct {

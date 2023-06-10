@@ -6,9 +6,9 @@ import (
 )
 
 type IngressProps struct {
-	CertManager CertManagerProps `yaml:"certManager"`
-	CertIssuer  CertIssuerProps  `yaml:"certIssuer"`
-	Traefik     TraefikProps     `yaml:"traefik"`
+	CertManager CertManagerProps `json:"certManager"`
+	CertIssuer  CertIssuerProps  `json:"certIssuer"`
+	Traefik     TraefikProps     `json:"traefik"`
 }
 
 func NewIngress(scope constructs.Construct, props IngressProps) constructs.Construct {

@@ -14,28 +14,28 @@ import (
 )
 
 type NameNamespace struct {
-	Name      string `yaml:"name"`
-	Namespace string `yaml:"namespace"`
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
 }
 
 type IngressHostPath struct {
-	Path            string `yaml:"path"`
-	ServiceName     string `yaml:"serviceName"`
-	ServicePortName string `yaml:"servicePortName"`
+	Path            string `json:"path"`
+	ServiceName     string `json:"serviceName"`
+	ServicePortName string `json:"servicePortName"`
 }
 
 type IngressHost struct {
-	Host  string            `yaml:"host"`
-	Paths []IngressHostPath `yaml:"paths"`
-	Tls   bool              `yaml:"tls"`
+	Host  string            `json:"host"`
+	Paths []IngressHostPath `json:"paths"`
+	Tls   bool              `json:"tls"`
 }
 
 type IngressProps struct {
-	Name                   string             `yaml:"name"`
-	TraefikMiddlewareNames []NameNamespace    `yaml:"traefikMiddlewares"`
-	Hosts                  []IngressHost      `yaml:"hosts"`
-	IngressType            string             `yaml:"ingressType"`
-	CertIssuer             CertIssuerRefProps `yaml:"certIssuer"`
+	Name                   string             `json:"name"`
+	TraefikMiddlewareNames []NameNamespace    `json:"traefikMiddlewares"`
+	Hosts                  []IngressHost      `json:"hosts"`
+	IngressType            string             `json:"ingressType"`
+	CertIssuer             CertIssuerRefProps `json:"certIssuer"`
 }
 
 type CertIssuerRefProps struct {

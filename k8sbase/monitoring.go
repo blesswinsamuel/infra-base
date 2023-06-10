@@ -6,20 +6,20 @@ import (
 )
 
 type MonitoringProps struct {
-	Enabled                bool                        `yaml:"enabled"`
-	Grafana                GrafanaProps                `yaml:"grafana"`
-	GrafanaDashboards      GrafanaDashboardsProps      `yaml:"grafanaDashboards"`
-	AlertingRules          AlertingRulesProps          `yaml:"alertingRules"`
-	KubeStateMetrics       KubeStateMetricsProps       `yaml:"kubeStateMetrics"`
-	NodeExporter           NodeExporterProps           `yaml:"nodeExporter"`
-	Vector                 VectorProps                 `yaml:"vector"`
-	Victoriametrics        VictoriametricsProps        `yaml:"victoriametrics"`
-	Alertmanager           AlertmanagerProps           `yaml:"alertmanager"`
-	Vmagent                VmagentProps                `yaml:"vmagent"`
-	Vmalert                VmalertProps                `yaml:"vmalert"`
-	Loki                   LokiProps                   `yaml:"loki"`
-	Crowdsec               CrowdsecProps               `yaml:"crowdsec"`
-	CrowdsecTraefikBouncer CrowdsecTraefikBouncerProps `yaml:"crowdsec-traefik-bouncer"`
+	Enabled                bool                        `json:"enabled"`
+	Grafana                GrafanaProps                `json:"grafana"`
+	GrafanaDashboards      GrafanaDashboardsProps      `json:"grafanaDashboards"`
+	AlertingRules          AlertingRulesProps          `json:"alertingRules"`
+	KubeStateMetrics       KubeStateMetricsProps       `json:"kubeStateMetrics"`
+	NodeExporter           NodeExporterProps           `json:"nodeExporter"`
+	Vector                 VectorProps                 `json:"vector"`
+	Victoriametrics        VictoriametricsProps        `json:"victoriametrics"`
+	Alertmanager           AlertmanagerProps           `json:"alertmanager"`
+	Vmagent                VmagentProps                `json:"vmagent"`
+	Vmalert                VmalertProps                `json:"vmalert"`
+	Loki                   LokiProps                   `json:"loki"`
+	Crowdsec               CrowdsecProps               `json:"crowdsec"`
+	CrowdsecTraefikBouncer CrowdsecTraefikBouncerProps `json:"crowdsec-traefik-bouncer"`
 }
 
 func NewMonitoring(scope constructs.Construct, props MonitoringProps) constructs.Construct {

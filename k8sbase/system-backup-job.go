@@ -16,30 +16,29 @@ import (
 )
 
 type BackupJobProps struct {
-	Enabled bool `yaml:"enabled"`
+	Enabled bool `json:"enabled"`
 	Kopia   struct {
-		Image k8sapp.ImageInfo `yaml:"image"`
-	} `yaml:"kopia"`
+		Image k8sapp.ImageInfo `json:"image"`
+	} `json:"kopia"`
 	Postgres struct {
-		Enabled  bool             `yaml:"enabled"`
-		Image    k8sapp.ImageInfo `yaml:"image"`
-		Schedule string           `yaml:"schedule"`
-		Host     string           `yaml:"host"`
-		// LocalBackupVolume corev1.Volume    `yaml:"localBackupVolume"`
-		LocalBackupVolume corev1.Volume `yaml:"localBackupVolume"`
-		Databases         []string      `yaml:"databases"`
-	} `yaml:"postgres"`
+		Enabled           bool             `json:"enabled"`
+		Image             k8sapp.ImageInfo `json:"image"`
+		Schedule          string           `json:"schedule"`
+		Host              string           `json:"host"`
+		LocalBackupVolume corev1.Volume    `json:"localBackupVolume"`
+		Databases         []string         `json:"databases"`
+	} `json:"postgres"`
 	Filesystem struct {
-		Enabled bool `yaml:"enabled"`
+		Enabled bool `json:"enabled"`
 		Jobs    []struct {
-			Name         string        `yaml:"name"`
-			Schedule     string        `yaml:"schedule"`
-			SourceVolume corev1.Volume `yaml:"sourceVolume"`
-			Paths        []string      `yaml:"paths"`
+			Name         string        `json:"name"`
+			Schedule     string        `json:"schedule"`
+			SourceVolume corev1.Volume `json:"sourceVolume"`
+			Paths        []string      `json:"paths"`
 			Policy       struct {
-			} `yaml:"policy"`
-		} `yaml:"jobs"`
-	} `yaml:"filesystem"`
+			} `json:"policy"`
+		} `json:"jobs"`
+	} `json:"filesystem"`
 }
 
 func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.Construct {

@@ -1,28 +1,27 @@
 package k8sbase
 
 import (
-	"bytes"
 	_ "embed"
 	"log"
 	"os"
 	"time"
 
+	"github.com/Velocidex/yaml"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"gopkg.in/yaml.v3"
 )
 
 //go:embed values.yaml
 var BaseValues []byte
 
 type BaseProps struct {
-	Global     GlobalProps     `yaml:"global"`
-	Ingress    IngressProps    `yaml:"ingress"`
-	System     SystemProps     `yaml:"system"`
-	Secrets    SecretsProps    `yaml:"secrets"`
-	Auth       AuthProps       `yaml:"auth"`
-	Monitoring MonitoringProps `yaml:"monitoring"`
-	Databases  DatabaseProps   `yaml:"databases"`
+	Global     GlobalProps     `json:"global"`
+	Ingress    IngressProps    `json:"ingress"`
+	System     SystemProps     `json:"system"`
+	Secrets    SecretsProps    `json:"secrets"`
+	Auth       AuthProps       `json:"auth"`
+	Monitoring MonitoringProps `json:"monitoring"`
+	Databases  DatabaseProps   `json:"databases"`
 }
 
 func logModuleTiming(moduleName string) func() {
@@ -60,9 +59,7 @@ func NewBase(scope constructs.Construct, props BaseProps) constructs.Construct {
 
 func GetBaseValues() BaseProps {
 	v := BaseProps{}
-	decoder := yaml.NewDecoder(bytes.NewReader(BaseValues))
-	decoder.KnownFields(true)
-	if err := decoder.Decode(&v); err != nil {
+	if err := yaml.UnmarshalStrict(BaseValues, &v); err != nil {
 		panic(err)
 	}
 	return v
@@ -74,9 +71,19 @@ func LoadValues[T any](values *T, valuesFiles []string) {
 		if err != nil {
 			log.Fatalf("ReadFile: %v", err)
 		}
-		decoder := yaml.NewDecoder(bytes.NewReader(valuesFileBytes))
-		decoder.KnownFields(true)
-		if err := decoder.Decode(&values); err != nil {
+		// // TODO: maybe go back to gopkg.in/yaml.v3 library
+		// // "github.com/goccy/go-yaml" library overwrites the map (example: grafana dashboards)
+		// // mergo approach doesn't override boolean values because it considers them as zero values
+		// // validation
+		// var values T
+		// if err := yaml.UnmarshalWithOptions(valuesFileBytes, &values, yaml.Strict()); err != nil {
+		// 	log.Fatalf("Unmarshal: %v", err)
+		// }
+		// if err := mergo.MapWithOverwrite(&ret, values); err != nil {
+		// 	log.Fatalf("Merge: %v", err)
+		// }
+		// k8syaml.YAMLToJSONStrict()
+		if err := yaml.UnmarshalStrict(valuesFileBytes, values); err != nil {
 			log.Fatalf("Unmarshal: %v", err)
 		}
 	}

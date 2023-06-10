@@ -11,18 +11,18 @@ import (
 )
 
 type TraefikProps struct {
-	Enabled          bool             `yaml:"enabled"`
-	ChartInfo        k8sapp.ChartInfo `yaml:"helm"`
-	TrustedIPs       []string         `yaml:"trustedIPs"`
+	Enabled          bool             `json:"enabled"`
+	ChartInfo        k8sapp.ChartInfo `json:"helm"`
+	TrustedIPs       []string         `json:"trustedIPs"`
 	DashboardIngress struct {
-		Enabled   bool   `yaml:"enabled"`
-		SubDomain string `yaml:"subDomain"`
-	} `yaml:"dashboardIngress"`
+		Enabled   bool   `json:"enabled"`
+		SubDomain string `json:"subDomain"`
+	} `json:"dashboardIngress"`
 	Middlewares struct {
 		StripPrefix struct {
-			Enabled bool `yaml:"enabled"`
-		} `yaml:"stripPrefix"`
-	} `yaml:"middlewares"`
+			Enabled bool `json:"enabled"`
+		} `json:"stripPrefix"`
+	} `json:"middlewares"`
 }
 
 func getTraefikAuthMiddlewareName(scope constructs.Construct) string {

@@ -11,9 +11,9 @@ import (
 )
 
 type SecretsDockerCredsProps struct {
-	Enabled   bool   `yaml:"enabled"`
-	KeyPrefix string `yaml:"keyPrefix"`
-	Namespace string `yaml:"namespace"`
+	Enabled   bool   `json:"enabled"`
+	KeyPrefix string `json:"keyPrefix"`
+	Namespace string `json:"namespace"`
 }
 
 func NewSecretsDockerCreds(scope constructs.Construct, props SecretsDockerCredsProps) cdk8s.Chart {

@@ -5,18 +5,19 @@ import (
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	corev1 "k8s.io/api/core/v1"
 )
 
 type VictoriametricsProps struct {
-	Enabled       bool             `yaml:"enabled"`
-	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
-	Resources     *Resources       `yaml:"resources"`
+	Enabled       bool                        `json:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo            `json:"helm"`
+	Resources     corev1.ResourceRequirements `json:"resources"`
 	Ingress       struct {
-		Enabled   bool   `yaml:"enabled"`
-		SubDomain string `yaml:"subDomain"`
-	} `yaml:"ingress"`
-	RetentionPeriod  string         `yaml:"retentionPeriod"`
-	PersistentVolume map[string]any `yaml:"persistentVolume"`
+		Enabled   bool   `json:"enabled"`
+		SubDomain string `json:"subDomain"`
+	} `json:"ingress"`
+	RetentionPeriod  string         `json:"retentionPeriod"`
+	PersistentVolume map[string]any `json:"persistentVolume"`
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single

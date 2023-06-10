@@ -8,11 +8,11 @@ import (
 )
 
 type PostgresProps struct {
-	Enabled       bool             `yaml:"enabled"`
-	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
-	ImageInfo     k8sapp.ImageInfo `yaml:"image"`
-	Database      string           `yaml:"database"`
-	Username      string           `yaml:"username"`
+	Enabled       bool             `json:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
+	ImageInfo     k8sapp.ImageInfo `json:"image"`
+	Database      string           `json:"database"`
+	Username      string           `json:"username"`
 }
 
 func NewPostgres(scope constructs.Construct, props PostgresProps) cdk8s.Chart {

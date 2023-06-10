@@ -10,10 +10,10 @@ import (
 )
 
 type LLDAPProps struct {
-	Enabled     bool             `yaml:"enabled"`
-	ImageInfo   k8sapp.ImageInfo `yaml:"image"`
-	BaseDN      string           `yaml:"base_dn"`
-	EmailDomain string           `yaml:"email_domain"`
+	Enabled     bool             `json:"enabled"`
+	ImageInfo   k8sapp.ImageInfo `json:"image"`
+	BaseDN      string           `json:"base_dn"`
+	EmailDomain string           `json:"email_domain"`
 }
 
 func NewLLDAP(scope constructs.Construct, props LLDAPProps) constructs.Construct {

@@ -8,8 +8,8 @@ import (
 )
 
 type RedisProps struct {
-	Enabled       bool             `yaml:"enabled"`
-	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
+	Enabled       bool             `json:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
 func NewRedis(scope constructs.Construct, props RedisProps) cdk8s.Chart {

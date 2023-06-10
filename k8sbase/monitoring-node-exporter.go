@@ -8,8 +8,8 @@ import (
 )
 
 type NodeExporterProps struct {
-	Enabled       bool             `yaml:"enabled"`
-	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
+	Enabled       bool             `json:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
 func NewNodeExporter(scope constructs.Construct, props NodeExporterProps) cdk8s.Chart {

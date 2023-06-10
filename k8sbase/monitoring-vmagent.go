@@ -8,28 +8,18 @@ import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	corev1 "k8s.io/api/core/v1"
 )
 
-type Resources struct {
-	Requests struct {
-		CPU    string `yaml:"cpu" json:"cpu"`
-		Memory string `yaml:"memory" json:"memory"`
-	} `yaml:"requests" json:"requests"`
-	Limits struct {
-		CPU    string `yaml:"cpu" json:"cpu"`
-		Memory string `yaml:"memory" json:"memory"`
-	} `yaml:"limits" json:"limits"`
-}
-
 type VmagentProps struct {
-	Enabled            bool             `yaml:"enabled"`
-	HelmChartInfo      k8sapp.ChartInfo `yaml:"helm"`
-	ExtraScrapeConfigs []map[string]any `yaml:"extraScrapeConfigs"`
-	Resources          *Resources       `yaml:"resources"`
+	Enabled            bool                        `json:"enabled"`
+	HelmChartInfo      k8sapp.ChartInfo            `json:"helm"`
+	ExtraScrapeConfigs []map[string]any            `json:"extraScrapeConfigs"`
+	Resources          corev1.ResourceRequirements `json:"resources"`
 	Ingress            struct {
-		Enabled   bool   `yaml:"enabled"`
-		SubDomain string `yaml:"subDomain"`
-	} `yaml:"ingress"`
+		Enabled   bool   `json:"enabled"`
+		SubDomain string `json:"subDomain"`
+	} `json:"ingress"`
 }
 
 //go:embed vmagent-config.yaml

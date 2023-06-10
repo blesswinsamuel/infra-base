@@ -12,15 +12,15 @@ import (
 )
 
 type TraefikForwardAuthProps struct {
-	Enabled       bool             `yaml:"enabled"`
-	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
-	ImageInfo     k8sapp.ImageInfo `yaml:"image"`
+	Enabled       bool             `json:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
+	ImageInfo     k8sapp.ImageInfo `json:"image"`
 	Ingress       struct {
-		SubDomain string `yaml:"subDomain"`
-	} `yaml:"ingress"`
-	WhiteList      string   `yaml:"whilelist"`
-	ImageTagSuffix string   `yaml:"imageTagSuffix"`
-	Args           []string `yaml:"args"`
+		SubDomain string `json:"subDomain"`
+	} `json:"ingress"`
+	WhiteList      string   `json:"whilelist"`
+	ImageTagSuffix string   `json:"imageTagSuffix"`
+	Args           []string `json:"args"`
 }
 
 // https://github.com/k8s-at-home/charts/tree/master/charts/stable/traefik-forward-auth

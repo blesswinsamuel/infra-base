@@ -8,8 +8,8 @@ import (
 )
 
 type ExternalSecretsProps struct {
-	Enabled       bool             `yaml:"enabled"`
-	HelmChartInfo k8sapp.ChartInfo `yaml:"helm"`
+	Enabled       bool             `json:"enabled"`
+	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
 // https://github.com/external-secrets/external-secrets/tree/main/deploy/charts/external-secrets
