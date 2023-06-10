@@ -13,7 +13,6 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
@@ -79,7 +78,7 @@ func NewAlertingRules(scope constructs.Construct, props AlertingRulesProps) cdk8
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("alerting-rules"), &cprops)
 
-	rules := map[string]*string{}
+	rules := map[string]string{}
 	cacheDir := k8sapp.GetGlobalContext(scope).CacheDir
 
 	for _, rulesConfig := range props.Rules {
@@ -131,15 +130,13 @@ func NewAlertingRules(scope constructs.Construct, props AlertingRulesProps) cdk8
 				if err != nil {
 					panic(err)
 				}
-				rules[urlConfig.ID+".yaml"] = jsii.String(string(outBytes))
+				rules[urlConfig.ID+".yaml"] = string(outBytes)
 			}
 		}
 	}
-	k8s.NewKubeConfigMap(chart, jsii.String("config-map"), &k8s.KubeConfigMapProps{
-		Metadata: &k8s.ObjectMeta{
-			Name: jsii.String("alerting-rules"),
-		},
-		Data: &rules,
+	k8sapp.NewConfigMap(chart, jsii.String("config-map"), &k8sapp.ConfigmapProps{
+		Name: "alerting-rules",
+		Data: rules,
 	})
 	return chart
 }

@@ -16,7 +16,6 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"golang.org/x/exp/slices"
 )
@@ -114,19 +113,17 @@ func NewGrafanaDashboards(scope constructs.Construct, props GrafanaDashboardsPro
 			for _, filePath := range GetFilePaths(*dashboardConfig.GlobPath) {
 				fileContents := GetFileContents(filePath)
 				baseName := strings.TrimSuffix(filepath.Base(filePath), filepath.Ext(filePath))
-				k8s.NewKubeConfigMap(chart, jsii.String(id+"-"+baseName), &k8s.KubeConfigMapProps{
-					Metadata: &k8s.ObjectMeta{
-						Name: jsii.String("grafana-dashboard-" + "-" + baseName + "-json"),
-						// Name: jsii.String("grafana-dashboards-" + id + "-" + baseName),
-						Labels: &map[string]*string{
-							"grafana_dashboard": jsii.String("1"),
-						},
-						Annotations: &map[string]*string{
-							"grafana_folder": jsii.String(dashboardConfig.Folder),
-						},
+				k8sapp.NewConfigMap(chart, jsii.String(id+"-"+baseName), &k8sapp.ConfigmapProps{
+					Name: "grafana-dashboard-" + "-" + baseName + "-json",
+					// Name: jsii.String("grafana-dashboards-" + id + "-" + baseName),
+					Labels: map[string]string{
+						"grafana_dashboard": "1",
 					},
-					Data: &map[string]*string{
-						filepath.Base(filePath): jsii.String(fileContents),
+					Annotations: map[string]string{
+						"grafana_folder": dashboardConfig.Folder,
+					},
+					Data: map[string]string{
+						filepath.Base(filePath): fileContents,
 					},
 				})
 			}
@@ -186,19 +183,17 @@ func NewGrafanaDashboards(scope constructs.Construct, props GrafanaDashboardsPro
 					outStr = strings.ReplaceAll(outStr, k, v)
 				}
 
-				k8s.NewKubeConfigMap(chart, jsii.String(url.ID), &k8s.KubeConfigMapProps{
-					Metadata: &k8s.ObjectMeta{
-						Name: jsii.String("grafana-dashboard-" + url.ID + "-json"),
-						// Name: jsii.String("grafana-dashboards-" + id + "-" + baseName),
-						Labels: &map[string]*string{
-							"grafana_dashboard": jsii.String("1"),
-						},
-						Annotations: &map[string]*string{
-							"grafana_folder": jsii.String(dashboardConfig.Folder),
-						},
+				k8sapp.NewConfigMap(chart, jsii.String(url.ID), &k8sapp.ConfigmapProps{
+					Name: "grafana-dashboard-" + url.ID + "-json",
+					// Name: jsii.String("grafana-dashboards-" + id + "-" + baseName),
+					Labels: map[string]string{
+						"grafana_dashboard": "1",
 					},
-					Data: &map[string]*string{
-						url.ID + ".json": jsii.String(outStr),
+					Annotations: map[string]string{
+						"grafana_folder": dashboardConfig.Folder,
+					},
+					Data: map[string]string{
+						url.ID + ".json": outStr,
 					},
 				})
 			}

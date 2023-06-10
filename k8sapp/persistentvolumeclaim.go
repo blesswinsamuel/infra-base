@@ -2,9 +2,11 @@ package k8sapp
 
 import (
 	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type PersistentVolumeClaim struct {
@@ -14,19 +16,19 @@ type PersistentVolumeClaim struct {
 }
 
 func NewPersistentVolumeClaim(scope constructs.Construct, id *string, props *PersistentVolumeClaim) k8s.KubePersistentVolumeClaim {
-	return k8s.NewKubePersistentVolumeClaim(scope, id, NewPersistentVolumeClaimProps(props))
+	return NewK8sObject(scope, id, infrahelpers.Ptr(NewPersistentVolumeClaimProps(props)))
 }
 
-func NewPersistentVolumeClaimProps(props *PersistentVolumeClaim) *k8s.KubePersistentVolumeClaimProps {
-	return &k8s.KubePersistentVolumeClaimProps{
-		Metadata: &k8s.ObjectMeta{
-			Name: jsii.String(props.Name),
+func NewPersistentVolumeClaimProps(props *PersistentVolumeClaim) corev1.PersistentVolumeClaim {
+	return corev1.PersistentVolumeClaim{
+		ObjectMeta: v1.ObjectMeta{
+			Name: props.Name,
 		},
-		Spec: &k8s.PersistentVolumeClaimSpec{
-			AccessModes: &[]*string{jsii.String("ReadWriteOnce")},
-			Resources: &k8s.ResourceRequirements{
-				Requests: &map[string]k8s.Quantity{
-					"storage": k8s.Quantity_FromString(&props.RequestsStorage),
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
+			Resources: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					"storage": resource.MustParse(props.RequestsStorage),
 				},
 			},
 			StorageClassName: infrahelpers.PtrIfNonEmpty(props.StorageClass),

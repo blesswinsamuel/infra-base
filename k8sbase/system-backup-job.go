@@ -70,11 +70,9 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 		},
 	})
 
-	k8s.NewKubeConfigMap(chart, jsii.String("backup-job-scripts-cm"), &k8s.KubeConfigMapProps{
-		Metadata: &k8s.ObjectMeta{
-			Name: jsii.String("backup-job-scripts"),
-		},
-		Data: &map[string]*string{
+	k8sapp.NewConfigMap(chart, jsii.String("backup-job-scripts-cm"), &k8sapp.ConfigmapProps{
+		Name: "backup-job-scripts",
+		Data: map[string]string{
 			"take-postgres-dump.sh": infrahelpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e
@@ -104,7 +102,7 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 				kopia repository connect s3 --bucket=$S3_BUCKET --access-key=$S3_ACCESS_KEY --secret-access-key=$S3_SECRET_KEY --endpoint=$S3_ENDPOINT --override-username kopia
 				for FOLDER in ${FOLDERS}
 				do
-					kopia snapshot create $FOLDER
+				    kopia snapshot create $FOLDER
 				done
 			`)), props.Kopia),
 		},
@@ -218,11 +216,9 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 		return
 	}
 	sharedMountPath := jsii.String("/pgdumps")
-	k8s.NewKubeConfigMap(chart, jsii.String("restore-job-scripts-cm"), &k8s.KubeConfigMapProps{
-		Metadata: &k8s.ObjectMeta{
-			Name: jsii.String("restore-job-scripts"),
-		},
-		Data: &map[string]*string{
+	k8sapp.NewConfigMap(chart, jsii.String("restore-job-scripts-cm"), &k8sapp.ConfigmapProps{
+		Name: "restore-job-scripts",
+		Data: map[string]string{
 			"kopia-restore.sh": infrahelpers.GoTemplate(strings.TrimSpace(dedent.String(`
 				#!/bin/bash
 				set -e

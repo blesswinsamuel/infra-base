@@ -5,7 +5,6 @@ import (
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
@@ -21,15 +20,13 @@ func NewGrafanaDatasource(scope constructs.Construct, props GrafanaDatasourcePro
 	}
 	chart := cdk8s.NewChart(scope, jsii.String("grafana-datasource"), &cprops)
 
-	k8s.NewKubeConfigMap(chart, jsii.String("grafana-datasource-victoriametrics"), &k8s.KubeConfigMapProps{
-		Metadata: &k8s.ObjectMeta{
-			Name: jsii.String("grafana-datasource-victoriametrics"),
-			Labels: &map[string]*string{
-				"grafana_datasource": jsii.String("1"),
-			},
+	k8sapp.NewConfigMap(chart, jsii.String("grafana-datasource-victoriametrics"), &k8sapp.ConfigmapProps{
+		Name: "grafana-datasource-victoriametrics",
+		Labels: map[string]string{
+			"grafana_datasource": "1",
 		},
-		Data: &map[string]*string{
-			"victoriametrics.yaml": jsii.String(infrahelpers.ToYamlString(map[string]interface{}{
+		Data: map[string]string{
+			"victoriametrics.yaml": infrahelpers.ToYamlString(map[string]interface{}{
 				"apiVersion": 1,
 				"deleteDatasources": []map[string]interface{}{
 					{
@@ -52,19 +49,17 @@ func NewGrafanaDatasource(scope constructs.Construct, props GrafanaDatasourcePro
 						// #   alertmanagerUid: alertmanager
 					},
 				},
-			})),
+			}),
 		},
 	})
 
-	k8s.NewKubeConfigMap(chart, jsii.String("grafana-datasource-loki"), &k8s.KubeConfigMapProps{
-		Metadata: &k8s.ObjectMeta{
-			Name: jsii.String("grafana-datasource-loki"),
-			Labels: &map[string]*string{
-				"grafana_datasource": jsii.String("1"),
-			},
+	k8sapp.NewConfigMap(chart, jsii.String("grafana-datasource-loki"), &k8sapp.ConfigmapProps{
+		Name: "grafana-datasource-loki",
+		Labels: map[string]string{
+			"grafana_datasource": "1",
 		},
-		Data: &map[string]*string{
-			"loki.yaml": jsii.String(infrahelpers.ToYamlString(map[string]interface{}{
+		Data: map[string]string{
+			"loki.yaml": infrahelpers.ToYamlString(map[string]interface{}{
 				"apiVersion": 1,
 				"deleteDatasources": []map[string]interface{}{
 					{
@@ -86,7 +81,7 @@ func NewGrafanaDatasource(scope constructs.Construct, props GrafanaDatasourcePro
 						},
 					},
 				},
-			})),
+			}),
 		},
 	})
 

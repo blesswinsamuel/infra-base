@@ -2,9 +2,9 @@ package k8sbase
 
 import (
 	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type VmalertProps struct {
@@ -48,23 +48,23 @@ func NewVmalert(scope constructs.Construct, props VmalertProps) constructs.Const
 				// # - "-rule=/config/alert_rules.yml"
 			},
 			Ports: []k8sapp.ContainerPort{{Name: "http", Port: 8880, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}}},
-			LivenessProbe: &k8s.Probe{
-				InitialDelaySeconds: jsii.Number(5),
-				PeriodSeconds:       jsii.Number(15),
-				TcpSocket:           &k8s.TcpSocketAction{Port: k8s.IntOrString_FromString(jsii.String("http"))},
-				TimeoutSeconds:      jsii.Number(5),
+			LivenessProbe: &corev1.Probe{
+				InitialDelaySeconds: int32(5),
+				PeriodSeconds:       int32(15),
+				ProbeHandler:        corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromString("http")}},
+				TimeoutSeconds:      int32(5),
 			},
-			ReadinessProbe: &k8s.Probe{
-				InitialDelaySeconds: jsii.Number(5),
-				PeriodSeconds:       jsii.Number(15),
-				HttpGet:             &k8s.HttpGetAction{Port: k8s.IntOrString_FromString(jsii.String("http")), Path: jsii.String("/health")},
+			ReadinessProbe: &corev1.Probe{
+				InitialDelaySeconds: int32(5),
+				PeriodSeconds:       int32(15),
+				ProbeHandler:        corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/health"}},
 			},
-			ExtraVolumeMounts: []*k8s.VolumeMount{
-				{Name: jsii.String("alerts-config"), MountPath: jsii.String("/config")},
+			ExtraVolumeMounts: []corev1.VolumeMount{
+				{Name: "alerts-config", MountPath: "/config"},
 			},
 		}},
-		ExtraVolumes: []*k8s.Volume{
-			{Name: jsii.String("alerts-config"), ConfigMap: &k8s.ConfigMapVolumeSource{Name: jsii.String("alerting-rules")}},
+		ExtraVolumes: []corev1.Volume{
+			{Name: "alerts-config", VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "alerting-rules"}}}},
 		},
 	})
 }
