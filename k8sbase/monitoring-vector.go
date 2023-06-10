@@ -4,13 +4,15 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"github.com/muesli/reflow/dedent"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type VectorProps struct {
@@ -206,26 +208,25 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 	})
 
 	if props.SyslogServer.Enabled {
-		k8s.NewKubeService(chart, jsii.String("syslog-service"), &k8s.KubeServiceProps{
-			Metadata: &k8s.ObjectMeta{
-				Name:      jsii.String("vector-syslog-server"),
-				Namespace: k8sapp.GetNamespaceContextPtr(scope),
+		k8sapp.NewK8sObject(chart, jsii.String("syslog-service"), &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "vector-syslog-server",
 			},
-			Spec: &k8s.ServiceSpec{
-				Type: jsii.String("NodePort"),
-				Ports: &[]*k8s.ServicePort{
+			Spec: corev1.ServiceSpec{
+				Type: corev1.ServiceType("NodePort"),
+				Ports: []corev1.ServicePort{
 					{
-						Name:       jsii.String("syslog-server"),
-						Port:       jsii.Number(514),
-						Protocol:   jsii.String("TCP"),
-						TargetPort: k8s.IntOrString_FromNumber(jsii.Number(514)),
-						NodePort:   jsii.Number(30514),
+						Name:       "syslog-server",
+						Port:       int32(514),
+						Protocol:   "TCP",
+						TargetPort: intstr.FromInt(514),
+						NodePort:   int32(30514),
 					},
 				},
-				Selector: &map[string]*string{
-					"app.kubernetes.io/component": jsii.String("Agent"),
-					"app.kubernetes.io/instance":  jsii.String("vector"),
-					"app.kubernetes.io/name":      jsii.String("vector"),
+				Selector: map[string]string{
+					"app.kubernetes.io/component": "Agent",
+					"app.kubernetes.io/instance":  "vector",
+					"app.kubernetes.io/name":      "vector",
 				},
 			},
 		})

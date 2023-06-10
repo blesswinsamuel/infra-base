@@ -127,81 +127,81 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 		},
 	})
 
-	sharedMountPath := ("/pgdumps")
+	sharedMountPath := "/pgdumps"
 
-	props.Postgres.LocalBackupVolume.Name = ("shared-backup-data")
+	props.Postgres.LocalBackupVolume.Name = "shared-backup-data"
 	k8sapp.NewK8sObject(chart, jsii.String("backup-job-postgres"), &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: ("backup-job-postgres"),
+			Name: "backup-job-postgres",
 			Annotations: map[string]string{
-				"secret.reloader.stakater.com/reload": ("backup-restore-job-postgres,postgres-backups-heartbeat"),
+				"secret.reloader.stakater.com/reload": "backup-restore-job-postgres,postgres-backups-heartbeat",
 			},
 		},
 		Spec: batchv1.CronJobSpec{
-			Schedule: (props.Postgres.Schedule),
+			Schedule: props.Postgres.Schedule,
 			JobTemplate: batchv1.JobTemplateSpec{
 				Spec: batchv1.JobSpec{
 					Template: corev1.PodTemplateSpec{
 						Spec: corev1.PodSpec{
-							Hostname: ("backup-job-postgres"),
+							Hostname: "backup-job-postgres",
 							Volumes: []corev1.Volume{
 								props.Postgres.LocalBackupVolume,
 								{
-									Name:         ("scripts"),
-									VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: ("backup-job-scripts")}, DefaultMode: infrahelpers.Ptr(int32(0o755))}},
+									Name:         "scripts",
+									VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "backup-job-scripts"}, DefaultMode: infrahelpers.Ptr(int32(0o755))}},
 								},
 							},
 							InitContainers: []corev1.Container{
 								{
-									Name:  ("take-dump"),
-									Image: (props.Postgres.Image.String()),
+									Name:  "take-dump",
+									Image: props.Postgres.Image.String(),
 									Command: []string{
-										("/script/take-postgres-dump.sh"),
+										"/script/take-postgres-dump.sh",
 									},
 									EnvFrom: []corev1.EnvFromSource{
-										{SecretRef: &corev1.SecretEnvSource{LocalObjectReference: corev1.LocalObjectReference{Name: ("backup-restore-job-postgres")}}},
+										{SecretRef: &corev1.SecretEnvSource{LocalObjectReference: corev1.LocalObjectReference{Name: "backup-restore-job-postgres"}}},
 									},
 									Env: []corev1.EnvVar{
-										{Name: ("FOLDER"), Value: sharedMountPath},
+										{Name: "FOLDER", Value: sharedMountPath},
 									},
 									VolumeMounts: []corev1.VolumeMount{
-										{Name: ("shared-backup-data"), MountPath: sharedMountPath},
-										{Name: ("scripts"), MountPath: ("/script/take-postgres-dump.sh"), SubPath: ("take-postgres-dump.sh")},
+										{Name: "shared-backup-data", MountPath: sharedMountPath},
+										{Name: "scripts", MountPath: "/script/take-postgres-dump.sh", SubPath: "take-postgres-dump.sh"},
 									},
 								},
 								{
-									Name:  ("kopia-snapshot"),
-									Image: (props.Kopia.Image.String()),
+									Name:  "kopia-snapshot",
+									Image: props.Kopia.Image.String(),
 									Command: []string{
-										("/script/kopia-postgres-snapshot.sh"),
+										"/script/kopia-postgres-snapshot.sh",
 									},
 									EnvFrom: []corev1.EnvFromSource{
 										{SecretRef: &corev1.SecretEnvSource{LocalObjectReference: corev1.LocalObjectReference{Name: "backup-restore-job-s3"}}},
 									},
 									Env: []corev1.EnvVar{
-										{Name: ("FOLDER"), Value: sharedMountPath},
+										{Name: "FOLDER", Value: sharedMountPath},
 									},
 									VolumeMounts: []corev1.VolumeMount{
-										{Name: ("shared-backup-data"), MountPath: sharedMountPath},
-										{Name: ("scripts"), MountPath: ("/script/kopia-postgres-snapshot.sh"), SubPath: ("kopia-postgres-snapshot.sh")},
+										{Name: "shared-backup-data", MountPath: sharedMountPath},
+										{Name: "scripts", MountPath: "/script/kopia-postgres-snapshot.sh", SubPath: "kopia-postgres-snapshot.sh"},
 									},
 								},
 							},
 							Containers: []corev1.Container{
 								{
-									Name:  ("job-done"),
-									Image: ("curlimages/curl:8.1.0"),
+									Name:  "job-done",
+									Image: "curlimages/curl:8.1.0",
 									Command: []string{
 										"sh",
 										"-c",
 										`curl -s -i --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 "$HEARTBEAT_URL" && echo 'Backup complete' && sleep 1`,
 									},
 									EnvFrom: []corev1.EnvFromSource{
-										{SecretRef: &corev1.SecretEnvSource{LocalObjectReference: corev1.LocalObjectReference{Name: ("backup-job-heartbeat")}}},
+										{SecretRef: &corev1.SecretEnvSource{LocalObjectReference: corev1.LocalObjectReference{Name: "backup-job-heartbeat"}}},
 									},
 								},
 							},
-							RestartPolicy: ("OnFailure"),
+							RestartPolicy: "OnFailure",
 						},
 					},
 				},
@@ -214,7 +214,7 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 	if !props.Postgres.Enabled {
 		return
 	}
-	sharedMountPath := ("/pgdumps")
+	sharedMountPath := "/pgdumps"
 	k8sapp.NewConfigMap(chart, jsii.String("restore-job-scripts-cm"), &k8sapp.ConfigmapProps{
 		Name: "restore-job-scripts",
 		Data: map[string]string{
@@ -251,26 +251,26 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 		},
 	})
 
-	props.Postgres.LocalBackupVolume.Name = ("shared-backup-data")
+	props.Postgres.LocalBackupVolume.Name = "shared-backup-data"
 	k8sapp.NewK8sObject(chart, jsii.String("restore-job-postgres"), &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: ("restore-job-postgres"),
+			Name: "restore-job-postgres",
 			Annotations: map[string]string{
-				"secret.reloader.stakater.com/reload": ("backup-restore-job-postgres"),
+				"secret.reloader.stakater.com/reload": "backup-restore-job-postgres",
 			},
 		},
 		Spec: batchv1.CronJobSpec{
 			Suspend:  jsii.Bool(true),
-			Schedule: ("* * 31 2 *"),
+			Schedule: "* * 31 2 *",
 			JobTemplate: batchv1.JobTemplateSpec{
 				Spec: batchv1.JobSpec{
 					Template: corev1.PodTemplateSpec{
 						Spec: corev1.PodSpec{
-							Hostname: ("backup-job-postgres"), // should be same as backup job hostname
+							Hostname: "backup-job-postgres",
 							Volumes: []corev1.Volume{
 								props.Postgres.LocalBackupVolume,
 								{
-									Name: ("scripts"),
+									Name: "scripts",
 									VolumeSource: corev1.VolumeSource{
 										ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "restore-job-scripts"}, DefaultMode: infrahelpers.Ptr(int32(0o755))},
 									},
@@ -278,38 +278,38 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 							},
 							InitContainers: []corev1.Container{
 								{
-									Name:  ("kopia-restore"),
-									Image: (props.Kopia.Image.String()),
+									Name:  "kopia-restore",
+									Image: props.Kopia.Image.String(),
 									Command: []string{
-										("/script/kopia-restore.sh"),
+										"/script/kopia-restore.sh",
 									},
 									EnvFrom: []corev1.EnvFromSource{
 										{SecretRef: &corev1.SecretEnvSource{LocalObjectReference: corev1.LocalObjectReference{Name: "backup-restore-job-s3"}}},
 									},
 									VolumeMounts: []corev1.VolumeMount{
-										{Name: ("shared-backup-data"), MountPath: sharedMountPath},
-										{Name: ("scripts"), MountPath: ("/script/kopia-restore.sh"), SubPath: ("kopia-restore.sh")},
+										{Name: "shared-backup-data", MountPath: sharedMountPath},
+										{Name: "scripts", MountPath: "/script/kopia-restore.sh", SubPath: "kopia-restore.sh"},
 									},
-									TerminationMessagePolicy: ("FallbackToLogsOnError"),
+									TerminationMessagePolicy: "FallbackToLogsOnError",
 								},
 								{
-									Name:  ("restore-dump"),
-									Image: (props.Postgres.Image.String()),
+									Name:  "restore-dump",
+									Image: props.Postgres.Image.String(),
 									Command: []string{
-										("/script/restore-postgres-dump.sh"),
+										"/script/restore-postgres-dump.sh",
 									},
 									EnvFrom: []corev1.EnvFromSource{
 										{SecretRef: &corev1.SecretEnvSource{LocalObjectReference: corev1.LocalObjectReference{Name: "backup-restore-job-postgres"}}},
 									},
 									VolumeMounts: []corev1.VolumeMount{
-										{Name: ("shared-backup-data"), MountPath: sharedMountPath},
-										{Name: ("scripts"), MountPath: ("/script/restore-postgres-dump.sh"), SubPath: ("restore-postgres-dump.sh")},
+										{Name: "shared-backup-data", MountPath: sharedMountPath},
+										{Name: "scripts", MountPath: "/script/restore-postgres-dump.sh", SubPath: "restore-postgres-dump.sh"},
 									},
-									TerminationMessagePolicy: ("FallbackToLogsOnError"),
+									TerminationMessagePolicy: "FallbackToLogsOnError",
 								},
 							},
 							Containers:    []corev1.Container{echoContainer("Restore complete")},
-							RestartPolicy: ("OnFailure"),
+							RestartPolicy: "OnFailure",
 						},
 					},
 				},
@@ -320,10 +320,10 @@ func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
 
 func echoContainer(msg string) corev1.Container {
 	return corev1.Container{
-		Name:                     ("job-done"),
-		Image:                    ("busybox"),
+		Name:                     "job-done",
+		Image:                    "busybox",
 		Command:                  []string{"sh", "-c", fmt.Sprintf("echo %q && sleep 1", msg)},
-		TerminationMessagePolicy: ("FallbackToLogsOnError"),
+		TerminationMessagePolicy: "FallbackToLogsOnError",
 	}
 }
 
@@ -333,32 +333,32 @@ func NewBackupJobFilesystem(chart constructs.Construct, props BackupJobProps) {
 	}
 
 	for _, job := range props.Filesystem.Jobs {
-		sharedMountPath := ("/filesystem")
+		sharedMountPath := "/filesystem"
 
-		job.SourceVolume.Name = ("source-data")
+		job.SourceVolume.Name = "source-data"
 		folders := []string{}
 		for _, path := range job.Paths {
 			folders = append(folders, sharedMountPath+"/"+strings.TrimPrefix(path, "/"))
 		}
 		k8sapp.NewK8sObject(chart, jsii.String("backup-job-filesystem-"+job.Name), &batchv1.CronJob{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: ("backup-job-filesystem-" + job.Name),
+				Name: "backup-job-filesystem-" + job.Name,
 			},
 			Spec: batchv1.CronJobSpec{
-				Schedule: (job.Schedule),
+				Schedule: job.Schedule,
 				JobTemplate: batchv1.JobTemplateSpec{
 					Spec: batchv1.JobSpec{
 						Template: corev1.PodTemplateSpec{
 							Spec: corev1.PodSpec{
-								Hostname: ("backup-job-filesystem-" + job.Name),
+								Hostname: "backup-job-filesystem-" + job.Name,
 								Volumes: []corev1.Volume{
 									job.SourceVolume,
 									{
-										Name: ("scripts"),
+										Name: "scripts",
 										VolumeSource: corev1.VolumeSource{
 											ConfigMap: &corev1.ConfigMapVolumeSource{
 												LocalObjectReference: corev1.LocalObjectReference{
-													Name: ("backup-job-scripts"),
+													Name: "backup-job-scripts",
 												},
 												DefaultMode: infrahelpers.Ptr(int32(0o755)),
 											},
@@ -367,25 +367,25 @@ func NewBackupJobFilesystem(chart constructs.Construct, props BackupJobProps) {
 								},
 								InitContainers: []corev1.Container{
 									{
-										Name:  ("kopia-snapshot"),
-										Image: (props.Kopia.Image.String()),
+										Name:  "kopia-snapshot",
+										Image: props.Kopia.Image.String(),
 										Command: []string{
-											("/script/kopia-filesystem-snapshot.sh"),
+											"/script/kopia-filesystem-snapshot.sh",
 										},
 										EnvFrom: []corev1.EnvFromSource{
 											{SecretRef: &corev1.SecretEnvSource{LocalObjectReference: corev1.LocalObjectReference{Name: "backup-restore-job-s3"}}},
 										},
 										Env: []corev1.EnvVar{
-											{Name: ("FOLDERS"), Value: (strings.Join(folders, " "))},
+											{Name: "FOLDERS", Value: strings.Join(folders, " ")},
 										},
 										VolumeMounts: []corev1.VolumeMount{
-											{Name: ("source-data"), MountPath: sharedMountPath},
-											{Name: ("scripts"), MountPath: ("/script/kopia-filesystem-snapshot.sh"), SubPath: ("kopia-filesystem-snapshot.sh")},
+											{Name: "source-data", MountPath: sharedMountPath},
+											{Name: "scripts", MountPath: "/script/kopia-filesystem-snapshot.sh", SubPath: "kopia-filesystem-snapshot.sh"},
 										},
 									},
 								},
 								Containers:    []corev1.Container{echoContainer("Backup complete")},
-								RestartPolicy: ("OnFailure"),
+								RestartPolicy: "OnFailure",
 							},
 						},
 					},
