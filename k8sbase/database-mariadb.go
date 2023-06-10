@@ -27,7 +27,7 @@ func NewMariaDB(scope constructs.Construct, props MariaDBProps) cdk8s.Chart {
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("mariadb"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"nameOverride": "mariadb",
 			"auth": map[string]interface{}{
 				"database":       props.Database,

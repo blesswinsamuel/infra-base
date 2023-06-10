@@ -21,7 +21,7 @@ func NewCertManager(scope constructs.Construct, props CertManagerProps) construc
 	chart := k8sapp.NewHelmChart(scope, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("cert-manager"),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"installCRDs": "true",
 		},
 	})

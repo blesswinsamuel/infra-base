@@ -25,7 +25,7 @@ func NewKubernetesDashboard(scope constructs.Construct, props KubernetesDashboar
 	chart := k8sapp.NewHelmChart(scope, jsii.String("kubernetes-dashboard"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("kubernetes-dashboard"),
-		Values: &map[string]any{
+		Values: map[string]any{
 			"protocolHttp": true,
 			"extraArgs": []string{
 				"--enable-skip-login",

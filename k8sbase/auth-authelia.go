@@ -96,7 +96,7 @@ func NewAuthelia(scope constructs.Construct, props AutheliaProps) constructs.Con
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: jsii.String("authelia"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"domain": GetDomain(scope),
 			"pod":    pod,
 			"service": map[string]interface{}{

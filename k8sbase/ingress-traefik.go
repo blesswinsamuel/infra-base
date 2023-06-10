@@ -49,7 +49,7 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: jsii.String("traefik"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"deployment": map[string]any{
 				"podAnnotations": map[string]any{
 					"prometheus.io/port":   "8082",

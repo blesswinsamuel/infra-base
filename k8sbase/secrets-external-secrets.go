@@ -26,7 +26,7 @@ func NewExternalSecrets(scope constructs.Construct, props ExternalSecretsProps) 
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("external-secrets"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"installCRDs": "true",
 		},
 	})

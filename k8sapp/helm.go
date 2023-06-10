@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
@@ -23,7 +24,7 @@ type HelmProps struct {
 	ChartFileNamePrefix *string
 	ReleaseName         *string
 	Namespace           *string
-	Values              *map[string]interface{}
+	Values              map[string]interface{}
 }
 
 func NewHelm(scope constructs.Construct, id *string, props *HelmProps) cdk8s.Helm {
@@ -64,11 +65,13 @@ func NewHelm(scope constructs.Construct, id *string, props *HelmProps) cdk8s.Hel
 		namespace = GetNamespaceContextPtr(scope)
 	}
 
+	values := infrahelpers.FromJSONString[map[string]any](infrahelpers.ToJSONString(props.Values))
+
 	return cdk8s.NewHelm(scope, id, &cdk8s.HelmProps{
 		Chart:       jsii.String(chartPath),
 		ReleaseName: props.ReleaseName,
 		Namespace:   namespace,
-		Values:      props.Values,
+		Values:      &values,
 		HelmFlags:   jsii.Strings("--include-crds", "--skip-tests", "--no-hooks"),
 	})
 }

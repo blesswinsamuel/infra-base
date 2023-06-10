@@ -25,7 +25,7 @@ func NewKubeStateMetrics(scope constructs.Construct, props KubeStateMetricsProps
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("kube-state-metrics"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"fullnameOverride": "kube-state-metrics",
 			"service": map[string]interface{}{
 				"annotations": map[string]string{

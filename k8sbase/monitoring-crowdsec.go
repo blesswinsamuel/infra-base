@@ -26,7 +26,7 @@ func NewCrowdsec(scope constructs.Construct, props CrowdsecProps) cdk8s.Chart {
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("crowdsec"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]any{
+		Values: map[string]any{
 			"container_runtime": "containerd",
 			"lapi": map[string]any{
 				"service": map[string]any{

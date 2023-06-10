@@ -22,7 +22,7 @@ func NewReloader(scope constructs.Construct, props ReloaderProps) cdk8s.Chart {
 	chart := k8sapp.NewHelmChart(scope, jsii.String("reloader"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("reloader"),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"service": map[string]interface{}{
 				"port": 9090,
 				"annotations": map[string]string{

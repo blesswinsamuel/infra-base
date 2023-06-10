@@ -37,7 +37,7 @@ func NewGrafana(scope constructs.Construct, props GrafanaProps) cdk8s.Chart {
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("grafana"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"env": infrahelpers.MergeMaps(
 				map[string]string{
 					"GF_SERVER_ENABLE_GZIP":                      "true",
