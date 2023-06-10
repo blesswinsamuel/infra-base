@@ -39,7 +39,7 @@ func NewTraefikForwardAuth(scope constructs.Construct, props TraefikForwardAuthP
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("traefik-forward-auth"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": props.ImageInfo.Repository,
 				"tag":        strings.ReplaceAll(props.ImageInfo.Tag, "-arm", props.ImageTagSuffix),

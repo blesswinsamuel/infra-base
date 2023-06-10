@@ -26,7 +26,7 @@ func NewCrowdsecTraefikBouncer(scope constructs.Construct, props CrowdsecTraefik
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("crowdsec-traefik-bouncer"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]any{
+		Values: map[string]any{
 			"bouncer": map[string]any{
 				"crowdsec_bouncer_api_key": "test", // TODO
 				"crowdsec_agent_host":      "crowdsec-service." + *k8sapp.GetNamespaceContextPtr(scope) + ".svc.cluster.local:8080",

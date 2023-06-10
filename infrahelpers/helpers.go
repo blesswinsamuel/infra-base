@@ -112,6 +112,15 @@ func ToJSONString(v any) string {
 	return string(out)
 }
 
+func FromJSONString[T any](s string) T {
+	var v T
+	err := json.Unmarshal([]byte(s), &v)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func GoTemplate(s string, data interface{}) string {
 	tmpl, err := template.New("tmpl").Parse(s)
 	if err != nil {

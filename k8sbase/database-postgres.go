@@ -28,7 +28,7 @@ func NewPostgres(scope constructs.Construct, props PostgresProps) cdk8s.Chart {
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("postgres"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"nameOverride": "postgres",
 			"image":        props.ImageInfo.ToMap(),
 			"auth": map[string]interface{}{

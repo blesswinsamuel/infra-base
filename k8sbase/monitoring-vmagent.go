@@ -41,7 +41,7 @@ func NewVmagent(scope constructs.Construct, props VmagentProps) cdk8s.Chart {
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("vmagent"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]any{
+		Values: map[string]any{
 			"remoteWriteUrls": []string{
 				"http://victoriametrics-victoria-metrics-single-server:8428/api/v1/write",
 			},

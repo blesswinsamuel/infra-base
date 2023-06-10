@@ -34,7 +34,7 @@ func NewVictoriaMetrics(scope constructs.Construct, props VictoriametricsProps) 
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("victoriametrics"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]any{
+		Values: map[string]any{
 			"server": map[string]any{
 				"retentionPeriod": props.RetentionPeriod,
 				"statefulSet": map[string]any{

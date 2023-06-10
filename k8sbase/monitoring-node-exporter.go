@@ -25,7 +25,7 @@ func NewNodeExporter(scope constructs.Construct, props NodeExporterProps) cdk8s.
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("node-exporter"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"fullnameOverride": "node-exporter",
 			"service": map[string]interface{}{
 				"annotations": map[string]string{

@@ -41,7 +41,7 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("vector"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"role": "Agent",
 			// Prometheus scrape is disabled because it's creating duplicate metrics. Also, there is a peer_addr which blows up the cardinality
 			"podAnnotations": map[string]interface{}{

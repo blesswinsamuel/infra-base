@@ -25,7 +25,7 @@ func NewRedis(scope constructs.Construct, props RedisProps) cdk8s.Chart {
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("redis"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]interface{}{
+		Values: map[string]interface{}{
 			"architecture": "standalone",
 			"auth": map[string]interface{}{
 				"enabled": false,

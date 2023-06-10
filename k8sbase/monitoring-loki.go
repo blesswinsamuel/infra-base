@@ -33,7 +33,7 @@ func NewLoki(scope constructs.Construct, props LokiProps) cdk8s.Chart {
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: jsii.String("loki"),
 		Namespace:   chart.Namespace(),
-		Values: &map[string]any{
+		Values: map[string]any{
 			"singleBinary": map[string]any{
 				"replicas": 1,
 			},
