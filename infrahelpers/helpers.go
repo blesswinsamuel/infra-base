@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
+	"github.com/goccy/go-yaml"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
-	"gopkg.in/yaml.v3"
 )
 
 func FromYamlString[T any](s string) T {
@@ -24,7 +24,6 @@ func FromYamlString[T any](s string) T {
 func ToYamlString(v any) string {
 	buf := bytes.NewBuffer(nil)
 	enc := yaml.NewEncoder(buf)
-	enc.SetIndent(2)
 	err := enc.Encode(v)
 	if err != nil {
 		panic(err)

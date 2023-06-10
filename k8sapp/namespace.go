@@ -38,5 +38,6 @@ func GetNamespaceContextPtr(scope constructs.Construct) *string {
 }
 
 func GetNamespaceContext(scope constructs.Construct) string {
-	return scope.Node().TryGetContext(jsii.String("namespace")).(string)
+	ns, _ := scope.Node().TryGetContext(jsii.String("namespace")).(string)
+	return ns
 }
