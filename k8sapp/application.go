@@ -9,9 +9,12 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"golang.org/x/exp/slices"
+	v1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type ImageInfo struct {
@@ -39,10 +42,10 @@ type ApplicationProps struct {
 	StatefulSetServiceName          string
 	EnableServiceLinks              bool
 	AutomountServiceAccountToken    bool
-	DeploymentUpdateStrategy        *k8s.DeploymentStrategy
+	DeploymentUpdateStrategy        v1.DeploymentStrategy
 	AppAnnotations                  map[string]string
 	PodAnnotations                  map[string]string
-	PodSecurityContext              *k8s.PodSecurityContext
+	PodSecurityContext              *corev1.PodSecurityContext
 	ImagePullSecrets                string
 	Containers                      []ApplicationContainer
 	ConfigMaps                      []ApplicationConfigMap
@@ -50,7 +53,7 @@ type ApplicationProps struct {
 	Secrets                         []ApplicationSecret
 	PersistentVolumes               []ApplicationPersistentVolume
 	StatefulSetVolumeClaimTemplates []ApplicationPersistentVolume
-	ExtraVolumes                    []*k8s.Volume
+	ExtraVolumes                    []corev1.Volume
 	HostNetwork                     bool
 	DnsPolicy                       string
 	IngressMiddlewares              []NameNamespace
@@ -109,14 +112,14 @@ type ApplicationContainer struct {
 	Command           []string
 	Env               map[string]string
 	EnvFromSecretRef  []string
-	ExtraEnvs         []*k8s.EnvVar
+	ExtraEnvs         []corev1.EnvVar
 	Args              []string
 	Ports             []ContainerPort
-	ExtraVolumeMounts []*k8s.VolumeMount
-	SecurityContext   *k8s.SecurityContext
-	LivenessProbe     *k8s.Probe
-	ReadinessProbe    *k8s.Probe
-	StartupProbe      *k8s.Probe
+	ExtraVolumeMounts []corev1.VolumeMount
+	SecurityContext   *corev1.SecurityContext
+	LivenessProbe     *corev1.Probe
+	ReadinessProbe    *corev1.Probe
+	StartupProbe      *corev1.Probe
 }
 
 type ContainerPort struct {
@@ -150,8 +153,8 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 	}
 	commonLabels := map[string]string{"app.kubernetes.io/name": props.Name}
 	podAnnotations := infrahelpers.CopyMap(props.PodAnnotations)
-	var volumes []*k8s.Volume
-	containerVolumeMountsMap := map[string][]*k8s.VolumeMount{}
+	var volumes []corev1.Volume
+	containerVolumeMountsMap := map[string][]corev1.VolumeMount{}
 	allContainerNames := []string{}
 	for _, container := range props.Containers {
 		allContainerNames = append(allContainerNames, container.Name)
@@ -163,13 +166,13 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			}
 			for _, containerName := range containerNames {
 				if _, ok := containerVolumeMountsMap[containerName]; !ok {
-					containerVolumeMountsMap[containerName] = []*k8s.VolumeMount{}
+					containerVolumeMountsMap[containerName] = []corev1.VolumeMount{}
 				}
-				containerVolumeMountsMap[containerName] = append(containerVolumeMountsMap[containerName], &k8s.VolumeMount{
-					Name:      jsii.String(mountName),
-					MountPath: jsii.String(mountPath),
-					SubPath:   infrahelpers.PtrIfNonEmpty(subPath),
-					ReadOnly:  infrahelpers.PtrIfNonEmpty(readOnly),
+				containerVolumeMountsMap[containerName] = append(containerVolumeMountsMap[containerName], corev1.VolumeMount{
+					Name:      mountName,
+					MountPath: mountPath,
+					SubPath:   subPath,
+					ReadOnly:  readOnly,
 				})
 			}
 		}
@@ -178,10 +181,10 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 	addConfigMapHash := false
 	configmapHash := sha256.New()
 	for _, configmap := range props.ConfigMaps {
-		volumes = append(volumes, &k8s.Volume{
-			Name: jsii.String(configmap.MountName),
-			ConfigMap: &k8s.ConfigMapVolumeSource{
-				Name: jsii.String(configmap.Name),
+		volumes = append(volumes, corev1.Volume{
+			Name: configmap.MountName,
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: configmap.Name}},
 			},
 		})
 		addVolumeMount(configmap.MountToContainers, configmap.MountName, configmap.MountPath, configmap.SubPath, configmap.ReadOnly)
@@ -189,11 +192,9 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			configmapHash.Write([]byte(configmap.Data[key]))
 			addConfigMapHash = true
 		}
-		k8s.NewKubeConfigMap(scope, jsii.String("configmap-"+configmap.Name), &k8s.KubeConfigMapProps{
-			Metadata: &k8s.ObjectMeta{
-				Name: jsii.String(configmap.Name),
-			},
-			Data: infrahelpers.PtrMap(configmap.Data),
+		NewConfigMap(scope, jsii.String("configmap-"+configmap.Name), &ConfigmapProps{
+			Name: configmap.Name,
+			Data: configmap.Data,
 		})
 	}
 	if addConfigMapHash {
@@ -201,31 +202,25 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 	}
 	for _, secret := range props.Secrets {
 		if secret.MountName != "" {
-			volumes = append(volumes, &k8s.Volume{
-				Name: jsii.String(secret.MountName),
-				Secret: &k8s.SecretVolumeSource{
-					SecretName: jsii.String(secret.Name),
-				},
+			volumes = append(volumes, corev1.Volume{
+				Name:         secret.MountName,
+				VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: secret.Name}},
 			})
 			addVolumeMount(secret.MountToContainers, secret.MountName, secret.MountPath, secret.SubPath, secret.ReadOnly)
 			if secret.MountPath != "" {
 				watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, secret.Name)
 			}
 		}
-		k8s.NewKubeSecret(scope, jsii.String("secret-"+secret.Name), &k8s.KubeSecretProps{
-			Metadata: &k8s.ObjectMeta{
-				Name: jsii.String(secret.Name),
-			},
-			StringData: infrahelpers.PtrMap(secret.Data),
+		NewSecret(scope, jsii.String("secret-"+secret.Name), &SecretProps{
+			Name:       secret.Name,
+			StringData: secret.Data,
 		})
 	}
 	for _, externalSecret := range props.ExternalSecrets {
 		if externalSecret.MountName != "" {
-			volumes = append(volumes, &k8s.Volume{
-				Name: jsii.String(externalSecret.MountName),
-				Secret: &k8s.SecretVolumeSource{
-					SecretName: jsii.String(externalSecret.Name),
-				},
+			volumes = append(volumes, corev1.Volume{
+				Name:         externalSecret.MountName,
+				VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: externalSecret.Name}},
 			})
 			addVolumeMount(externalSecret.MountToContainers, externalSecret.MountName, externalSecret.MountPath, externalSecret.SubPath, externalSecret.ReadOnly)
 			if externalSecret.MountPath != "" {
@@ -241,11 +236,9 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 	volumes = append(volumes, props.ExtraVolumes...)
 	for _, pv := range props.PersistentVolumes {
 		if pv.MountName != "" {
-			volumes = append(volumes, &k8s.Volume{
-				Name: jsii.String(pv.MountName),
-				PersistentVolumeClaim: &k8s.PersistentVolumeClaimVolumeSource{
-					ClaimName: jsii.String(pv.Name),
-				},
+			volumes = append(volumes, corev1.Volume{
+				Name:         pv.MountName,
+				VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: pv.Name}},
 			})
 			addVolumeMount(pv.MountToContainers, pv.MountName, pv.MountPath, pv.SubPath, pv.ReadOnly)
 		}
@@ -255,7 +248,7 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			RequestsStorage: pv.RequestsStorage,
 		})
 	}
-	statefulSetVolumeClaimTemplates := []*k8s.KubePersistentVolumeClaimProps{}
+	statefulSetVolumeClaimTemplates := []corev1.PersistentVolumeClaim{}
 	for _, pv := range props.StatefulSetVolumeClaimTemplates {
 		if pv.MountName != "" {
 			addVolumeMount(pv.MountToContainers, pv.MountName, pv.MountPath, pv.SubPath, pv.ReadOnly)
@@ -266,61 +259,45 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			RequestsStorage: pv.RequestsStorage,
 		}))
 	}
-	containers := []*k8s.Container{}
-	servicePorts := []*k8s.ServicePort{}
+	containers := []corev1.Container{}
+	servicePorts := []corev1.ServicePort{}
 	ingressHosts := []IngressHost{}
 	serviceAnnotations := map[string]string{}
 	for _, container := range props.Containers {
-		var containerVolumeMounts []*k8s.VolumeMount
+		var containerVolumeMounts []corev1.VolumeMount
 		containerVolumeMounts = append(containerVolumeMounts, containerVolumeMountsMap[container.Name]...)
 		containerVolumeMounts = append(containerVolumeMounts, container.ExtraVolumeMounts...)
 
-		env := []*k8s.EnvVar{}
+		env := []corev1.EnvVar{}
 		env = append(env, container.ExtraEnvs...)
 		for k, v := range container.Env {
-			env = append(env, &k8s.EnvVar{Name: jsii.String(k), Value: jsii.String(v)})
+			env = append(env, corev1.EnvVar{Name: k, Value: v})
 		}
-		slices.SortFunc(env, func(a *k8s.EnvVar, b *k8s.EnvVar) bool {
-			return *a.Name < *b.Name
+		slices.SortFunc(env, func(a corev1.EnvVar, b corev1.EnvVar) bool {
+			return a.Name < b.Name
 		})
-		envFrom := []*k8s.EnvFromSource{}
+		envFrom := []corev1.EnvFromSource{}
 		for _, v := range container.EnvFromSecretRef {
-			envFrom = append(envFrom, &k8s.EnvFromSource{
-				SecretRef: &k8s.SecretEnvSource{
-					Name: jsii.String(v),
+			envFrom = append(envFrom, corev1.EnvFromSource{
+				SecretRef: &corev1.SecretEnvSource{
+					LocalObjectReference: corev1.LocalObjectReference{Name: v},
 				},
 			})
 			watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, v)
 		}
-		var ports []*k8s.ContainerPort
+		var ports []corev1.ContainerPort
 		for _, port := range container.Ports {
-			ports = append(ports, &k8s.ContainerPort{
-				Name:          jsii.String(port.Name),
-				ContainerPort: jsii.Number(port.Port),
+			ports = append(ports, corev1.ContainerPort{
+				Name:          port.Name,
+				ContainerPort: int32(port.Port),
 			})
 		}
 
-		var args *[]*string
-		if len(container.Args) > 0 {
-			args = &[]*string{}
-			for _, arg := range container.Args {
-				*args = append(*args, jsii.String(arg))
-			}
-		}
-
-		var command []*string
-		if len(container.Command) > 0 {
-			command = []*string{}
-			for _, v := range container.Command {
-				command = append(command, jsii.String(v))
-			}
-		}
-
 		for _, port := range container.Ports {
-			servicePorts = append(servicePorts, &k8s.ServicePort{
-				Name:       jsii.String(port.Name),
-				Port:       jsii.Number(port.Port),
-				TargetPort: k8s.IntOrString_FromString(jsii.String(port.Name)),
+			servicePorts = append(servicePorts, corev1.ServicePort{
+				Name:       port.Name,
+				Port:       int32(port.Port),
+				TargetPort: intstr.FromString(port.Name),
 			})
 			if port.Ingress != nil {
 				ingressHosts = append(ingressHosts, IngressHost{
@@ -338,26 +315,26 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 			}
 		}
 
-		containers = append(containers, &k8s.Container{
-			Name:    jsii.String(container.Name),
-			Image:   jsii.String(container.Image.String()),
-			Command: infrahelpers.PtrIfLenGt0(command),
+		containers = append(containers, corev1.Container{
+			Name:    container.Name,
+			Image:   container.Image.String(),
+			Command: container.Command,
 			// ImagePullPolicy: jsii.String("IfNotPresent"),
-			Env:                      infrahelpers.PtrIfLenGt0(env),
-			EnvFrom:                  infrahelpers.PtrIfLenGt0(envFrom),
-			Args:                     args,
-			VolumeMounts:             infrahelpers.PtrIfLenGt0(containerVolumeMounts),
-			Ports:                    infrahelpers.PtrIfLenGt0(ports),
+			Env:                      env,
+			EnvFrom:                  envFrom,
+			Args:                     container.Args,
+			VolumeMounts:             containerVolumeMounts,
+			Ports:                    ports,
 			LivenessProbe:            container.LivenessProbe,
 			ReadinessProbe:           container.ReadinessProbe,
 			StartupProbe:             container.StartupProbe,
-			TerminationMessagePolicy: jsii.String("FallbackToLogsOnError"),
+			TerminationMessagePolicy: "FallbackToLogsOnError",
 			SecurityContext:          container.SecurityContext,
 		})
 	}
 	for _, vol := range props.ExtraVolumes {
 		if vol.Secret != nil {
-			watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, *vol.Secret.SecretName)
+			watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, vol.Secret.SecretName)
 		}
 	}
 	appAnnotations := infrahelpers.CopyMap(props.AppAnnotations)
@@ -365,79 +342,79 @@ func NewApplication(scope constructs.Construct, id *string, props *ApplicationPr
 		appAnnotations["secret.reloader.stakater.com/reload"] = strings.Join(watchTheseSecretsAndReload, ",")
 	}
 
-	podTemplate := &k8s.PodTemplateSpec{
-		Metadata: &k8s.ObjectMeta{
-			Labels:      infrahelpers.PtrMap(commonLabels),
-			Annotations: infrahelpers.PtrMap(podAnnotations),
+	podTemplate := corev1.PodTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      commonLabels,
+			Annotations: podAnnotations,
 		},
-		Spec: &k8s.PodSpec{
-			ServiceAccountName:           infrahelpers.PtrIfNonEmpty(props.ServiceAccountName),
+		Spec: corev1.PodSpec{
+			ServiceAccountName:           props.ServiceAccountName,
 			AutomountServiceAccountToken: infrahelpers.PtrIfNonEmpty(props.AutomountServiceAccountToken),
-			Hostname:                     infrahelpers.PtrIfNonEmpty(props.Hostname),
+			Hostname:                     props.Hostname,
 			EnableServiceLinks:           infrahelpers.PtrIfNonEmpty(props.EnableServiceLinks),
 			SecurityContext:              props.PodSecurityContext,
-			ImagePullSecrets: infrahelpers.If(props.ImagePullSecrets != "", &[]*k8s.LocalObjectReference{
-				{Name: jsii.String(props.ImagePullSecrets)},
+			ImagePullSecrets: infrahelpers.If(props.ImagePullSecrets != "", []corev1.LocalObjectReference{
+				{Name: props.ImagePullSecrets},
 			}, nil),
-			Containers:  &containers,
-			Volumes:     infrahelpers.PtrIfLenGt0(volumes),
-			HostNetwork: infrahelpers.PtrIfNonEmpty(props.HostNetwork),
-			DnsPolicy:   infrahelpers.PtrIfNonEmpty(props.DnsPolicy),
+			Containers:  containers,
+			Volumes:     volumes,
+			HostNetwork: props.HostNetwork,
+			DNSPolicy:   corev1.DNSPolicy(props.DnsPolicy),
 		},
 	}
 	switch props.Kind {
 	case "Deployment":
-		k8s.NewKubeDeployment(scope, jsii.String("deployment"), &k8s.KubeDeploymentProps{
-			Metadata: &k8s.ObjectMeta{
-				Name:        jsii.String(props.Name),
-				Annotations: infrahelpers.PtrMap(appAnnotations),
+		NewK8sObject(scope, jsii.String("deployment"), &v1.Deployment{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        props.Name,
+				Annotations: appAnnotations,
 			},
-			Spec: &k8s.DeploymentSpec{
-				Replicas: jsii.Number(1),
+			Spec: v1.DeploymentSpec{
+				Replicas: infrahelpers.Ptr(int32(1)),
 				Strategy: props.DeploymentUpdateStrategy,
-				Selector: &k8s.LabelSelector{
-					MatchLabels: infrahelpers.PtrMap(commonLabels),
+				Selector: &metav1.LabelSelector{
+					MatchLabels: commonLabels,
 				},
 				Template: podTemplate,
 			},
 		})
 	case "StatefulSet":
-		k8s.NewKubeStatefulSet(scope, jsii.String("statefuleset"), &k8s.KubeStatefulSetProps{
-			Metadata: &k8s.ObjectMeta{
-				Name:        jsii.String(props.Name),
-				Annotations: infrahelpers.PtrMap(appAnnotations),
+		NewK8sObject(scope, jsii.String("statefuleset"), &v1.StatefulSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        props.Name,
+				Annotations: appAnnotations,
 			},
-			Spec: &k8s.StatefulSetSpec{
-				Replicas:    jsii.Number(1),
-				ServiceName: jsii.String(infrahelpers.UseOrDefault(props.StatefulSetServiceName, props.Name)),
-				Selector: &k8s.LabelSelector{
-					MatchLabels: infrahelpers.PtrMap(commonLabels),
+			Spec: v1.StatefulSetSpec{
+				Replicas:    infrahelpers.Ptr(int32(1)),
+				ServiceName: infrahelpers.UseOrDefault(props.StatefulSetServiceName, props.Name),
+				Selector: &metav1.LabelSelector{
+					MatchLabels: commonLabels,
 				},
 				Template:             podTemplate,
-				VolumeClaimTemplates: infrahelpers.PtrIfLenGt0(statefulSetVolumeClaimTemplates),
+				VolumeClaimTemplates: statefulSetVolumeClaimTemplates,
 			},
 		})
 	}
 	if len(servicePorts) > 0 {
-		k8s.NewKubeService(scope, jsii.String("service"), &k8s.KubeServiceProps{
-			Metadata: &k8s.ObjectMeta{
-				Name:        jsii.String(props.Name),
-				Annotations: infrahelpers.PtrMap(serviceAnnotations),
+		NewK8sObject(scope, jsii.String("service"), &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        props.Name,
+				Annotations: serviceAnnotations,
 			},
-			Spec: &k8s.ServiceSpec{
-				Selector: infrahelpers.PtrMap(commonLabels),
-				Ports:    &servicePorts,
+			Spec: corev1.ServiceSpec{
+				Selector: commonLabels,
+				Ports:    servicePorts,
 			},
 		})
 		if props.CreateHeadlessService {
-			k8s.NewKubeService(scope, jsii.String("service-headless"), &k8s.KubeServiceProps{
-				Metadata: &k8s.ObjectMeta{
-					Name: jsii.String(props.Name + "-headless"),
+			NewK8sObject(scope, jsii.String("service-headless"), &corev1.Service{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: props.Name + "-headless",
 				},
-				Spec: &k8s.ServiceSpec{
-					ClusterIp: jsii.String("None"),
-					Selector:  infrahelpers.PtrMap(commonLabels),
-					Ports:     &servicePorts,
+				Spec: corev1.ServiceSpec{
+					ClusterIP: "None",
+					Selector:  commonLabels,
+					Ports:     servicePorts,
 				},
 			})
 		}

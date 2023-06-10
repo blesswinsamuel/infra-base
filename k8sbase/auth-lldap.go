@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type LLDAPProps struct {
@@ -48,12 +48,12 @@ func NewLLDAP(scope constructs.Construct, props LLDAPProps) constructs.Construct
 			EnvFromSecretRef: []string{
 				"lldap", "lldap-postgres",
 			},
-			LivenessProbe: &k8s.Probe{
-				HttpGet: &k8s.HttpGetAction{Path: jsii.String("/health"), Port: k8s.IntOrString_FromNumber(jsii.Number(17170))},
-			},
-			ReadinessProbe: &k8s.Probe{
-				HttpGet: &k8s.HttpGetAction{Path: jsii.String("/health"), Port: k8s.IntOrString_FromNumber(jsii.Number(17170))},
-			},
+			LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{
+				HTTPGet: &corev1.HTTPGetAction{Path: "/health", Port: intstr.FromInt(17170)},
+			}},
+			ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{
+				HTTPGet: &corev1.HTTPGetAction{Path: "/health", Port: intstr.FromInt(17170)},
+			}},
 		}},
 		ExternalSecrets: []k8sapp.ApplicationExternalSecret{
 			{

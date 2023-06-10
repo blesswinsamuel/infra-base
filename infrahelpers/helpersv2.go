@@ -2,24 +2,63 @@ package infrahelpers
 
 import (
 	"bytes"
+	"encoding/json"
+	"time"
+
+	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
-	"github.com/goccy/go-yaml"
+	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer/json"
-	"time"
+	k8sjson "k8s.io/apimachinery/pkg/runtime/serializer/json"
 )
 
-var scheme = runtime.NewScheme()
+var Scheme = runtime.NewScheme()
+var yamlSerializer *k8sjson.Serializer
+var jsonSerializer *k8sjson.Serializer
 
 func init() {
-	if err := corev1.AddToScheme(scheme); err != nil {
+	if err := corev1.AddToScheme(Scheme); err != nil {
 		panic(err)
 	}
-	if err := externalsecretsv1beta1.AddToScheme(scheme); err != nil {
+	if err := externalsecretsv1beta1.AddToScheme(Scheme); err != nil {
 		panic(err)
 	}
+	if err := appsv1.AddToScheme(Scheme); err != nil {
+		panic(err)
+	}
+	if err := corev1.AddToScheme(Scheme); err != nil {
+		panic(err)
+	}
+	if err := externalsecretsv1beta1.AddToScheme(Scheme); err != nil {
+		panic(err)
+	}
+	if err := certmanagerv1.AddToScheme(Scheme); err != nil {
+		panic(err)
+	}
+	if err := traefikv1alpha1.AddToScheme(Scheme); err != nil {
+		panic(err)
+	}
+
+	yamlSerializer = k8sjson.NewSerializerWithOptions(
+		k8sjson.DefaultMetaFactory, Scheme, Scheme,
+		k8sjson.SerializerOptions{
+			Pretty: true,
+			Yaml:   true,
+			Strict: true,
+		},
+	)
+	jsonSerializer = k8sjson.NewSerializerWithOptions(
+		k8sjson.DefaultMetaFactory, Scheme, Scheme,
+		k8sjson.SerializerOptions{
+			Pretty: true,
+			Yaml:   false,
+			Strict: true,
+		},
+	)
 }
 
 func K8sObjectToMap(obj runtime.Object) map[string]any {
@@ -46,22 +85,14 @@ func K8sObjectToMap(obj runtime.Object) map[string]any {
 	//	panic(err)
 	//}
 
-	serializer := json.NewSerializerWithOptions(
-		json.DefaultMetaFactory, scheme, scheme,
-		json.SerializerOptions{
-			Pretty: true,
-			Yaml:   true,
-			Strict: true,
-		},
-	)
 	b := bytes.NewBuffer(nil)
-	if err := serializer.Encode(obj, b); err != nil {
+	if err := jsonSerializer.Encode(obj, b); err != nil {
 		panic(err)
 	}
-	//fmt.Println(string(b.Bytes()))
+	// fmt.Println(string(b.Bytes()))
 
 	var out map[string]any
-	if err := yaml.Unmarshal(b.Bytes(), &out); err != nil {
+	if err := json.Unmarshal(b.Bytes(), &out); err != nil {
 		panic(err)
 	}
 	return out

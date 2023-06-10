@@ -6,10 +6,13 @@ import (
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"github.com/muesli/reflow/dedent"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 //go:embed alertmanager-templates.tpl
@@ -44,8 +47,8 @@ func NewAlertmanager(scope constructs.Construct, props AlertmanagerProps) cdk8s.
 		Kind:                         "StatefulSet",
 		Name:                         "alertmanager",
 		AutomountServiceAccountToken: true,
-		PodSecurityContext: &k8s.PodSecurityContext{
-			FsGroup: jsii.Number(65534),
+		PodSecurityContext: &corev1.PodSecurityContext{
+			FSGroup: infrahelpers.Ptr(int64(65534)),
 		},
 		ServiceAccountName:     "alertmanager",
 		CreateHeadlessService:  true,
@@ -57,15 +60,15 @@ func NewAlertmanager(scope constructs.Construct, props AlertmanagerProps) cdk8s.
 				"--storage.path=/alertmanager",
 				"--config.file=/etc/alertmanager/alertmanager.yml",
 			},
-			ExtraEnvs: []*k8s.EnvVar{{Name: jsii.String("POD_IP"), ValueFrom: &k8s.EnvVarSource{FieldRef: &k8s.ObjectFieldSelector{ApiVersion: jsii.String("v1"), FieldPath: jsii.String("status.podIP")}}}},
+			ExtraEnvs: []corev1.EnvVar{{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{APIVersion: "v1", FieldPath: "status.podIP"}}}},
 			Ports: []k8sapp.ContainerPort{
 				{Name: "http", Port: 9093, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}},
 			},
-			LivenessProbe:  &k8s.Probe{HttpGet: &k8s.HttpGetAction{Port: k8s.IntOrString_FromString(jsii.String("http")), Path: jsii.String("/")}},
-			ReadinessProbe: &k8s.Probe{HttpGet: &k8s.HttpGetAction{Port: k8s.IntOrString_FromString(jsii.String("http")), Path: jsii.String("/")}},
-			SecurityContext: &k8s.SecurityContext{
-				RunAsGroup:   jsii.Number(65534),
-				RunAsUser:    jsii.Number(65534),
+			LivenessProbe:  &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/"}}},
+			ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/"}}},
+			SecurityContext: &corev1.SecurityContext{
+				RunAsGroup:   infrahelpers.Ptr(int64(65534)),
+				RunAsUser:    infrahelpers.Ptr(int64(65534)),
 				RunAsNonRoot: jsii.Bool(true),
 			},
 		}},

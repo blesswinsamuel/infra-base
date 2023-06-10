@@ -114,7 +114,7 @@ func ToJSONString(v any) string {
 	return string(out)
 }
 
-func GoTemplate(s string, data interface{}) *string {
+func GoTemplate(s string, data interface{}) string {
 	tmpl, err := template.New("tmpl").Parse(s)
 	if err != nil {
 		panic(err)
@@ -124,7 +124,7 @@ func GoTemplate(s string, data interface{}) *string {
 	if err != nil {
 		panic(err)
 	}
-	return jsii.String(buf.String())
+	return buf.String()
 }
 
 func Ptr[T any](v T) *T {

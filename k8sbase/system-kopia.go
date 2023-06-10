@@ -2,10 +2,9 @@ package k8sbase
 
 import (
 	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
+	corev1 "k8s.io/api/core/v1"
 )
 
 type KopiaProps struct {
@@ -51,12 +50,12 @@ func NewKopia(scope constructs.Construct, props KopiaProps) constructs.Construct
 			Env: map[string]string{
 				"USER": props.User,
 			},
-			ExtraVolumeMounts: []*k8s.VolumeMount{
-				{Name: jsii.String("kopia-config"), MountPath: jsii.String("/app/config/repository.config"), SubPath: jsii.String("repository.config"), ReadOnly: jsii.Bool(true)},
+			ExtraVolumeMounts: []corev1.VolumeMount{
+				{Name: "kopia-config", MountPath: "/app/config/repository.config", SubPath: "repository.config", ReadOnly: true},
 			},
 		}},
-		ExtraVolumes: []*k8s.Volume{
-			{Name: jsii.String("kopia-config"), Secret: &k8s.SecretVolumeSource{SecretName: jsii.String("kopia-config")}},
+		ExtraVolumes: []corev1.Volume{
+			{Name: "kopia-config", VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: "kopia-config"}}},
 		},
 		ExternalSecrets: []k8sapp.ApplicationExternalSecret{
 			{
