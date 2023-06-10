@@ -5,7 +5,6 @@ import (
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	externalsecretsmetav1 "github.com/external-secrets/external-secrets/apis/meta/v1"
@@ -22,13 +21,11 @@ type ClusterSecretStoreProps struct {
 func NewClusterSecretStore(scope constructs.Construct, props ClusterSecretStoreProps) cdk8s.Chart {
 	cprops := cdk8s.ChartProps{}
 	chart := cdk8s.NewChart(scope, jsii.String("cluster-secret-store"), &cprops)
-	k8s.NewKubeSecret(chart, jsii.String("secret"), &k8s.KubeSecretProps{
-		Metadata: &k8s.ObjectMeta{
-			Name:      jsii.String("doppler-token-auth-api"),
-			Namespace: jsii.String("default"),
-		},
-		Data: &map[string]*string{
-			"dopplerToken": jsii.String(props.DopplerServiceToken),
+	k8sapp.NewSecret(chart, jsii.String("secret"), &k8sapp.SecretProps{
+		Name:      "doppler-token-auth-api",
+		Namespace: "default",
+		Data: map[string][]byte{
+			"dopplerToken": []byte(props.DopplerServiceToken),
 		},
 	})
 	k8sapp.NewK8sObject(chart, jsii.String("cluster-secret-store"), &externalsecretsv1beta1.ClusterSecretStore{

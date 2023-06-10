@@ -49,6 +49,9 @@ func NewK8sObject(scope constructs.Construct, id *string, obj runtime.Object) cd
 	if mobj["stringData"] != nil {
 		apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/stringData"), mobj["stringData"]))
 	}
+	if mobj["automountServiceAccountToken"] != nil {
+		apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/automountServiceAccountToken"), mobj["automountServiceAccountToken"]))
+	}
 	// apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/metadata"), infrahelpers.K8sObjectToMap(obj)["metadata"]))
 	return apiobj
 }

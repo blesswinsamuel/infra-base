@@ -7,9 +7,9 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	traefiktypes "github.com/traefik/traefik/v2/pkg/types"
+	networkingv1 "k8s.io/api/networking/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -113,33 +113,35 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 			},
 		})
 	} else if props.IngressType == "kubernetes" {
-		ingressRules := []*k8s.IngressRule{}
+		ingressRules := []networkingv1.IngressRule{}
 		tlsHosts := map[string]bool{}
 		for _, host := range props.Hosts {
-			hostPaths := []*k8s.HttpIngressPath{}
+			hostPaths := []networkingv1.HTTPIngressPath{}
 			tlsHosts[host.Host] = true
 			for _, path := range host.Paths {
 				pathStr := path.Path
 				if pathStr == "" {
 					pathStr = "/"
 				}
-				hostPaths = append(hostPaths, &k8s.HttpIngressPath{
-					Path:     &pathStr,
-					PathType: jsii.String("Prefix"),
-					Backend: &k8s.IngressBackend{
-						Service: &k8s.IngressServiceBackend{
-							Name: jsii.String(path.ServiceName),
-							Port: &k8s.ServiceBackendPort{
-								Name: jsii.String(path.ServicePortName),
+				hostPaths = append(hostPaths, networkingv1.HTTPIngressPath{
+					Path:     pathStr,
+					PathType: infrahelpers.Ptr(networkingv1.PathType("Prefix")),
+					Backend: networkingv1.IngressBackend{
+						Service: &networkingv1.IngressServiceBackend{
+							Name: path.ServiceName,
+							Port: networkingv1.ServiceBackendPort{
+								Name: path.ServicePortName,
 							},
 						},
 					},
 				})
 			}
-			ingressRules = append(ingressRules, &k8s.IngressRule{
-				Host: jsii.String(host.Host),
-				Http: &k8s.HttpIngressRuleValue{
-					Paths: &hostPaths,
+			ingressRules = append(ingressRules, networkingv1.IngressRule{
+				Host: host.Host,
+				IngressRuleValue: networkingv1.IngressRuleValue{
+					HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: hostPaths,
+					},
 				},
 			})
 		}
@@ -156,17 +158,17 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 		if len(traefikMiddlwareNames) > 0 {
 			annotations["traefik.ingress.kubernetes.io/router.middlewares"] = strings.Join(traefikMiddlwareNames, ",")
 		}
-		k8s.NewKubeIngress(scope, id, &k8s.KubeIngressProps{
-			Metadata: &k8s.ObjectMeta{
-				Name:        jsii.String(props.Name),
-				Annotations: infrahelpers.PtrMap(annotations),
+		NewK8sObject(scope, id, &networkingv1.Ingress{
+			ObjectMeta: v1.ObjectMeta{
+				Name:        props.Name,
+				Annotations: annotations,
 			},
-			Spec: &k8s.IngressSpec{
-				Rules: &ingressRules,
-				Tls: &[]*k8s.IngressTls{
+			Spec: networkingv1.IngressSpec{
+				Rules: ingressRules,
+				TLS: []networkingv1.IngressTLS{
 					{
-						Hosts:      infrahelpers.PtrSlice(infrahelpers.MapKeys(tlsHosts)...),
-						SecretName: jsii.String(fmt.Sprintf("%s-tls", props.Name)),
+						Hosts:      infrahelpers.MapKeys(tlsHosts),
+						SecretName: fmt.Sprintf("%s-tls", props.Name),
 					},
 				},
 			},
