@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"text/template"
 
-	"github.com/aws/jsii-runtime-go"
-	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
 	"github.com/goccy/go-yaml"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
@@ -129,20 +127,6 @@ func GoTemplate(s string, data interface{}) string {
 
 func Ptr[T any](v T) *T {
 	return &v
-}
-
-func MapToEnvVars(m map[string]string) *[]*k8s.EnvVar {
-	envVars := make([]*k8s.EnvVar, 0)
-	for k, v := range m {
-		envVars = append(envVars, &k8s.EnvVar{
-			Name:  jsii.String(k),
-			Value: jsii.String(v),
-		})
-	}
-	slices.SortFunc(envVars, func(i, j *k8s.EnvVar) bool {
-		return *i.Name < *j.Name
-	})
-	return &envVars
 }
 
 func MergeMaps[K comparable, V any](annotations ...map[K]V) map[K]V {

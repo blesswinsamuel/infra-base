@@ -9,6 +9,7 @@ import (
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,6 +33,9 @@ func init() {
 		panic(err)
 	}
 	if err := appsv1.AddToScheme(Scheme); err != nil {
+		panic(err)
+	}
+	if err := batchv1.AddToScheme(Scheme); err != nil {
 		panic(err)
 	}
 	if err := corev1.AddToScheme(Scheme); err != nil {
