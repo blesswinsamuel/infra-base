@@ -7,9 +7,10 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/k8simports/ingressroute_traefikio"
 	"github.com/blesswinsamuel/infra-base/k8simports/k8s"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
+	traefiktypes "github.com/traefik/traefik/v2/pkg/types"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type NameNamespace struct {
@@ -48,10 +49,10 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 	}
 	globals := GetGlobalContext(scope)
 	if props.IngressType == "traefik" {
-		ingressRules := []*ingressroute_traefikio.IngressRouteSpecRoutes{}
+		ingressRules := []traefikv1alpha1.Route{}
 		tlsHosts := map[string]bool{}
 		for _, host := range props.Hosts {
-			hostPaths := []*ingressroute_traefikio.IngressRouteSpecRoutesServices{}
+			hostPaths := []traefikv1alpha1.Service{}
 			if host.Tls {
 				tlsHosts[host.Host] = true
 			}
@@ -60,32 +61,32 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 				if pathStr == "" {
 					pathStr = "/"
 				}
-				var kind ingressroute_traefikio.IngressRouteSpecRoutesServicesKind
+				var kind string
 				if strings.Contains(path.ServiceName, "@") {
-					kind = ingressroute_traefikio.IngressRouteSpecRoutesServicesKind_TRAEFIK_SERVICE
+					kind = "TraefikService"
 				} else {
-					kind = ingressroute_traefikio.IngressRouteSpecRoutesServicesKind_SERVICE
+					kind = "Service"
 				}
-				hostPaths = append(hostPaths, &ingressroute_traefikio.IngressRouteSpecRoutesServices{
-					Name: jsii.String(path.ServiceName),
+				hostPaths = append(hostPaths, traefikv1alpha1.Service{LoadBalancerSpec: traefikv1alpha1.LoadBalancerSpec{
+					Name: path.ServiceName,
 					Kind: kind,
-				})
+				}})
 			}
-			middlewares := []*ingressroute_traefikio.IngressRouteSpecRoutesMiddlewares{}
+			middlewares := []traefikv1alpha1.MiddlewareRef{}
 			for _, middleware := range props.TraefikMiddlewareNames {
-				middlewares = append(middlewares, &ingressroute_traefikio.IngressRouteSpecRoutesMiddlewares{
-					Name:      jsii.String(middleware.Name),
-					Namespace: jsii.String(middleware.Namespace),
+				middlewares = append(middlewares, traefikv1alpha1.MiddlewareRef{
+					Name:      middleware.Name,
+					Namespace: middleware.Namespace,
 				})
 			}
-			ingressRules = append(ingressRules, &ingressroute_traefikio.IngressRouteSpecRoutes{
-				Match:       jsii.String("Host(`" + host.Host + "`)"),
-				Kind:        ingressroute_traefikio.IngressRouteSpecRoutesKind_RULE,
-				Services:    &hostPaths,
-				Middlewares: &middlewares,
+			ingressRules = append(ingressRules, traefikv1alpha1.Route{
+				Match:       "Host(`" + host.Host + "`)",
+				Kind:        "Rule",
+				Services:    hostPaths,
+				Middlewares: middlewares,
 			})
 		}
-		tlsDomains := []*ingressroute_traefikio.IngressRouteSpecTlsDomains{}
+		tlsDomains := []traefiktypes.Domain{}
 		if len(tlsHosts) > 0 {
 			NewCertificate(scope, jsii.String(*id+"-cert"), &CertificateProps{
 				Name:       props.Name,
@@ -94,20 +95,20 @@ func NewIngress(scope constructs.Construct, id *string, props *IngressProps) con
 			})
 		}
 		for _, host := range infrahelpers.MapKeys(tlsHosts) {
-			tlsDomains = append(tlsDomains, &ingressroute_traefikio.IngressRouteSpecTlsDomains{
-				Main: jsii.String(host),
+			tlsDomains = append(tlsDomains, traefiktypes.Domain{
+				Main: host,
 			})
 		}
-		ingressroute_traefikio.NewIngressRoute(scope, id, &ingressroute_traefikio.IngressRouteProps{
-			Metadata: &cdk8s.ApiObjectMetadata{
-				Name: jsii.String(props.Name),
+		NewK8sObject(scope, id, &traefikv1alpha1.IngressRoute{
+			ObjectMeta: v1.ObjectMeta{
+				Name: props.Name,
 			},
-			Spec: &ingressroute_traefikio.IngressRouteSpec{
-				EntryPoints: jsii.PtrSlice("websecure"),
-				Routes:      &ingressRules,
-				Tls: &ingressroute_traefikio.IngressRouteSpecTls{
-					SecretName: jsii.String(fmt.Sprintf("%s-tls", props.Name)),
-					Domains:    &tlsDomains,
+			Spec: traefikv1alpha1.IngressRouteSpec{
+				EntryPoints: []string{"websecure"},
+				Routes:      ingressRules,
+				TLS: &traefikv1alpha1.TLS{
+					SecretName: fmt.Sprintf("%s-tls", props.Name),
+					Domains:    tlsDomains,
 				},
 			},
 		})

@@ -9,6 +9,7 @@ import (
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,6 +25,9 @@ func init() {
 		panic(err)
 	}
 	if err := certmanagerv1.AddToScheme(scheme); err != nil {
+		panic(err)
+	}
+	if err := traefikv1alpha1.AddToScheme(scheme); err != nil {
 		panic(err)
 	}
 }

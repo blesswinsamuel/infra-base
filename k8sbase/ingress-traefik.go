@@ -4,8 +4,10 @@ import (
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/k8simports/middlewares_traefikio"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/traefik/traefik/v2/pkg/config/dynamic"
+	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type TraefikProps struct {
@@ -171,13 +173,11 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 	}
 
 	if props.Middlewares.StripPrefix.Enabled {
-		middlewares_traefikio.NewMiddleware(chart, jsii.String("traefik-strip-prefix"), &middlewares_traefikio.MiddlewareProps{
-			Metadata: &cdk8s.ApiObjectMetadata{
-				Name: jsii.String("traefik-strip-prefix"),
-			},
-			Spec: &middlewares_traefikio.MiddlewareSpec{
-				StripPrefixRegex: &middlewares_traefikio.MiddlewareSpecStripPrefixRegex{
-					Regex: jsii.PtrSlice("^/[^/]+"),
+		k8sapp.NewK8sObject(chart, jsii.String("traefik-strip-prefix"), &traefikv1alpha1.Middleware{
+			ObjectMeta: v1.ObjectMeta{Name: "traefik-strip-prefix"},
+			Spec: traefikv1alpha1.MiddlewareSpec{
+				StripPrefixRegex: &dynamic.StripPrefixRegex{
+					Regex: []string{"^/[^/]+"},
 				},
 			},
 		})
