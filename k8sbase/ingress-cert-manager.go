@@ -1,9 +1,9 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type CertManagerProps struct {
@@ -13,7 +13,7 @@ type CertManagerProps struct {
 
 // https://github.com/cert-manager/cert-manager/tree/master/deploy/charts/cert-manager
 // https://artifacthub.io/packages/helm/cert-manager/cert-manager
-func NewCertManager(scope constructs.Construct, props CertManagerProps) constructs.Construct {
+func NewCertManager(scope packager.Construct, props CertManagerProps) packager.Construct {
 	if !props.Enabled {
 		return nil
 	}

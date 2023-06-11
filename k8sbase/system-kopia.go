@@ -1,9 +1,9 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
+	"github.com/blesswinsamuel/infra-base/packager"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -15,7 +15,7 @@ type KopiaProps struct {
 }
 
 // https://kopia.io/docs/installation/#docker-images
-func NewKopia(scope constructs.Construct, props KopiaProps) constructs.Construct {
+func NewKopia(scope packager.Construct, props KopiaProps) packager.Construct {
 	if !props.Enabled {
 		return nil
 	}

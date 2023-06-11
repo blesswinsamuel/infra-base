@@ -1,8 +1,8 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type AuthProps struct {
@@ -12,7 +12,7 @@ type AuthProps struct {
 	LLDAP              LLDAPProps              `json:"lldap"`
 }
 
-func NewAuth(scope constructs.Construct, props AuthProps) constructs.Construct {
+func NewAuth(scope packager.Construct, props AuthProps) packager.Construct {
 	defer logModuleTiming("auth")()
 	chart := k8sapp.NewNamespaceChart(scope, props.Namespace)
 

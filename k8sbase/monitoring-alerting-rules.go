@@ -10,10 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
 )
@@ -72,11 +71,11 @@ func GetCachedAlertingRule(url string, cacheDir string) []byte {
 	return data
 }
 
-func NewAlertingRules(scope constructs.Construct, props AlertingRulesProps) cdk8s.Chart {
-	cprops := cdk8s.ChartProps{
-		Namespace: k8sapp.GetNamespaceContextPtr(scope),
+func NewAlertingRules(scope packager.Construct, props AlertingRulesProps) packager.Chart {
+	cprops := &packager.ChartProps{
+		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := cdk8s.NewChart(scope, jsii.String("alerting-rules"), &cprops)
+	chart := packager.NewChart(scope, "alerting-rules", cprops)
 
 	rules := map[string]string{}
 	cacheDir := k8sapp.GetGlobalContext(scope).CacheDir

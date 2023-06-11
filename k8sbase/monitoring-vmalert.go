@@ -1,8 +1,8 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
+	"github.com/blesswinsamuel/infra-base/packager"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -18,7 +18,7 @@ type VmalertProps struct {
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-agent
-func NewVmalert(scope constructs.Construct, props VmalertProps) constructs.Construct {
+func NewVmalert(scope packager.Construct, props VmalertProps) packager.Construct {
 	if !props.Enabled {
 		return nil
 	}

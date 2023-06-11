@@ -1,8 +1,8 @@
 package k8sapp
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/infra-base/packager"
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmanagermetav1 "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +14,7 @@ type CertificateProps struct {
 	CertIssuer CertIssuerRefProps
 }
 
-func NewCertificate(scope constructs.Construct, id *string, props *CertificateProps) constructs.Construct {
+func NewCertificate(scope packager.Construct, id *string, props *CertificateProps) packager.Construct {
 	globals := GetGlobalContext(scope)
 	return NewK8sObject(scope, id, &certmanagerv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name},

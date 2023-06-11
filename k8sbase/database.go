@@ -1,8 +1,8 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type DatabaseProps struct {
@@ -12,7 +12,7 @@ type DatabaseProps struct {
 	Redis    RedisProps    `json:"redis"`
 }
 
-func NewDatabase(scope constructs.Construct, props DatabaseProps) constructs.Construct {
+func NewDatabase(scope packager.Construct, props DatabaseProps) packager.Construct {
 	if !props.Enabled {
 		return nil
 	}

@@ -1,8 +1,8 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type IngressProps struct {
@@ -11,7 +11,7 @@ type IngressProps struct {
 	Traefik     TraefikProps     `json:"traefik"`
 }
 
-func NewIngress(scope constructs.Construct, props IngressProps) constructs.Construct {
+func NewIngress(scope packager.Construct, props IngressProps) packager.Construct {
 	defer logModuleTiming("ingress")()
 
 	{

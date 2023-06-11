@@ -1,10 +1,9 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	certmanageracmev1 "github.com/cert-manager/cert-manager/pkg/apis/acme/v1"
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmanagermetav1 "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
@@ -17,7 +16,7 @@ type CertIssuerProps struct {
 	Solver  string `json:"solver"` // dns or http
 }
 
-func letsEncryptIssuer(chart constructs.Construct, props CertIssuerProps, name string, server string) {
+func letsEncryptIssuer(chart packager.Construct, props CertIssuerProps, name string, server string) {
 	issuer := &certmanagerv1.ClusterIssuer{
 		ObjectMeta: v1.ObjectMeta{Name: name},
 		Spec: certmanagerv1.IssuerSpec{IssuerConfig: certmanagerv1.IssuerConfig{
@@ -60,14 +59,14 @@ func letsEncryptIssuer(chart constructs.Construct, props CertIssuerProps, name s
 	k8sapp.NewK8sObject(chart, jsii.String(name), issuer)
 }
 
-func NewCertIssuer(scope constructs.Construct, props CertIssuerProps) cdk8s.Chart {
+func NewCertIssuer(scope packager.Construct, props CertIssuerProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := cdk8s.ChartProps{
-		Namespace: jsii.String("cert-manager"),
+	cprops := &packager.ChartProps{
+		Namespace: "cert-manager",
 	}
-	chart := cdk8s.NewChart(scope, jsii.String("cert-issuer"), &cprops)
+	chart := packager.NewChart(scope, "cert-issuer", cprops)
 
 	// NewNamespace(chart, jsii.String("namespace"), &NamespaceProps{Name: "cert-manager"})
 	letsEncryptIssuer(chart, props, "letsencrypt-prod", "https://acme-v02.api.letsencrypt.org/directory")

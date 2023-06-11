@@ -3,8 +3,8 @@ package k8sbase
 import (
 	"fmt"
 
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
+	"github.com/blesswinsamuel/infra-base/packager"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -16,7 +16,7 @@ type LLDAPProps struct {
 	EmailDomain string           `json:"email_domain"`
 }
 
-func NewLLDAP(scope constructs.Construct, props LLDAPProps) constructs.Construct {
+func NewLLDAP(scope packager.Construct, props LLDAPProps) packager.Construct {
 	if !props.Enabled {
 		return nil
 	}

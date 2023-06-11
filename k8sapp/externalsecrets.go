@@ -1,9 +1,8 @@
 package k8sapp
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
@@ -25,7 +24,7 @@ type ExternalSecretProps struct {
 	SecretStore     ExternalSecretStoreProps
 }
 
-func NewExternalSecret(scope constructs.Construct, id *string, props *ExternalSecretProps) cdk8s.ApiObject {
+func NewExternalSecret(scope packager.Construct, id *string, props *ExternalSecretProps) packager.ApiObject {
 	// construct := constructs.NewConstruct(scope, id)
 	var data []externalsecretsv1beta1.ExternalSecretData
 	for k, v := range props.RemoteRefs {

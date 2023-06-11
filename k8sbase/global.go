@@ -1,9 +1,8 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type GlobalProps struct {
@@ -13,23 +12,23 @@ type GlobalProps struct {
 	InternetAuthType               string `json:"internetAuthType"`
 }
 
-func GetGlobal(scope constructs.Construct) GlobalProps {
-	globalValues := scope.Node().TryGetContext(jsii.String("global")).(string)
+func GetGlobal(scope packager.Construct) GlobalProps {
+	globalValues := scope.Node().TryGetContext("global").(string)
 	return infrahelpers.FromYamlString[GlobalProps](globalValues)
 }
 
-func GetCertIssuer(scope constructs.Construct) string {
+func GetCertIssuer(scope packager.Construct) string {
 	return GetGlobal(scope).CertIssuer
 }
 
-func GetCertIssuerAnnotation(scope constructs.Construct) map[string]string {
+func GetCertIssuerAnnotation(scope packager.Construct) map[string]string {
 	return map[string]string{"cert-manager.io/cluster-issuer": GetCertIssuer(scope)}
 }
 
-func SetGlobalContext(scope constructs.Construct, props GlobalProps) {
-	scope.Node().SetContext(jsii.String("global"), infrahelpers.ToYamlString(props))
+func SetGlobalContext(scope packager.Construct, props GlobalProps) {
+	scope.Node().SetContext("global", infrahelpers.ToYamlString(props))
 }
 
-func GetDomain(scope constructs.Construct) string {
+func GetDomain(scope packager.Construct) string {
 	return GetGlobal(scope).Domain
 }

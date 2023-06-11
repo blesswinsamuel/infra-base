@@ -1,9 +1,8 @@
 package k8sapp
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type Globals struct {
@@ -17,11 +16,11 @@ type Globals struct {
 	CacheDir string
 }
 
-func GetGlobalContext(scope constructs.Construct) Globals {
-	globalValues := scope.Node().TryGetContext(jsii.String("globals")).(string)
+func GetGlobalContext(scope packager.Construct) Globals {
+	globalValues := scope.Node().TryGetContext("globals").(string)
 	return infrahelpers.FromYamlString[Globals](globalValues)
 }
 
-func SetGlobalContext(scope constructs.Construct, props Globals) {
-	scope.Node().SetContext(jsii.String("globals"), jsii.String(infrahelpers.ToYamlString(props)))
+func SetGlobalContext(scope packager.Construct, props Globals) {
+	scope.Node().SetContext("globals", infrahelpers.ToYamlString(props))
 }

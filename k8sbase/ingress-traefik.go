@@ -1,10 +1,9 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	"github.com/traefik/traefik/v2/pkg/config/dynamic"
 	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,7 +24,7 @@ type TraefikProps struct {
 	} `json:"middlewares"`
 }
 
-func getTraefikAuthMiddlewareName(scope constructs.Construct) string {
+func getTraefikAuthMiddlewareName(scope packager.Construct) string {
 	switch GetGlobal(scope).InternetAuthType {
 	case "traefik-forward-auth":
 		return "auth-traefik-forward-auth@kubernetescrd"
@@ -36,14 +35,14 @@ func getTraefikAuthMiddlewareName(scope constructs.Construct) string {
 }
 
 // https://github.com/traefik/traefik-helm-chart/tree/master/traefik
-func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
+func NewTraefik(scope packager.Construct, props TraefikProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := cdk8s.ChartProps{
-		Namespace: k8sapp.GetNamespaceContextPtr(scope),
+	cprops := &packager.ChartProps{
+		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := cdk8s.NewChart(scope, jsii.String("traefik"), &cprops)
+	chart := packager.NewChart(scope, "traefik", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("traefik"), &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,

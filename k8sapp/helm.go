@@ -11,11 +11,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	"gopkg.in/yaml.v3"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ChartInfo struct {
@@ -28,11 +28,11 @@ type HelmProps struct {
 	ChartInfo           ChartInfo
 	ChartFileNamePrefix *string
 	ReleaseName         *string
-	Namespace           *string
+	Namespace           string
 	Values              map[string]interface{}
 }
 
-func NewHelm(scope constructs.Construct, id *string, props *HelmProps) constructs.Construct {
+func NewHelm(scope packager.Construct, id *string, props *HelmProps) packager.Construct {
 	globals := GetGlobalContext(scope)
 	chartsCacheDir := fmt.Sprintf("%s/%s", globals.CacheDir, "charts")
 	if err := os.MkdirAll(chartsCacheDir, os.ModePerm); err != nil {
@@ -66,8 +66,8 @@ func NewHelm(scope constructs.Construct, id *string, props *HelmProps) construct
 		}
 	}
 	namespace := props.Namespace
-	if namespace == nil {
-		namespace = GetNamespaceContextPtr(scope)
+	if namespace == "" {
+		namespace = GetNamespaceContext(scope)
 	}
 
 	cmd := exec.Command(
@@ -76,7 +76,7 @@ func NewHelm(scope constructs.Construct, id *string, props *HelmProps) construct
 		*props.ReleaseName,
 		chartPath,
 		"--namespace",
-		*namespace,
+		namespace,
 		"--include-crds",
 		"--skip-tests",
 		"--no-hooks",
@@ -109,64 +109,23 @@ func NewHelm(scope constructs.Construct, id *string, props *HelmProps) construct
 		if len(obj) == 0 {
 			continue
 		}
-		apiMetadata := &cdk8s.ApiObjectMetadata{}
-		metadata := obj["metadata"].(map[string]any)
-		if name, ok := metadata["name"].(string); ok {
-			apiMetadata.Name = jsii.String(name)
-		}
-		if ns, ok := metadata["namespace"].(string); ok {
-			apiMetadata.Namespace = jsii.String(ns)
-		} else {
-			apiMetadata.Namespace = namespace
-		}
-		mapStringAnyToStringString := func(in map[string]any) *map[string]*string {
-			out := map[string]*string{}
-			for k, v := range in {
-				if v, ok := v.(string); ok {
-					out[k] = jsii.String(v)
-				}
-			}
-			return &out
-		}
-		if labels, ok := metadata["labels"].(map[string]any); ok {
-			apiMetadata.Labels = mapStringAnyToStringString(labels)
-		}
-		if annotations, ok := metadata["annotations"].(map[string]any); ok {
-			apiMetadata.Annotations = mapStringAnyToStringString(annotations)
-		}
-		if finalizers, ok := metadata["finalizers"].([]any); ok {
-			var f []*string
-			for _, v := range finalizers {
-				if v, ok := v.(string); ok {
-					f = append(f, jsii.String(v))
-				}
-			}
-			apiMetadata.Finalizers = &f
-		}
-		apiObj := cdk8s.NewApiObject(scope, jsii.String("api-"+strconv.Itoa(i)), &cdk8s.ApiObjectProps{
-			ApiVersion: jsii.String(obj["apiVersion"].(string)),
-			Kind:       jsii.String(obj["kind"].(string)),
-			Metadata:   apiMetadata,
+		packager.NewCdk8sApiObjectFromMap(scope, "api-"+strconv.Itoa(i), packager.ApiObjectProps{
+			TypeMeta: v1.TypeMeta{
+				APIVersion: obj["apiVersion"].(string),
+				Kind:       obj["kind"].(string),
+			},
+			Object: obj,
 		})
-		for _, field := range infrahelpers.MapKeys(obj) {
-			if field == "apiVersion" || field == "kind" || field == "metadata" {
-				continue
-			}
-			v := obj[field]
-			if v != nil {
-				apiObj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/"+field), v))
-			}
-		}
 	}
 
 	return scope
 }
 
-func NewHelmChart(scope constructs.Construct, id *string, props *HelmProps) cdk8s.Chart {
-	cprops := cdk8s.ChartProps{
-		Namespace: GetNamespaceContextPtr(scope),
+func NewHelmChart(scope packager.Construct, id *string, props *HelmProps) packager.Chart {
+	cprops := &packager.ChartProps{
+		Namespace: GetNamespaceContext(scope),
 	}
-	chart := cdk8s.NewChart(scope, id, &cprops)
+	chart := packager.NewChart(scope, *id, cprops)
 	NewHelm(chart, jsii.String("helm"), props)
 	return chart
 }

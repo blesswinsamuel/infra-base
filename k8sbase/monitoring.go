@@ -1,8 +1,8 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type MonitoringProps struct {
@@ -22,7 +22,7 @@ type MonitoringProps struct {
 	CrowdsecTraefikBouncer CrowdsecTraefikBouncerProps `json:"crowdsec-traefik-bouncer"`
 }
 
-func NewMonitoring(scope constructs.Construct, props MonitoringProps) constructs.Construct {
+func NewMonitoring(scope packager.Construct, props MonitoringProps) packager.Construct {
 	if !props.Enabled {
 		return nil
 	}

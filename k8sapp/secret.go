@@ -1,8 +1,7 @@
 package k8sapp
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -16,7 +15,7 @@ type SecretProps struct {
 	Data        map[string][]byte
 }
 
-func NewSecret(scope constructs.Construct, id *string, props *SecretProps) cdk8s.ApiObject {
+func NewSecret(scope packager.Construct, id *string, props *SecretProps) packager.ApiObject {
 	configMap := v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        props.Name,

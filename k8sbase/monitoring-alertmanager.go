@@ -4,11 +4,10 @@ import (
 	_ "embed"
 	"strings"
 
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	"github.com/muesli/reflow/dedent"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,7 +37,7 @@ type AlertmanagerProps struct {
 // https://github.com/prometheus-community/helm-charts/blob/main/charts/alertmanager
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-alert
 
-func NewAlertmanager(scope constructs.Construct, props AlertmanagerProps) cdk8s.Chart {
+func NewAlertmanager(scope packager.Construct, props AlertmanagerProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}

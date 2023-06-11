@@ -1,9 +1,8 @@
 package k8sapp
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,7 +14,7 @@ type PersistentVolumeClaim struct {
 	RequestsStorage string
 }
 
-func NewPersistentVolumeClaim(scope constructs.Construct, id *string, props *PersistentVolumeClaim) cdk8s.ApiObject {
+func NewPersistentVolumeClaim(scope packager.Construct, id *string, props *PersistentVolumeClaim) packager.ApiObject {
 	return NewK8sObject(scope, id, infrahelpers.Ptr(NewPersistentVolumeClaimProps(props)))
 }
 

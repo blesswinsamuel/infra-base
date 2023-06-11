@@ -13,10 +13,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	"golang.org/x/exp/slices"
 )
 
@@ -82,14 +81,14 @@ func GetCachedDashboard(url string, cacheDir string) []byte {
 	return data
 }
 
-func NewGrafanaDashboards(scope constructs.Construct, props GrafanaDashboardsProps) cdk8s.Chart {
+func NewGrafanaDashboards(scope packager.Construct, props GrafanaDashboardsProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := cdk8s.ChartProps{
-		Namespace: k8sapp.GetNamespaceContextPtr(scope),
+	cprops := &packager.ChartProps{
+		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := cdk8s.NewChart(scope, jsii.String("grafana-dashboards"), &cprops)
+	chart := packager.NewChart(scope, "grafana-dashboards", cprops)
 
 	cacheDir := k8sapp.GetGlobalContext(scope).CacheDir
 	type dashboardItem struct {
