@@ -40,27 +40,14 @@ func NewK8sObject(scope constructs.Construct, id *string, obj runtime.Object) cd
 		Metadata:   metadata,
 	})
 	mobj := infrahelpers.K8sObjectToMap(obj)
-	if mobj["spec"] != nil {
-		apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/spec"), mobj["spec"]))
+	for _, field := range infrahelpers.MapKeys(mobj) {
+		if field == "apiVersion" || field == "kind" || field == "metadata" {
+			continue
+		}
+		v := mobj[field]
+		if v != nil {
+			apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/"+field), v))
+		}
 	}
-	if mobj["data"] != nil {
-		apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/data"), mobj["data"]))
-	}
-	if mobj["stringData"] != nil {
-		apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/stringData"), mobj["stringData"]))
-	}
-	if mobj["automountServiceAccountToken"] != nil {
-		apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/automountServiceAccountToken"), mobj["automountServiceAccountToken"]))
-	}
-	if mobj["rules"] != nil {
-		apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/rules"), mobj["rules"]))
-	}
-	if mobj["roleRef"] != nil {
-		apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/roleRef"), mobj["roleRef"]))
-	}
-	if mobj["subjects"] != nil {
-		apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/subjects"), mobj["subjects"]))
-	}
-	// apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/metadata"), infrahelpers.K8sObjectToMap(obj)["metadata"]))
 	return apiobj
 }

@@ -8,52 +8,32 @@ import (
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
-	appsv1 "k8s.io/api/apps/v1"
-	batchv1 "k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	k8sjson "k8s.io/apimachinery/pkg/runtime/serializer/json"
 )
 
 var Scheme = runtime.NewScheme()
+var Codecs = serializer.NewCodecFactory(Scheme)
 var yamlSerializer *k8sjson.Serializer
 var jsonSerializer *k8sjson.Serializer
+var localSchemeBuilder = runtime.SchemeBuilder{
+	scheme.AddToScheme,
+	apiextensionsv1.AddToScheme,
+	externalsecretsv1beta1.AddToScheme,
+	certmanagerv1.AddToScheme,
+	traefikv1alpha1.AddToScheme,
+}
 
 func init() {
-	if err := corev1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
-	if err := networkingv1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
-	if err := externalsecretsv1beta1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
-	if err := appsv1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
-	if err := batchv1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
-	if err := corev1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
-	if err := externalsecretsv1beta1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
-	if err := certmanagerv1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
-	if err := traefikv1alpha1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
-	if err := rbacv1.AddToScheme(Scheme); err != nil {
-		panic(err)
-	}
+	metav1.AddToGroupVersion(Scheme, schema.GroupVersion{Version: "v1"})
+	utilruntime.Must(localSchemeBuilder.AddToScheme(Scheme))
 
 	yamlSerializer = k8sjson.NewSerializerWithOptions(
 		k8sjson.DefaultMetaFactory, Scheme, Scheme,
@@ -108,6 +88,38 @@ func K8sObjectToMap(obj runtime.Object) map[string]any {
 		panic(err)
 	}
 	return out
+}
+
+func YamlToK8sObject(data []byte) runtime.Object {
+	//serializer := json.NewSerializerWithOptions(
+	//	json.DefaultMetaFactory, nil, nil,
+	//	json.SerializerOptions{
+	//		Yaml:   true,
+	//		Pretty: true,
+	//		Strict: true,
+	//	},
+	//)
+	//b := bytes.NewBuffer(nil)
+	//err := serializer.Encode(obj, b)
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	//codec := serializer.NewCodecFactory(scheme).LegacyCodec(
+	//	corev1.SchemeGroupVersion,
+	//	externalsecretsv1beta1.SchemeGroupVersion,
+	//)
+	//output, err := runtime.Encode(codec, obj)
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	obj, _, err := Codecs.UniversalDeserializer().Decode(data, nil, nil)
+	if err != nil {
+		// log.Println(string(data))
+		panic(err)
+	}
+	return obj
 }
 
 func ToDuration(duration string) *metav1.Duration {
