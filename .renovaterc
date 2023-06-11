@@ -40,6 +40,12 @@
       "allowedVersions": "<=20000000.0"
     },
     {
+      "matchPackageNames": [
+        "k8s.io/client-go"
+      ],
+      "allowedVersions": "<=v11.0.0"
+    },
+    {
       "packagePatterns": [
         "^minio/"
       ],
