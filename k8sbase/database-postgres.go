@@ -1,10 +1,9 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type PostgresProps struct {
@@ -15,14 +14,14 @@ type PostgresProps struct {
 	Username      string           `json:"username"`
 }
 
-func NewPostgres(scope constructs.Construct, props PostgresProps) cdk8s.Chart {
+func NewPostgres(scope packager.Construct, props PostgresProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := cdk8s.ChartProps{
-		Namespace: k8sapp.GetNamespaceContextPtr(scope),
+	cprops := &packager.ChartProps{
+		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := cdk8s.NewChart(scope, jsii.String("postgres"), &cprops)
+	chart := packager.NewChart(scope, "postgres", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

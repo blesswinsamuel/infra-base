@@ -1,8 +1,8 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type SystemProps struct {
@@ -14,7 +14,7 @@ type SystemProps struct {
 	HelmOps map[string]interface{} `json:"helmOps"` // not implemented
 }
 
-func NewSystem(scope constructs.Construct, props SystemProps) constructs.Construct {
+func NewSystem(scope packager.Construct, props SystemProps) packager.Construct {
 	defer logModuleTiming("system")()
 
 	chart := k8sapp.NewNamespaceChart(scope, "system")

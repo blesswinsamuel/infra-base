@@ -1,10 +1,9 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type KubernetesDashboardProps struct {
@@ -17,7 +16,7 @@ type KubernetesDashboardProps struct {
 }
 
 // https://github.com/kubernetes/dashboard/tree/master/charts/helm-chart/kubernetes-dashboard
-func NewKubernetesDashboard(scope constructs.Construct, props KubernetesDashboardProps) cdk8s.Chart {
+func NewKubernetesDashboard(scope packager.Construct, props KubernetesDashboardProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}

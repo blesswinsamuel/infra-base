@@ -1,11 +1,10 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type LokiProps struct {
@@ -20,14 +19,14 @@ type LokiProps struct {
 }
 
 // https://github.com/grafana/loki/tree/main/production/helm/loki
-func NewLoki(scope constructs.Construct, props LokiProps) cdk8s.Chart {
+func NewLoki(scope packager.Construct, props LokiProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := cdk8s.ChartProps{
-		Namespace: k8sapp.GetNamespaceContextPtr(scope),
+	cprops := &packager.ChartProps{
+		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := cdk8s.NewChart(scope, jsii.String("loki"), &cprops)
+	chart := packager.NewChart(scope, "loki", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

@@ -4,11 +4,10 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/infra-base/packager"
 
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
 
 type TraefikForwardAuthProps struct {
@@ -26,14 +25,14 @@ type TraefikForwardAuthProps struct {
 // https://github.com/k8s-at-home/charts/tree/master/charts/stable/traefik-forward-auth
 // https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common
 // https://github.com/thomseddon/traefik-forward-auth
-func NewTraefikForwardAuth(scope constructs.Construct, props TraefikForwardAuthProps) cdk8s.Chart {
+func NewTraefikForwardAuth(scope packager.Construct, props TraefikForwardAuthProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := cdk8s.ChartProps{
-		Namespace: k8sapp.GetNamespaceContextPtr(scope),
+	cprops := &packager.ChartProps{
+		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := cdk8s.NewChart(scope, jsii.String("traefik-forward-auth"), &cprops)
+	chart := packager.NewChart(scope, "traefik-forward-auth", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

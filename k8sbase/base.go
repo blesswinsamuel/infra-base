@@ -6,8 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/aws/constructs-go/constructs/v10"
-	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/packager"
 	"github.com/goccy/go-yaml"
 )
 
@@ -32,9 +31,9 @@ func logModuleTiming(moduleName string) func() {
 	}
 }
 
-func NewBase(scope constructs.Construct, props BaseProps) constructs.Construct {
+func NewBase(scope packager.Construct, props BaseProps) packager.Construct {
 	defer logModuleTiming("base")()
-	construct := constructs.NewConstruct(scope, jsii.String("base"))
+	construct := packager.NewCdk8sConstruct(scope, "base")
 
 	// secrets
 	NewSecrets(construct, props.Secrets)

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/infra-base/packager"
 	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	traefiktypes "github.com/traefik/traefik/v2/pkg/types"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -43,7 +43,7 @@ type CertIssuerRefProps struct {
 	Kind string
 }
 
-func NewIngress(scope constructs.Construct, id *string, props *IngressProps) constructs.Construct {
+func NewIngress(scope packager.Construct, id *string, props *IngressProps) packager.Construct {
 	if props.IngressType == "" {
 		props.IngressType = "kubernetes"
 	}

@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	"golang.org/x/exp/slices"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -139,16 +138,16 @@ type ApplicationPrometheusScrape struct {
 	Path string // defaults to "/metrics"
 }
 
-func NewApplicationChart(scope constructs.Construct, id string, props *ApplicationProps) cdk8s.Chart {
-	chart := cdk8s.NewChart(scope, jsii.String(id), &cdk8s.ChartProps{
-		Namespace: GetNamespaceContextPtr(scope),
+func NewApplicationChart(scope packager.Construct, id string, props *ApplicationProps) packager.Chart {
+	chart := packager.NewChart(scope, id, &packager.ChartProps{
+		Namespace: GetNamespaceContext(scope),
 	})
 	NewApplication(chart, jsii.String("application"), props)
 	return chart
 }
 
-func NewApplication(scope constructs.Construct, id *string, props *ApplicationProps) constructs.Construct {
-	scope = constructs.NewConstruct(scope, id)
+func NewApplication(scope packager.Construct, id *string, props *ApplicationProps) packager.Construct {
+	scope = packager.NewCdk8sConstruct(scope, *id)
 	if props.Kind == "" {
 		props.Kind = "Deployment"
 	}

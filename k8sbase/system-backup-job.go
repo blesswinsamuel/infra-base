@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	"github.com/muesli/reflow/dedent"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -41,12 +40,12 @@ type BackupJobProps struct {
 	} `json:"filesystem"`
 }
 
-func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.Construct {
+func NewBackupJob(scope packager.Construct, props BackupJobProps) packager.Construct {
 	if !props.Enabled {
 		return nil
 	}
-	chart := cdk8s.NewChart(scope, jsii.String("backup-job"), &cdk8s.ChartProps{
-		Namespace: k8sapp.GetNamespaceContextPtr(scope),
+	chart := packager.NewChart(scope, "backup-job", &packager.ChartProps{
+		Namespace: k8sapp.GetNamespaceContext(scope),
 	})
 	k8sapp.NewExternalSecret(chart, jsii.String("external-secret-pg"), &k8sapp.ExternalSecretProps{
 		Name: "backup-restore-job-postgres",
@@ -116,7 +115,7 @@ func NewBackupJob(scope constructs.Construct, props BackupJobProps) constructs.C
 	return chart
 }
 
-func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
+func NewBackupJobPostgres(chart packager.Construct, props BackupJobProps) {
 	if !props.Postgres.Enabled {
 		return
 	}
@@ -210,7 +209,7 @@ func NewBackupJobPostgres(chart constructs.Construct, props BackupJobProps) {
 	})
 }
 
-func NewRestoreJobPostgres(chart constructs.Construct, props BackupJobProps) {
+func NewRestoreJobPostgres(chart packager.Construct, props BackupJobProps) {
 	if !props.Postgres.Enabled {
 		return
 	}
@@ -327,7 +326,7 @@ func echoContainer(msg string) corev1.Container {
 	}
 }
 
-func NewBackupJobFilesystem(chart constructs.Construct, props BackupJobProps) {
+func NewBackupJobFilesystem(chart packager.Construct, props BackupJobProps) {
 	if !props.Filesystem.Enabled {
 		return
 	}

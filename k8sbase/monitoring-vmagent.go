@@ -3,11 +3,10 @@ package k8sbase
 import (
 	_ "embed"
 
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -26,14 +25,14 @@ type VmagentProps struct {
 var vmagentConfig string
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-agent
-func NewVmagent(scope constructs.Construct, props VmagentProps) cdk8s.Chart {
+func NewVmagent(scope packager.Construct, props VmagentProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := cdk8s.ChartProps{
-		Namespace: k8sapp.GetNamespaceContextPtr(scope),
+	cprops := &packager.ChartProps{
+		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := cdk8s.NewChart(scope, jsii.String("vmagent"), &cprops)
+	chart := packager.NewChart(scope, "vmagent", cprops)
 
 	vmagentConfig := infrahelpers.FromYamlString[map[string]any](vmagentConfig)
 

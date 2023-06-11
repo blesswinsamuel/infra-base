@@ -1,10 +1,9 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type ReloaderProps struct {
@@ -14,7 +13,7 @@ type ReloaderProps struct {
 
 // https://github.com/stakater/Reloader/blob/master/deployments/kubernetes/chart/reloader
 
-func NewReloader(scope constructs.Construct, props ReloaderProps) cdk8s.Chart {
+func NewReloader(scope packager.Construct, props ReloaderProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}

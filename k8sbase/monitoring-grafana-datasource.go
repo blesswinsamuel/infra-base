@@ -1,11 +1,10 @@
 package k8sbase
 
 import (
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 )
 
 type GrafanaDatasourceProps struct {
@@ -14,11 +13,11 @@ type GrafanaDatasourceProps struct {
 // https://github.com/prometheus-community/helm-charts/blob/main/charts/alertmanager
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-alert
 
-func NewGrafanaDatasource(scope constructs.Construct, props GrafanaDatasourceProps) cdk8s.Chart {
-	cprops := cdk8s.ChartProps{
-		Namespace: k8sapp.GetNamespaceContextPtr(scope),
+func NewGrafanaDatasource(scope packager.Construct, props GrafanaDatasourceProps) packager.Chart {
+	cprops := &packager.ChartProps{
+		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := cdk8s.NewChart(scope, jsii.String("grafana-datasource"), &cprops)
+	chart := packager.NewChart(scope, "grafana-datasource", cprops)
 
 	k8sapp.NewConfigMap(chart, jsii.String("grafana-datasource-victoriametrics"), &k8sapp.ConfigmapProps{
 		Name: "grafana-datasource-victoriametrics",

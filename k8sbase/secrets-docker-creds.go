@@ -3,10 +3,9 @@ package k8sbase
 import (
 	"strings"
 
-	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
+	"github.com/blesswinsamuel/infra-base/packager"
 	"github.com/muesli/reflow/dedent"
 )
 
@@ -16,14 +15,14 @@ type SecretsDockerCredsProps struct {
 	Namespace string `json:"namespace"`
 }
 
-func NewSecretsDockerCreds(scope constructs.Construct, props SecretsDockerCredsProps) cdk8s.Chart {
+func NewSecretsDockerCreds(scope packager.Construct, props SecretsDockerCredsProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := cdk8s.ChartProps{
-		Namespace: &props.Namespace,
+	cprops := &packager.ChartProps{
+		Namespace: props.Namespace,
 	}
-	chart := cdk8s.NewChart(scope, jsii.String("docker-creds"), &cprops)
+	chart := packager.NewChart(scope, "docker-creds", cprops)
 	k8sapp.NewExternalSecret(chart, jsii.String("externalsecret"), &k8sapp.ExternalSecretProps{
 		Name:       "regcred",
 		SecretType: "kubernetes.io/dockerconfigjson",
