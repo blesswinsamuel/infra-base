@@ -19,15 +19,9 @@ jobs:
         with:
           path: ./cache
           key: cache-${{ env.cache-name }}
-      - name: Set up cdk8s
-        run: |
-          yarn global add cdk8s-cli
-      - name: cdk8s import
-        run: |
-          go generate ./...
       - name: go build
         run: |
-          CGO_ENABLED=0 go build -o /tmp/bless-stack
+          CGO_ENABLED=0 go build -o /tmp/bless-stack ./...
       # - name: run stack commands
       #   run: |
       #     /tmp/bless-stack xxx
