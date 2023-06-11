@@ -73,7 +73,7 @@ func NewVector(scope constructs.Construct, props VectorProps) cdk8s.Chart {
 						"secretName": "vector-tls",
 					},
 				},
-			}, nil),
+			}, map[string]any{}),
 			"customConfig": map[string]interface{}{
 				"data_dir": "/vector-data-dir",
 				"api": map[string]interface{}{

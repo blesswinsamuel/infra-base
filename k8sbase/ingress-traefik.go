@@ -50,12 +50,13 @@ func NewTraefik(scope constructs.Construct, props TraefikProps) cdk8s.Chart {
 		ReleaseName: jsii.String("traefik"),
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
-			"deployment": map[string]any{
-				"podAnnotations": map[string]any{
-					"prometheus.io/port":   "8082",
-					"prometheus.io/scrape": "true",
-				},
-			},
+			// "deployment": map[string]any{
+			// 	"podAnnotations": map[string]any{
+			// 		"prometheus.io/port":   "8082",
+			// 		"prometheus.io/scrape": "true",
+			// 	},
+			// },
+			// above is already set in the helm chart
 			"providers": map[string]any{
 				"kubernetesCRD": map[string]any{
 					"allowCrossNamespace":       true,
