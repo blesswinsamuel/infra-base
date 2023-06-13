@@ -28,37 +28,25 @@ func NewCdk8sApiObject(construct Construct, id string, obj runtime.Object) ApiOb
 	if len(groupVersionKinds) != 1 {
 		panic(fmt.Errorf("expected 1 groupVersionKind, got %d: %v", len(groupVersionKinds), groupVersionKinds))
 	}
-	var metadata *cdk8s.ApiObjectMetadata
+	var metadata metav1.ObjectMeta
 	if obj, ok := obj.(metav1.Object); ok {
-		if obj.GetNamespace() == "" {
-			if namespaceCtx := getNamespaceContext(construct); namespaceCtx != "" {
-				obj.SetNamespace(namespaceCtx)
-			}
-		}
-		metadata = &cdk8s.ApiObjectMetadata{
-			Name:        jsii.String(obj.GetName()),
-			Namespace:   infrahelpers.PtrIfNonEmpty(obj.GetNamespace()),
-			Labels:      infrahelpers.PtrMap(obj.GetLabels()),
-			Annotations: infrahelpers.PtrMap(obj.GetAnnotations()),
+		metadata = metav1.ObjectMeta{
+			Name:        obj.GetName(),
+			Namespace:   obj.GetNamespace(),
+			Labels:      obj.GetLabels(),
+			Annotations: obj.GetAnnotations(),
 		}
 	}
 	groupVersion := groupVersionKinds[0]
-	apiobj := cdk8s.NewApiObject(getCdk8sConstruct(construct), &id, &cdk8s.ApiObjectProps{
-		ApiVersion: jsii.String(groupVersion.GroupVersion().String()),
-		Kind:       jsii.String(groupVersion.Kind),
-		Metadata:   metadata,
-	})
 	mobj := infrahelpers.K8sObjectToMap(obj)
-	for _, field := range infrahelpers.MapKeys(mobj) {
-		if field == "apiVersion" || field == "kind" || field == "metadata" {
-			continue
-		}
-		v := mobj[field]
-		if v != nil {
-			apiobj.AddJsonPatch(cdk8s.JsonPatch_Replace(jsii.String("/"+field), v))
-		}
-	}
-	return &cdk8sApiObject{construct: apiobj}
+	return NewCdk8sApiObjectFromMap(construct, id, ApiObjectProps{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       groupVersion.Kind,
+			APIVersion: groupVersion.GroupVersion().String(),
+		},
+		ObjectMeta: metadata,
+		Object:     mobj,
+	})
 }
 
 type ApiObjectProps struct {

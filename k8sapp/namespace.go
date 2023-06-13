@@ -9,7 +9,7 @@ import (
 
 func NewNamespaceChart(scope packager.Construct, namespaceName string) packager.Chart {
 	chart := packager.NewChart(scope, namespaceName, &packager.ChartProps{
-		Namespace: (namespaceName),
+		Namespace: namespaceName,
 	})
 	SetNamespaceContext(chart, namespaceName)
 	NewNamespace(chart, jsii.String("namespace"), namespaceName)
