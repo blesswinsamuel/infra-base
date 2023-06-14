@@ -17,10 +17,10 @@ type Globals struct {
 }
 
 func GetGlobalContext(scope packager.Construct) Globals {
-	globalValues := scope.Node().TryGetContext("globals").(string)
+	globalValues := scope.GetContext("globals").(string)
 	return infrahelpers.FromYamlString[Globals](globalValues)
 }
 
 func SetGlobalContext(scope packager.Construct, props Globals) {
-	scope.Node().SetContext("globals", infrahelpers.ToYamlString(props))
+	scope.SetContext("globals", infrahelpers.ToYamlString(props))
 }

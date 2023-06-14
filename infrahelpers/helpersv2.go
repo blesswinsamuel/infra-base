@@ -122,6 +122,39 @@ func YamlToK8sObject(data []byte) runtime.Object {
 	return obj
 }
 
+func K8sObjectToYaml(obj runtime.Object) []byte {
+	//serializer := json.NewSerializerWithOptions(
+	//	json.DefaultMetaFactory, nil, nil,
+	//	json.SerializerOptions{
+	//		Yaml:   true,
+	//		Pretty: true,
+	//		Strict: true,
+	//	},
+	//)
+	//b := bytes.NewBuffer(nil)
+	//err := serializer.Encode(obj, b)
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	//codec := serializer.NewCodecFactory(scheme).LegacyCodec(
+	//	corev1.SchemeGroupVersion,
+	//	externalsecretsv1beta1.SchemeGroupVersion,
+	//)
+	//output, err := runtime.Encode(codec, obj)
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	b := bytes.NewBuffer(nil)
+	err := yamlSerializer.Encode(obj, b)
+	if err != nil {
+		// log.Println(string(data))
+		panic(err)
+	}
+	return b.Bytes()
+}
+
 func ToDuration(duration string) *metav1.Duration {
 	dur, err := time.ParseDuration(duration)
 	if err != nil {

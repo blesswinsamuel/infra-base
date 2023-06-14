@@ -13,7 +13,7 @@ type GlobalProps struct {
 }
 
 func GetGlobal(scope packager.Construct) GlobalProps {
-	globalValues := scope.Node().TryGetContext("global").(string)
+	globalValues := scope.GetContext("global").(string)
 	return infrahelpers.FromYamlString[GlobalProps](globalValues)
 }
 
@@ -26,7 +26,7 @@ func GetCertIssuerAnnotation(scope packager.Construct) map[string]string {
 }
 
 func SetGlobalContext(scope packager.Construct, props GlobalProps) {
-	scope.Node().SetContext("global", infrahelpers.ToYamlString(props))
+	scope.SetContext("global", infrahelpers.ToYamlString(props))
 }
 
 func GetDomain(scope packager.Construct) string {

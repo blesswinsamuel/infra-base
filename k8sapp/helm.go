@@ -15,7 +15,6 @@ import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/packager"
 	"gopkg.in/yaml.v3"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ChartInfo struct {
@@ -109,13 +108,14 @@ func NewHelm(scope packager.Construct, id *string, props *HelmProps) packager.Co
 		if len(obj) == 0 {
 			continue
 		}
-		scope.ApiObjectFromMap("api-"+strconv.Itoa(i), packager.ApiObjectProps{
-			TypeMeta: v1.TypeMeta{
-				APIVersion: obj["apiVersion"].(string),
-				Kind:       obj["kind"].(string),
-			},
-			Object: obj,
-		})
+		scope.ApiObjectFromMap("api-"+strconv.Itoa(i), obj)
+		// scope.ApiObjectFromMap("api-"+strconv.Itoa(i), packager.ApiObjectProps{
+		// 	// TypeMeta: v1.TypeMeta{
+		// 	// 	APIVersion: obj["apiVersion"].(string),
+		// 	// 	Kind:       obj["kind"].(string),
+		// 	// },
+		// 	Unstructured: unstructured.Unstructured{Object: obj},
+		// })
 	}
 
 	return scope
