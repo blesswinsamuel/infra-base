@@ -28,6 +28,9 @@ func NewVictoriaMetrics(scope packager.Construct, props VictoriametricsProps) pa
 	}
 	chart := scope.Chart("victoriametrics", cprops)
 
+	if props.PersistentVolume == nil {
+		props.PersistentVolume = map[string]any{}
+	}
 	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "victoriametrics",
