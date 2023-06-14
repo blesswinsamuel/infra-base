@@ -22,7 +22,9 @@ func (c *construct) Chart(id string, props ChartProps) Chart {
 	// fmt.Println("AddChart", c.node.FullID(), id)
 	chart := &chart{construct: &construct{}, props: props}
 	chart.construct.node = c.node.AddChildNode(id, chart)
-	// chart.SetContext("chart:namespace", props.Namespace)
+	if props.Namespace != "" {
+		chart.SetContext("namespace", props.Namespace)
+	}
 	c.node.AddChildNode(id, chart)
 	return chart
 }
