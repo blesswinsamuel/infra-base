@@ -64,7 +64,7 @@ monitoring:
     helm:
       repo: https://prometheus-community.github.io/helm-charts
       chart: kube-state-metrics
-      version: "5.7.0"
+      version: "5.8.0"
   grafana:
     enabled: true
     helm:
@@ -305,7 +305,7 @@ monitoring:
     helm:
       repo: https://grafana.github.io/helm-charts
       chart: loki
-      version: "5.6.4"
+      version: "5.8.0"
     storage: local
   vector:
     enabled: true
