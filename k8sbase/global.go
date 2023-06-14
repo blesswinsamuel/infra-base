@@ -9,7 +9,6 @@ type GlobalProps struct {
 	Domain                         string `json:"domain"`
 	CertIssuer                     string `json:"clusterCertIssuerName"`
 	ClusterExternalSecretStoreName string `json:"clusterExternalSecretStoreName"`
-	InternetAuthType               string `json:"internetAuthType"`
 }
 
 func GetGlobal(scope packager.Construct) GlobalProps {

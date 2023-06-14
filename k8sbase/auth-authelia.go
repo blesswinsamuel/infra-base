@@ -23,7 +23,14 @@ type AutheliaProps struct {
 	} `json:"oidc"`
 	AuthMode string `json:"authMode"` // ldap or file
 	LDAP     struct {
-		BaseDN string `json:"baseDN"`
+		BaseDN               string `json:"baseDN"`
+		URL                  string `json:"url"`
+		UsersFilter          string `json:"usersFilter"`
+		GroupsFilter         string `json:"groupsFilter"`
+		MailAttribute        string `json:"mailAttribute"`
+		DisplayNameAttribute string `json:"displayNameAttribute"`
+		User                 string `json:"user"`
+		PasswordSecretKey    string `json:"passwordSecretKey"`
 	} `json:"ldap"`
 	SMTP struct {
 		Host        string `json:"host"`
@@ -114,7 +121,7 @@ func NewAuthelia(scope packager.Construct, props AutheliaProps) packager.Constru
 				"annotations": infrahelpers.MergeAnnotations(
 					GetCertIssuerAnnotation(scope),
 					map[string]string{
-						"traefik.ingress.kubernetes.io/router.middlewares": "auth-chain-authelia@kubernetescrd",
+						"traefik.ingress.kubernetes.io/router.middlewares": k8sapp.GetNamespaceContext(scope) + "-chain-authelia@kubernetescrd",
 					},
 				),
 			},
@@ -176,20 +183,20 @@ func NewAuthelia(scope packager.Construct, props AutheliaProps) packager.Constru
 					"ldap": map[string]interface{}{
 						"enabled":             props.AuthMode == "ldap",
 						"implementation":      "custom",
-						"url":                 "ldap://lldap:3890",
+						"url":                 props.LDAP.URL,
 						"timeout":             "5s",
 						"start_tls":           false,
 						"base_dn":             props.LDAP.BaseDN,
 						"username_attribute":  "uid",
 						"additional_users_dn": "ou=people",
 						// # users_filter: "(&({username_attribute}={input})(objectClass=person))"
-						"users_filter":           "(&({username_attribute}={input})(!({username_attribute}=admin))(objectClass=person))",
+						"users_filter":           props.LDAP.UsersFilter,
 						"additional_groups_dn":   "ou=groups",
-						"groups_filter":          "(member={dn})",
+						"groups_filter":          props.LDAP.GroupsFilter,
 						"group_name_attribute":   "cn",
-						"mail_attribute":         "mail",
-						"display_name_attribute": "displayName",
-						"user":                   "uid=admin,ou=people," + props.LDAP.BaseDN,
+						"mail_attribute":         props.LDAP.MailAttribute,
+						"display_name_attribute": props.LDAP.DisplayNameAttribute,
+						"user":                   props.LDAP.User + "," + props.LDAP.BaseDN,
 					},
 					"file": map[string]interface{}{
 						"enabled": props.AuthMode == "file",
@@ -224,7 +231,7 @@ func NewAuthelia(scope packager.Construct, props AutheliaProps) packager.Constru
 		"STORAGE_PASSWORD":       "POSTGRES_USER_PASSWORD",
 	}
 	if props.AuthMode == "ldap" {
-		secrets["LDAP_PASSWORD"] = "LLDAP_LDAP_USER_PASS"
+		secrets["LDAP_PASSWORD"] = props.LDAP.PasswordSecretKey
 	}
 	if props.OIDC.Enabled {
 		secrets["OIDC_PRIVATE_KEY"] = "AUTHELIA_OIDC_PRIVATE_KEY"

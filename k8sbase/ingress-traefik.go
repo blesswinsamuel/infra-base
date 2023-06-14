@@ -16,21 +16,12 @@ type TraefikProps struct {
 		Enabled   bool   `json:"enabled"`
 		SubDomain string `json:"subDomain"`
 	} `json:"dashboardIngress"`
-	Middlewares struct {
+	CreateMiddlewares struct {
 		StripPrefix struct {
 			Enabled bool `json:"enabled"`
 		} `json:"stripPrefix"`
-	} `json:"middlewares"`
-}
-
-func getTraefikAuthMiddlewareName(scope packager.Construct) string {
-	switch GetGlobal(scope).InternetAuthType {
-	case "traefik-forward-auth":
-		return "auth-traefik-forward-auth@kubernetescrd"
-	case "authelia":
-		return "auth-forwardauth-authelia@kubernetescrd"
-	}
-	panic("Invalid internetAuthType")
+	} `json:"createMiddlewares"`
+	DefaultMiddlewares []string `json:"defaultMiddlewares"`
 }
 
 // https://github.com/traefik/traefik-helm-chart/tree/master/traefik
@@ -123,9 +114,7 @@ func NewTraefik(scope packager.Construct, props TraefikProps) packager.Chart {
 					// ## Enable this entrypoint as a default entrypoint. When a service doesn't explicity set an entrypoint it will only use this entrypoint.
 					// # works only from traefik v3
 					// # asDefault: true
-					"middlewares": []string{
-						getTraefikAuthMiddlewareName(scope),
-					},
+					"middlewares": props.DefaultMiddlewares,
 				},
 			},
 			"service": map[string]any{
@@ -171,7 +160,7 @@ func NewTraefik(scope packager.Construct, props TraefikProps) packager.Chart {
 		})
 	}
 
-	if props.Middlewares.StripPrefix.Enabled {
+	if props.CreateMiddlewares.StripPrefix.Enabled {
 		k8sapp.NewK8sObject(chart, "traefik-strip-prefix", &traefikv1alpha1.Middleware{
 			ObjectMeta: v1.ObjectMeta{Name: "traefik-strip-prefix"},
 			Spec: traefikv1alpha1.MiddlewareSpec{
