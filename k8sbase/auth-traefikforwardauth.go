@@ -6,7 +6,6 @@ import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/packager"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 )
 
@@ -34,9 +33,9 @@ func NewTraefikForwardAuth(scope packager.Construct, props TraefikForwardAuthPro
 	}
 	chart := scope.Chart("traefik-forward-auth", cprops)
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("traefik-forward-auth"),
+		ReleaseName: "traefik-forward-auth",
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			"image": map[string]interface{}{
@@ -91,7 +90,7 @@ func NewTraefikForwardAuth(scope packager.Construct, props TraefikForwardAuthPro
 		},
 	})
 
-	k8sapp.NewExternalSecret(chart, jsii.String("external-secret"), &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, "external-secret", &k8sapp.ExternalSecretProps{
 		Name: "traefik-forward-auth",
 		RemoteRefs: map[string]string{
 			"PROVIDERS_GOOGLE_CLIENT_SECRET": "AUTH_GOOGLE_CLIENT_SECRET",

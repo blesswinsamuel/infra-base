@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
@@ -20,14 +19,14 @@ type ClusterSecretStoreProps struct {
 func NewClusterSecretStore(scope packager.Construct, props ClusterSecretStoreProps) packager.Chart {
 	cprops := packager.ChartProps{}
 	chart := scope.Chart("cluster-secret-store", cprops)
-	k8sapp.NewSecret(chart, jsii.String("secret"), &k8sapp.SecretProps{
+	k8sapp.NewSecret(chart, "secret", &k8sapp.SecretProps{
 		Name:      "doppler-token-auth-api",
 		Namespace: "default",
 		Data: map[string][]byte{
 			"dopplerToken": []byte(props.DopplerServiceToken),
 		},
 	})
-	k8sapp.NewK8sObject(chart, jsii.String("cluster-secret-store"), &externalsecretsv1beta1.ClusterSecretStore{
+	k8sapp.NewK8sObject(chart, "cluster-secret-store", &externalsecretsv1beta1.ClusterSecretStore{
 		ObjectMeta: metav1.ObjectMeta{Name: GetGlobal(scope).ClusterExternalSecretStoreName},
 		Spec: externalsecretsv1beta1.SecretStoreSpec{
 			Controller:      "",

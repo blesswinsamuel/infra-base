@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 )
@@ -18,9 +17,9 @@ func NewReloader(scope packager.Construct, props ReloaderProps) packager.Chart {
 		return nil
 	}
 
-	chart := k8sapp.NewHelmChart(scope, jsii.String("reloader"), &k8sapp.HelmProps{
+	chart := k8sapp.NewHelmChart(scope, "reloader", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("reloader"),
+		ReleaseName: "reloader",
 		Values: map[string]interface{}{
 			"service": map[string]interface{}{
 				"port": 9090,

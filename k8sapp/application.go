@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/packager"
 	"golang.org/x/exp/slices"
@@ -142,12 +141,12 @@ func NewApplicationChart(scope packager.Construct, id string, props *Application
 	chart := scope.Chart(id, packager.ChartProps{
 		Namespace: GetNamespaceContext(scope),
 	})
-	NewApplication(chart, jsii.String("application"), props)
+	NewApplication(chart, "application", props)
 	return chart
 }
 
-func NewApplication(scope packager.Construct, id *string, props *ApplicationProps) packager.Construct {
-	scope = scope.Construct(*id)
+func NewApplication(scope packager.Construct, id string, props *ApplicationProps) packager.Construct {
+	scope = scope.Construct(id)
 	if props.Kind == "" {
 		props.Kind = "Deployment"
 	}
@@ -195,7 +194,7 @@ func NewApplication(scope packager.Construct, id *string, props *ApplicationProp
 			configmapHash.Write([]byte(configmap.Data[key]))
 			addConfigMapHash = true
 		}
-		NewConfigMap(scope, jsii.String("configmap-"+configmap.Name), &ConfigmapProps{
+		NewConfigMap(scope, "configmap-"+configmap.Name, &ConfigmapProps{
 			Name: configmap.Name,
 			Data: configmap.Data,
 		})
@@ -214,7 +213,7 @@ func NewApplication(scope packager.Construct, id *string, props *ApplicationProp
 				watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, secret.Name)
 			}
 		}
-		NewSecret(scope, jsii.String("secret-"+secret.Name), &SecretProps{
+		NewSecret(scope, "secret-"+secret.Name, &SecretProps{
 			Name:       secret.Name,
 			StringData: secret.Data,
 		})
@@ -230,7 +229,7 @@ func NewApplication(scope packager.Construct, id *string, props *ApplicationProp
 				watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, externalSecret.Name)
 			}
 		}
-		NewExternalSecret(scope, jsii.String("external-secret-"+externalSecret.Name), &ExternalSecretProps{
+		NewExternalSecret(scope, "external-secret-"+externalSecret.Name, &ExternalSecretProps{
 			Name:       externalSecret.Name,
 			RemoteRefs: externalSecret.RemoteRefs,
 			Template:   externalSecret.Template,
@@ -245,7 +244,7 @@ func NewApplication(scope packager.Construct, id *string, props *ApplicationProp
 			})
 			addVolumeMount(pv.MountToContainers, pv.MountName, pv.MountPath, pv.SubPath, pv.ReadOnly)
 		}
-		NewPersistentVolumeClaim(scope, jsii.String("pvc-"+pv.Name), &PersistentVolumeClaim{
+		NewPersistentVolumeClaim(scope, "pvc-"+pv.Name, &PersistentVolumeClaim{
 			Name:            pv.Name,
 			StorageClass:    pv.StorageClass,
 			RequestsStorage: pv.RequestsStorage,
@@ -286,7 +285,7 @@ func NewApplication(scope packager.Construct, id *string, props *ApplicationProp
 			Name:    container.Name,
 			Image:   container.Image.String(),
 			Command: container.Command,
-			// ImagePullPolicy: jsii.String("IfNotPresent"),
+			// ImagePullPolicy: ("IfNotPresent"),
 			Env:                      env,
 			EnvFrom:                  envFrom,
 			Args:                     container.Args,
@@ -352,7 +351,7 @@ func NewApplication(scope packager.Construct, id *string, props *ApplicationProp
 			Name:    container.Name,
 			Image:   container.Image.String(),
 			Command: container.Command,
-			// ImagePullPolicy: jsii.String("IfNotPresent"),
+			// ImagePullPolicy: ("IfNotPresent"),
 			Env:                      env,
 			EnvFrom:                  envFrom,
 			Args:                     container.Args,
@@ -398,7 +397,7 @@ func NewApplication(scope packager.Construct, id *string, props *ApplicationProp
 	}
 	switch props.Kind {
 	case "Deployment":
-		NewK8sObject(scope, jsii.String("deployment"), &v1.Deployment{
+		NewK8sObject(scope, "deployment", &v1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        props.Name,
 				Annotations: appAnnotations,
@@ -413,7 +412,7 @@ func NewApplication(scope packager.Construct, id *string, props *ApplicationProp
 			},
 		})
 	case "StatefulSet":
-		NewK8sObject(scope, jsii.String("statefuleset"), &v1.StatefulSet{
+		NewK8sObject(scope, "statefuleset", &v1.StatefulSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        props.Name,
 				Annotations: appAnnotations,
@@ -430,7 +429,7 @@ func NewApplication(scope packager.Construct, id *string, props *ApplicationProp
 		})
 	}
 	if len(servicePorts) > 0 {
-		NewK8sObject(scope, jsii.String("service"), &corev1.Service{
+		NewK8sObject(scope, "service", &corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        props.Name,
 				Annotations: serviceAnnotations,
@@ -441,7 +440,7 @@ func NewApplication(scope packager.Construct, id *string, props *ApplicationProp
 			},
 		})
 		if props.CreateHeadlessService {
-			NewK8sObject(scope, jsii.String("service-headless"), &corev1.Service{
+			NewK8sObject(scope, "service-headless", &corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: props.Name + "-headless",
 				},
@@ -453,7 +452,7 @@ func NewApplication(scope packager.Construct, id *string, props *ApplicationProp
 			})
 		}
 		if len(ingressHosts) > 0 {
-			NewIngress(scope, jsii.String("ingress"), &IngressProps{
+			NewIngress(scope, "ingress", &IngressProps{
 				Name:                   props.Name,
 				Hosts:                  ingressHosts,
 				TraefikMiddlewareNames: props.IngressMiddlewares,

@@ -13,7 +13,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 	"golang.org/x/exp/slices"
@@ -112,9 +111,9 @@ func NewGrafanaDashboards(scope packager.Construct, props GrafanaDashboardsProps
 			for _, filePath := range GetFilePaths(*dashboardConfig.GlobPath) {
 				fileContents := GetFileContents(filePath)
 				baseName := strings.TrimSuffix(filepath.Base(filePath), filepath.Ext(filePath))
-				k8sapp.NewConfigMap(chart, jsii.String(id+"-"+baseName), &k8sapp.ConfigmapProps{
+				k8sapp.NewConfigMap(chart, id+"-"+baseName, &k8sapp.ConfigmapProps{
 					Name: "grafana-dashboard-" + "-" + baseName + "-json",
-					// Name: jsii.String("grafana-dashboards-" + id + "-" + baseName),
+					// Name: ("grafana-dashboards-" + id + "-" + baseName),
 					Labels: map[string]string{
 						"grafana_dashboard": "1",
 					},
@@ -181,9 +180,9 @@ func NewGrafanaDashboards(scope packager.Construct, props GrafanaDashboardsProps
 				outStr = strings.ReplaceAll(outStr, k, v)
 			}
 
-			k8sapp.NewConfigMap(chart, jsii.String(url.ID), &k8sapp.ConfigmapProps{
+			k8sapp.NewConfigMap(chart, url.ID, &k8sapp.ConfigmapProps{
 				Name: "grafana-dashboard-" + url.ID + "-json",
-				// Name: jsii.String("grafana-dashboards-" + id + "-" + baseName),
+				// Name: ("grafana-dashboards-" + id + "-" + baseName),
 				Labels: map[string]string{
 					"grafana_dashboard": "1",
 				},

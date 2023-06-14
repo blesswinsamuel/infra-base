@@ -3,9 +3,6 @@ module github.com/blesswinsamuel/infra-base
 go 1.20
 
 require (
-	github.com/aws/constructs-go/constructs/v10 v10.2.47
-	github.com/aws/jsii-runtime-go v1.83.0
-	github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2 v2.7.77
 	github.com/cert-manager/cert-manager v1.12.1
 	github.com/external-secrets/external-secrets v0.8.4-0.20230609105147-7a7ab8ad2996
 	github.com/goccy/go-yaml v1.11.0
@@ -25,12 +22,12 @@ require (
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/traefik/paerser v0.2.0 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -65,8 +62,6 @@ require (
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/yuin/goldmark v1.5.4 // indirect
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect

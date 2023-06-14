@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
@@ -19,7 +18,7 @@ func NewGrafanaDatasource(scope packager.Construct, props GrafanaDatasourceProps
 	}
 	chart := scope.Chart("grafana-datasource", cprops)
 
-	k8sapp.NewConfigMap(chart, jsii.String("grafana-datasource-victoriametrics"), &k8sapp.ConfigmapProps{
+	k8sapp.NewConfigMap(chart, "grafana-datasource-victoriametrics", &k8sapp.ConfigmapProps{
 		Name: "grafana-datasource-victoriametrics",
 		Labels: map[string]string{
 			"grafana_datasource": "1",
@@ -52,7 +51,7 @@ func NewGrafanaDatasource(scope packager.Construct, props GrafanaDatasourceProps
 		},
 	})
 
-	k8sapp.NewConfigMap(chart, jsii.String("grafana-datasource-loki"), &k8sapp.ConfigmapProps{
+	k8sapp.NewConfigMap(chart, "grafana-datasource-loki", &k8sapp.ConfigmapProps{
 		Name: "grafana-datasource-loki",
 		Labels: map[string]string{
 			"grafana_datasource": "1",

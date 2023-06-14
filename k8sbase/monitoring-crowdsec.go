@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 )
@@ -21,9 +20,9 @@ func NewCrowdsec(scope packager.Construct, props CrowdsecProps) packager.Chart {
 	}
 	chart := scope.Chart("crowdsec", cprops)
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("crowdsec"),
+		ReleaseName: "crowdsec",
 		Namespace:   chart.Namespace(),
 		Values: map[string]any{
 			"container_runtime": "containerd",
@@ -111,8 +110,8 @@ func NewCrowdsec(scope packager.Construct, props CrowdsecProps) packager.Chart {
 	// for _, obj := range *helmResources.ApiObjects() {
 	// 	if *obj.Metadata().Name() == "crowdsec-agent" && *obj.Kind() == "DaemonSet" {
 	// 		obj.AddJsonPatch(
-	// 			packager.JsonPatch_Test(jsii.String("/spec/template/spec/containers/0/env/1/name"), "DISABLE_ONLINE_API"),
-	// 			packager.JsonPatch_Replace(jsii.String("/spec/template/spec/containers/0/env/1"), map[string]any{
+	// 			packager.JsonPatch_Test(("/spec/template/spec/containers/0/env/1/name"), "DISABLE_ONLINE_API"),
+	// 			packager.JsonPatch_Replace(("/spec/template/spec/containers/0/env/1"), map[string]any{
 	// 				"name":  "DISABLE_ONLINE_API",
 	// 				"value": "false",
 	// 			}),
@@ -120,7 +119,7 @@ func NewCrowdsec(scope packager.Construct, props CrowdsecProps) packager.Chart {
 	// 	}
 	// }
 
-	k8sapp.NewExternalSecret(chart, jsii.String("crowdsec-keys"), &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, "crowdsec-keys", &k8sapp.ExternalSecretProps{
 		Name: "crowdsec-keys",
 		RemoteRefs: map[string]string{
 			"ENROLL_KEY": "CROWDSEC_ENROLL_KEY",

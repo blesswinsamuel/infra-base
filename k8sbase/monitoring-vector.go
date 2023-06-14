@@ -6,7 +6,6 @@ import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/packager"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/muesli/reflow/dedent"
 	corev1 "k8s.io/api/core/v1"
@@ -38,9 +37,9 @@ func NewVector(scope packager.Construct, props VectorProps) packager.Chart {
 	}
 	chart := scope.Chart("vector", cprops)
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("vector"),
+		ReleaseName: "vector",
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			"role": "Agent",
@@ -207,7 +206,7 @@ func NewVector(scope packager.Construct, props VectorProps) packager.Chart {
 	})
 
 	if props.SyslogServer.Enabled {
-		k8sapp.NewK8sObject(chart, jsii.String("syslog-service"), &corev1.Service{
+		k8sapp.NewK8sObject(chart, "syslog-service", &corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "vector-syslog-server",
 			},

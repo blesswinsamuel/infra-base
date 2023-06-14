@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
@@ -32,9 +31,9 @@ func NewGrafana(scope packager.Construct, props GrafanaProps) packager.Chart {
 	}
 	chart := scope.Chart("grafana", cprops)
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("grafana"),
+		ReleaseName: "grafana",
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			"env": infrahelpers.MergeMaps(

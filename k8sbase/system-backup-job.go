@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
@@ -47,7 +46,7 @@ func NewBackupJob(scope packager.Construct, props BackupJobProps) packager.Const
 	chart := scope.Chart("backup-job", packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	})
-	k8sapp.NewExternalSecret(chart, jsii.String("external-secret-pg"), &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, "external-secret-pg", &k8sapp.ExternalSecretProps{
 		Name: "backup-restore-job-postgres",
 		Template: map[string]string{
 			"PGHOST":     props.Postgres.Host,
@@ -60,7 +59,7 @@ func NewBackupJob(scope packager.Construct, props BackupJobProps) packager.Const
 			"PGPASSWORD": "POSTGRES_USER_PASSWORD",
 		},
 	})
-	k8sapp.NewExternalSecret(chart, jsii.String("external-secret-s3"), &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, "external-secret-s3", &k8sapp.ExternalSecretProps{
 		Name: "backup-restore-job-s3",
 		RemoteRefs: map[string]string{
 			"S3_ACCESS_KEY":  "BACKUP_S3_ACCESS_KEY",
@@ -71,7 +70,7 @@ func NewBackupJob(scope packager.Construct, props BackupJobProps) packager.Const
 		},
 	})
 
-	k8sapp.NewConfigMap(chart, jsii.String("backup-job-scripts-cm"), &k8sapp.ConfigmapProps{
+	k8sapp.NewConfigMap(chart, "backup-job-scripts-cm", &k8sapp.ConfigmapProps{
 		Name: "backup-job-scripts",
 		Data: map[string]string{
 			"take-postgres-dump.sh": infrahelpers.GoTemplate(strings.TrimSpace(dedent.String(`
@@ -119,7 +118,7 @@ func NewBackupJobPostgres(chart packager.Construct, props BackupJobProps) {
 	if !props.Postgres.Enabled {
 		return
 	}
-	k8sapp.NewExternalSecret(chart, jsii.String("external-secret-heartbeat"), &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, "external-secret-heartbeat", &k8sapp.ExternalSecretProps{
 		Name: "backup-job-heartbeat",
 		RemoteRefs: map[string]string{
 			"HEARTBEAT_URL": "DB_BACKUP_HEARTBEAT_URL",
@@ -129,7 +128,7 @@ func NewBackupJobPostgres(chart packager.Construct, props BackupJobProps) {
 	sharedMountPath := "/pgdumps"
 
 	props.Postgres.LocalBackupVolume.Name = "shared-backup-data"
-	k8sapp.NewK8sObject(chart, jsii.String("backup-job-postgres"), &batchv1.CronJob{
+	k8sapp.NewK8sObject(chart, "backup-job-postgres", &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "backup-job-postgres",
 			Annotations: map[string]string{
@@ -214,7 +213,7 @@ func NewRestoreJobPostgres(chart packager.Construct, props BackupJobProps) {
 		return
 	}
 	sharedMountPath := "/pgdumps"
-	k8sapp.NewConfigMap(chart, jsii.String("restore-job-scripts-cm"), &k8sapp.ConfigmapProps{
+	k8sapp.NewConfigMap(chart, "restore-job-scripts-cm", &k8sapp.ConfigmapProps{
 		Name: "restore-job-scripts",
 		Data: map[string]string{
 			"kopia-restore.sh": infrahelpers.GoTemplate(strings.TrimSpace(dedent.String(`
@@ -251,7 +250,7 @@ func NewRestoreJobPostgres(chart packager.Construct, props BackupJobProps) {
 	})
 
 	props.Postgres.LocalBackupVolume.Name = "shared-backup-data"
-	k8sapp.NewK8sObject(chart, jsii.String("restore-job-postgres"), &batchv1.CronJob{
+	k8sapp.NewK8sObject(chart, "restore-job-postgres", &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "restore-job-postgres",
 			Annotations: map[string]string{
@@ -259,7 +258,7 @@ func NewRestoreJobPostgres(chart packager.Construct, props BackupJobProps) {
 			},
 		},
 		Spec: batchv1.CronJobSpec{
-			Suspend:  jsii.Bool(true),
+			Suspend:  infrahelpers.Ptr(true),
 			Schedule: "* * 31 2 *",
 			JobTemplate: batchv1.JobTemplateSpec{
 				Spec: batchv1.JobSpec{
@@ -339,7 +338,7 @@ func NewBackupJobFilesystem(chart packager.Construct, props BackupJobProps) {
 		for _, path := range job.Paths {
 			folders = append(folders, sharedMountPath+"/"+strings.TrimPrefix(path, "/"))
 		}
-		k8sapp.NewK8sObject(chart, jsii.String("backup-job-filesystem-"+job.Name), &batchv1.CronJob{
+		k8sapp.NewK8sObject(chart, "backup-job-filesystem-"+job.Name, &batchv1.CronJob{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "backup-job-filesystem-" + job.Name,
 			},

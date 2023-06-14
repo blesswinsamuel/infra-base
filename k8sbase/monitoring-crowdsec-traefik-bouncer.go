@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 )
@@ -21,14 +20,14 @@ func NewCrowdsecTraefikBouncer(scope packager.Construct, props CrowdsecTraefikBo
 	}
 	chart := scope.Chart("crowdsec-traefik-bouncer", cprops)
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("crowdsec-traefik-bouncer"),
+		ReleaseName: "crowdsec-traefik-bouncer",
 		Namespace:   chart.Namespace(),
 		Values: map[string]any{
 			"bouncer": map[string]any{
 				"crowdsec_bouncer_api_key": "test", // TODO
-				"crowdsec_agent_host":      "crowdsec-service." + *k8sapp.GetNamespaceContextPtr(scope) + ".svc.cluster.local:8080",
+				"crowdsec_agent_host":      "crowdsec-service." + k8sapp.GetNamespaceContext(scope) + ".svc.cluster.local:8080",
 			},
 		},
 	})

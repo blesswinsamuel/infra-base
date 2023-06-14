@@ -14,7 +14,7 @@ type PersistentVolumeClaim struct {
 	RequestsStorage string
 }
 
-func NewPersistentVolumeClaim(scope packager.Construct, id *string, props *PersistentVolumeClaim) packager.ApiObject {
+func NewPersistentVolumeClaim(scope packager.Construct, id string, props *PersistentVolumeClaim) packager.ApiObject {
 	return NewK8sObject(scope, id, infrahelpers.Ptr(NewPersistentVolumeClaimProps(props)))
 }
 

@@ -14,7 +14,7 @@ type CertificateProps struct {
 	CertIssuer CertIssuerRefProps
 }
 
-func NewCertificate(scope packager.Construct, id *string, props *CertificateProps) packager.Construct {
+func NewCertificate(scope packager.Construct, id string, props *CertificateProps) packager.Construct {
 	globals := GetGlobalContext(scope)
 	return NewK8sObject(scope, id, &certmanagerv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name},

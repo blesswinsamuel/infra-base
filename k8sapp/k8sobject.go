@@ -5,6 +5,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func NewK8sObject(scope packager.Construct, id *string, obj runtime.Object) packager.ApiObject {
-	return scope.ApiObject(*id, obj)
+func NewK8sObject(scope packager.Construct, id string, obj runtime.Object) packager.ApiObject {
+	return scope.ApiObject(id, obj)
 }

@@ -24,7 +24,7 @@ type ExternalSecretProps struct {
 	SecretStore     ExternalSecretStoreProps
 }
 
-func NewExternalSecret(scope packager.Construct, id *string, props *ExternalSecretProps) packager.ApiObject {
+func NewExternalSecret(scope packager.Construct, id string, props *ExternalSecretProps) packager.ApiObject {
 	// construct := constructs.NewConstruct(scope, id)
 	var data []externalsecretsv1beta1.ExternalSecretData
 	for k, v := range props.RemoteRefs {
