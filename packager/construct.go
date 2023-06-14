@@ -1,8 +1,6 @@
 package packager
 
 import (
-	"fmt"
-
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -21,14 +19,14 @@ type construct struct {
 }
 
 func (c *construct) Construct(id string) Construct {
-	fmt.Println("AddConstruct", c.node.FullID(), id)
+	// fmt.Println("AddConstruct", c.node.FullID(), id)
 	construct := &construct{}
 	construct.node = c.node.AddChildNode(id, construct)
 	return construct
 }
 
 func (c *construct) SetContext(key string, value any) {
-	fmt.Println("SetContext", c.node.FullID(), key)
+	// fmt.Println("SetContext", c.node.FullID(), key)
 	c.node.SetContext(key, value)
 }
 

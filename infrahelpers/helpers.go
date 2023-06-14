@@ -29,27 +29,6 @@ func ToYamlString(v any) string {
 	return buf.String()
 }
 
-func PtrMap[K comparable, V any](m map[K]V) *map[K]*V {
-	if len(m) == 0 {
-		return nil
-	}
-	out := make(map[K]*V)
-	for k, v := range m {
-		v := v
-		out[k] = &v
-	}
-	return &out
-}
-
-func PtrSlice[V any](ss ...V) *[]*V {
-	out := make([]*V, 0, len(ss))
-	for _, s := range ss {
-		s := s
-		out = append(out, &s)
-	}
-	return &out
-}
-
 func CopyMap[K comparable, V any](m map[K]V) map[K]V {
 	out := make(map[K]V)
 	for k, v := range m {
@@ -61,13 +40,6 @@ func CopyMap[K comparable, V any](m map[K]V) map[K]V {
 func PtrIfNonEmpty[V comparable](s V) *V {
 	var empty V
 	if s != empty {
-		return &s
-	}
-	return nil
-}
-
-func PtrIfLenGt0[T any](s []T) *[]T {
-	if len(s) > 0 {
 		return &s
 	}
 	return nil
@@ -86,13 +58,6 @@ func UseOrDefault[V comparable](val V, def V) V {
 		return def
 	}
 	return val
-}
-
-func UseOrDefaultPtr[V any](val *V, def V) V {
-	if val == nil {
-		return def
-	}
-	return *val
 }
 
 func MapKeys[K constraints.Ordered, V any](m map[K]V) []K {

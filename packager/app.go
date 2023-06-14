@@ -44,10 +44,10 @@ func (a *app) Synth() {
 		}
 		apiObjects := []ApiObject{}
 		for _, node := range node.children {
-			for i := 0; i < level; i++ {
-				fmt.Print("  ")
-			}
-			fmt.Println(node.id)
+			// for i := 0; i < level; i++ {
+			// 	fmt.Print("  ")
+			// }
+			// fmt.Println(node.id)
 			thisChartID := currentChartID
 			if _, ok := node.value.(Chart); ok {
 				thisChartID = node.FullID()
@@ -70,9 +70,9 @@ func (a *app) Synth() {
 	for _, currentChartID := range infrahelpers.MapKeys(files) {
 		apiObjects := files[currentChartID]
 		filePath := path.Join(a.props.Outdir, fmt.Sprintf("%04d-%s.yaml", fileNos[currentChartID], currentChartID))
-		fmt.Println(filePath, len(apiObjects))
+		// fmt.Println(filePath, len(apiObjects))
 		for i, apiObject := range apiObjects {
-			fmt.Printf("  - %s/%s/%s\n", apiObject.GetAPIVersion(), apiObject.GetNamespace(), apiObject.GetName())
+			// fmt.Printf("  - %s/%s/%s\n", apiObject.GetAPIVersion(), apiObject.GetNamespace(), apiObject.GetName())
 			if i != 0 {
 				fileContents[filePath] = append(fileContents[filePath], []byte("---\n")...)
 			}
