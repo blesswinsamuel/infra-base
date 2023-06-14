@@ -1,6 +1,8 @@
 package packager
 
 import (
+	"fmt"
+
 	"github.com/aws/jsii-runtime-go"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 )
@@ -47,7 +49,7 @@ func (c *cdk8sConstruct) Chart(id string, props ChartProps) Chart {
 // }
 
 type chart struct {
-	construct
+	*construct
 	props ChartProps
 }
 
@@ -56,5 +58,10 @@ func (c *chart) Namespace() string {
 }
 
 func (c *construct) Chart(id string, props ChartProps) Chart {
-	return &chart{}
+	fmt.Println("AddChart", c.node.FullID(), id)
+	chart := &chart{construct: &construct{}, props: props}
+	chart.construct.node = c.node.AddChildNode(id, chart)
+	// chart.SetContext("chart:namespace", props.Namespace)
+	c.node.AddChildNode(id, chart)
+	return chart
 }

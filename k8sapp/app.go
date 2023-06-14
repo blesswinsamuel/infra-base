@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/blesswinsamuel/infra-base/packager"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func NewApp(outputDir string) packager.App {
-	app := packager.NewCdk8sApp(packager.AppProps{
+	app := packager.NewApp(packager.AppProps{
 		Outdir:       outputDir,
 		DeleteOutDir: true,
 	})
@@ -35,38 +34,34 @@ func NewApp(outputDir string) packager.App {
 
 func NewKappConfig(scope packager.Construct) packager.Construct {
 	chart := scope.Chart("kapp-config", packager.ChartProps{})
-	chart.ApiObjectFromMap("config", packager.ApiObjectProps{
-		TypeMeta: v1.TypeMeta{
-			Kind:       "Config",
-			APIVersion: "kapp.k14s.io/v1alpha1",
-		},
-		Object: map[string]interface{}{
-			"rebaseRules": []any{
-				map[string]any{
-					"path":    []string{"data"},
-					"type":    "copy",
-					"sources": []any{"new", "existing"},
-					"resourceMatchers": []any{
-						map[string]any{
-							"kindNamespaceNameMatcher": map[string]any{
-								"kind":      "Secret",
-								"namespace": "secrets",
-								"name":      "external-secrets-webhook",
-							},
+	chart.ApiObjectFromMap("config", map[string]interface{}{
+		"apiVersion": "kapp.k14s.io/v1alpha1",
+		"kind":       "Config",
+		"rebaseRules": []any{
+			map[string]any{
+				"path":    []string{"data"},
+				"type":    "copy",
+				"sources": []any{"new", "existing"},
+				"resourceMatchers": []any{
+					map[string]any{
+						"kindNamespaceNameMatcher": map[string]any{
+							"kind":      "Secret",
+							"namespace": "secrets",
+							"name":      "external-secrets-webhook",
 						},
-						map[string]any{
-							"kindNamespaceNameMatcher": map[string]any{
-								"kind":      "Secret",
-								"namespace": "system",
-								"name":      "kubernetes-dashboard-csrf",
-							},
+					},
+					map[string]any{
+						"kindNamespaceNameMatcher": map[string]any{
+							"kind":      "Secret",
+							"namespace": "system",
+							"name":      "kubernetes-dashboard-csrf",
 						},
-						map[string]any{
-							"kindNamespaceNameMatcher": map[string]any{
-								"kind":      "Secret",
-								"namespace": "system",
-								"name":      "kubernetes-dashboard-key-holder",
-							},
+					},
+					map[string]any{
+						"kindNamespaceNameMatcher": map[string]any{
+							"kind":      "Secret",
+							"namespace": "system",
+							"name":      "kubernetes-dashboard-key-holder",
 						},
 					},
 				},

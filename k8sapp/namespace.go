@@ -28,7 +28,7 @@ func NewNamespace(scope packager.Construct, id *string, namespaceName string) pa
 }
 
 func SetNamespaceContext(scope packager.Construct, namespaceName string) packager.Construct {
-	scope.Node().SetContext("namespace", namespaceName)
+	scope.SetContext("namespace", namespaceName)
 	return nil
 }
 
@@ -37,6 +37,6 @@ func GetNamespaceContextPtr(scope packager.Construct) *string {
 }
 
 func GetNamespaceContext(scope packager.Construct) string {
-	ns, _ := scope.Node().TryGetContext("namespace").(string)
+	ns, _ := scope.GetContext("namespace").(string)
 	return ns
 }

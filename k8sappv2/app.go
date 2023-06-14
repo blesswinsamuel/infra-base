@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/goccy/go-yaml"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -96,12 +97,12 @@ func main() {
 	//}
 	//fmt.Println(n.GetObjectKind())
 	chart.AddObject(corev1.Namespace{
-		TypeMeta:   metav1.TypeMeta{APIVersion: "v1", Kind: "Namespace"},
+		// TypeMeta:   metav1.TypeMeta{APIVersion: "v1", Kind: "Namespace"},
 		ObjectMeta: metav1.ObjectMeta{},
 		Spec:       corev1.NamespaceSpec{},
 	})
 	chart.AddObject(v1.DaemonSet{
-		TypeMeta:   metav1.TypeMeta{APIVersion: "apps/v1", Kind: "DaemonSet"},
+		// TypeMeta:   metav1.TypeMeta{APIVersion: "apps/v1", Kind: "DaemonSet"},
 		ObjectMeta: metav1.ObjectMeta{},
 		Spec: v1.DaemonSetSpec{
 			Selector: nil,
