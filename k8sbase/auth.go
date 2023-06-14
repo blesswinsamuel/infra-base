@@ -6,15 +6,18 @@ import (
 )
 
 type AuthProps struct {
-	Namespace          string                  `json:"namespace"`
+	Enabled            bool                    `json:"enabled"`
 	TraefikForwardAuth TraefikForwardAuthProps `json:"traefikForwardAuth"`
 	Authelia           AutheliaProps           `json:"authelia"`
 	LLDAP              LLDAPProps              `json:"lldap"`
 }
 
 func NewAuth(scope packager.Construct, props AuthProps) packager.Construct {
+	if !props.Enabled {
+		return nil
+	}
 	defer logModuleTiming("auth")()
-	chart := k8sapp.NewNamespaceChart(scope, props.Namespace)
+	chart := k8sapp.NewNamespaceChart(scope, "auth")
 
 	NewTraefikForwardAuth(chart, props.TraefikForwardAuth)
 	NewAuthelia(chart, props.Authelia)

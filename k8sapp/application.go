@@ -56,7 +56,7 @@ type ApplicationProps struct {
 	HostNetwork                     bool
 	DnsPolicy                       string
 	IngressMiddlewares              []NameNamespace
-	// IngressAnnotations       map[string]string
+	// IngressAnnotations              map[string]string
 }
 
 type ApplicationPersistentVolume struct {
@@ -125,6 +125,7 @@ type ContainerPort struct {
 	Name             string
 	Port             int
 	Ingress          *ApplicationIngress
+	Ingresses        []ApplicationIngress
 	PrometheusScrape *ApplicationPrometheusScrape
 }
 
@@ -338,6 +339,13 @@ func NewApplication(scope packager.Construct, id string, props *ApplicationProps
 					Tls:   true,
 				})
 			}
+			for _, ingress := range port.Ingresses {
+				ingressHosts = append(ingressHosts, IngressHost{
+					Host:  ingress.Host,
+					Paths: []IngressHostPath{{Path: ingress.Path, ServiceName: props.Name, ServicePortName: port.Name}},
+					Tls:   true,
+				})
+			}
 			if prometheusScrape := port.PrometheusScrape; prometheusScrape != nil {
 				serviceAnnotations["prometheus.io/scrape"] = "true"
 				serviceAnnotations["prometheus.io/port"] = fmt.Sprint(port.Port)
@@ -456,6 +464,7 @@ func NewApplication(scope packager.Construct, id string, props *ApplicationProps
 				Name:                   props.Name,
 				Hosts:                  ingressHosts,
 				TraefikMiddlewareNames: props.IngressMiddlewares,
+				// Annotations:            props.IngressAnnotations,
 			})
 		}
 	}
