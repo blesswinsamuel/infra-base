@@ -24,10 +24,10 @@ func NewVictoriaMetrics(scope packager.Construct, props VictoriametricsProps) pa
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "victoriametrics", cprops)
+	chart := scope.Chart("victoriametrics", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

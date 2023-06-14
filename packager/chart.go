@@ -7,7 +7,6 @@ import (
 
 type Chart interface {
 	Construct
-	// isChart() bool
 	Namespace() string
 }
 
@@ -17,20 +16,15 @@ type ChartProps struct {
 
 type cdk8schart struct {
 	cdk8sConstruct
-	props *ChartProps
+	props ChartProps
 }
 
-// func NewCdk8sChart(scope Construct, props ChartProps) Chart {
-// 	cdk8s.NewChart(scope.(*cdk8sconstruct).construct, &props.ID, &packager.ChartProps{
-// 		DisableResourceNameHashes: jsii.Bool(true),
-// 		Namespace:                 jsii.String(props.Namespace),
-// 	})
-// 	return &cdk8schart{}
-// }
+func (c *cdk8schart) Namespace() string {
+	return c.props.Namespace
+}
 
-func NewChart(scope Construct, id string, props *ChartProps) Chart {
-	// TODO
-	chart := cdk8s.NewChart(getCdk8sConstruct(scope), &id, &cdk8s.ChartProps{
+func (c *cdk8sConstruct) Chart(id string, props ChartProps) Chart {
+	chart := cdk8s.NewChart(c.construct, &id, &cdk8s.ChartProps{
 		DisableResourceNameHashes: jsii.Bool(true),
 		Namespace:                 jsii.String(props.Namespace),
 	})
@@ -40,10 +34,27 @@ func NewChart(scope Construct, id string, props *ChartProps) Chart {
 	}
 }
 
-func (c *cdk8schart) Namespace() string {
+// func newChart(scope Construct, id string, props *ChartProps) Chart {
+// 	// TODO
+// 	chart := cdk8s.NewChart(getCdk8sConstruct(scope), &id, &cdk8s.ChartProps{
+// 		DisableResourceNameHashes: jsii.Bool(true),
+// 		Namespace:                 jsii.String(props.Namespace),
+// 	})
+// 	return &cdk8schart{
+// 		cdk8sConstruct: cdk8sConstruct{chart},
+// 		props:          props,
+// 	}
+// }
+
+type chart struct {
+	construct
+	props ChartProps
+}
+
+func (c *chart) Namespace() string {
 	return c.props.Namespace
 }
 
-// func (c *cdk8schart) isChart() bool {
-// 	return true
-// }
+func (c *construct) Chart(id string, props ChartProps) Chart {
+	return &chart{}
+}

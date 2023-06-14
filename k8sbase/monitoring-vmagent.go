@@ -29,10 +29,10 @@ func NewVmagent(scope packager.Construct, props VmagentProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "vmagent", cprops)
+	chart := scope.Chart("vmagent", cprops)
 
 	vmagentConfig := infrahelpers.FromYamlString[map[string]any](vmagentConfig)
 

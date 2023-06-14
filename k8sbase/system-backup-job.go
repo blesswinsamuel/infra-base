@@ -44,7 +44,7 @@ func NewBackupJob(scope packager.Construct, props BackupJobProps) packager.Const
 	if !props.Enabled {
 		return nil
 	}
-	chart := packager.NewChart(scope, "backup-job", &packager.ChartProps{
+	chart := scope.Chart("backup-job", packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	})
 	k8sapp.NewExternalSecret(chart, jsii.String("external-secret-pg"), &k8sapp.ExternalSecretProps{

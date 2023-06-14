@@ -55,10 +55,10 @@ func NewAuthelia(scope packager.Construct, props AutheliaProps) packager.Constru
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "authelia", cprops)
+	chart := scope.Chart("authelia", cprops)
 	pod := map[string]interface{}{
 		"annotations": map[string]interface{}{
 			"secret.reloader.stakater.com/reload": "authelia",

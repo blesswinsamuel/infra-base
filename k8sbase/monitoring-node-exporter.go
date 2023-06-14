@@ -15,10 +15,10 @@ func NewNodeExporter(scope packager.Construct, props NodeExporterProps) packager
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "node-exporter", cprops)
+	chart := scope.Chart("node-exporter", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

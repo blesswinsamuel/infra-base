@@ -85,10 +85,10 @@ func NewGrafanaDashboards(scope packager.Construct, props GrafanaDashboardsProps
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "grafana-dashboards", cprops)
+	chart := scope.Chart("grafana-dashboards", cprops)
 
 	cacheDir := k8sapp.GetGlobalContext(scope).CacheDir
 	type dashboardItem struct {

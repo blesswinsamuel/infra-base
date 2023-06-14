@@ -8,7 +8,7 @@ import (
 )
 
 func NewNamespaceChart(scope packager.Construct, namespaceName string) packager.Chart {
-	chart := packager.NewChart(scope, namespaceName, &packager.ChartProps{
+	chart := scope.Chart(namespaceName, packager.ChartProps{
 		Namespace: namespaceName,
 	})
 	SetNamespaceContext(chart, namespaceName)

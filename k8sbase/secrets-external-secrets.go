@@ -16,10 +16,10 @@ func NewExternalSecrets(scope packager.Construct, props ExternalSecretsProps) pa
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "external-secrets", cprops)
+	chart := scope.Chart("external-secrets", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

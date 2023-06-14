@@ -6,5 +6,5 @@ import (
 )
 
 func NewK8sObject(scope packager.Construct, id *string, obj runtime.Object) packager.ApiObject {
-	return packager.NewCdk8sApiObject(scope, *id, obj)
+	return scope.ApiObject(*id, obj)
 }
