@@ -139,7 +139,7 @@ type ApplicationPrometheusScrape struct {
 }
 
 func NewApplicationChart(scope packager.Construct, id string, props *ApplicationProps) packager.Chart {
-	chart := packager.NewChart(scope, id, &packager.ChartProps{
+	chart := scope.Chart(id, packager.ChartProps{
 		Namespace: GetNamespaceContext(scope),
 	})
 	NewApplication(chart, jsii.String("application"), props)
@@ -147,7 +147,7 @@ func NewApplicationChart(scope packager.Construct, id string, props *Application
 }
 
 func NewApplication(scope packager.Construct, id *string, props *ApplicationProps) packager.Construct {
-	scope = packager.NewCdk8sConstruct(scope, *id)
+	scope = scope.Construct(*id)
 	if props.Kind == "" {
 		props.Kind = "Deployment"
 	}

@@ -20,7 +20,7 @@ type cdk8sApiObject struct {
 	construct cdk8s.ApiObject
 }
 
-func NewCdk8sApiObject(construct Construct, id string, obj runtime.Object) ApiObject {
+func (c *cdk8sConstruct) ApiObject(id string, obj runtime.Object) ApiObject {
 	groupVersionKinds, _, err := infrahelpers.Scheme.ObjectKinds(obj)
 	if err != nil {
 		panic(err)
@@ -39,7 +39,7 @@ func NewCdk8sApiObject(construct Construct, id string, obj runtime.Object) ApiOb
 	}
 	groupVersion := groupVersionKinds[0]
 	mobj := infrahelpers.K8sObjectToMap(obj)
-	return NewCdk8sApiObjectFromMap(construct, id, ApiObjectProps{
+	return c.ApiObjectFromMap(id, ApiObjectProps{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       groupVersion.Kind,
 			APIVersion: groupVersion.GroupVersion().String(),
@@ -55,10 +55,10 @@ type ApiObjectProps struct {
 	Object map[string]interface{}
 }
 
-func NewCdk8sApiObjectFromMap(construct Construct, id string, props ApiObjectProps) ApiObject {
+func (c *cdk8sConstruct) ApiObjectFromMap(id string, props ApiObjectProps) ApiObject {
 	var apiMetadata *cdk8s.ApiObjectMetadata
 	if props.GetNamespace() == "" {
-		if namespaceCtx := getNamespaceContext(construct); namespaceCtx != "" {
+		if namespaceCtx := getNamespaceContext(c); namespaceCtx != "" {
 			props.SetNamespace(namespaceCtx)
 		}
 	}
@@ -100,7 +100,7 @@ func NewCdk8sApiObjectFromMap(construct Construct, id string, props ApiObjectPro
 			apiMetadata.Finalizers = &f
 		}
 	}
-	apiobj := cdk8s.NewApiObject(getCdk8sConstruct(construct), &id, &cdk8s.ApiObjectProps{
+	apiobj := cdk8s.NewApiObject(c.construct, &id, &cdk8s.ApiObjectProps{
 		ApiVersion: jsii.String(props.APIVersion),
 		Kind:       jsii.String(props.Kind),
 		Metadata:   apiMetadata,
@@ -120,4 +120,16 @@ func NewCdk8sApiObjectFromMap(construct Construct, id string, props ApiObjectPro
 func getNamespaceContext(scope Construct) string {
 	ns, _ := scope.Node().TryGetContext("namespace").(string)
 	return ns
+}
+
+type apiObject struct {
+	construct
+}
+
+func (c *construct) ApiObject(id string, obj runtime.Object) ApiObject {
+	return &apiObject{}
+}
+
+func (c *construct) ApiObjectFromMap(id string, props ApiObjectProps) ApiObject {
+	return &apiObject{}
 }

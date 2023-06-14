@@ -19,10 +19,10 @@ func NewSecretsDockerCreds(scope packager.Construct, props SecretsDockerCredsPro
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: props.Namespace,
 	}
-	chart := packager.NewChart(scope, "docker-creds", cprops)
+	chart := scope.Chart("docker-creds", cprops)
 	k8sapp.NewExternalSecret(chart, jsii.String("externalsecret"), &k8sapp.ExternalSecretProps{
 		Name:       "regcred",
 		SecretType: "kubernetes.io/dockerconfigjson",

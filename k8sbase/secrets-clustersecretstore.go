@@ -18,8 +18,8 @@ type ClusterSecretStoreProps struct {
 // https://external-secrets.io/v0.5.8/spec/
 
 func NewClusterSecretStore(scope packager.Construct, props ClusterSecretStoreProps) packager.Chart {
-	cprops := &packager.ChartProps{}
-	chart := packager.NewChart(scope, "cluster-secret-store", cprops)
+	cprops := packager.ChartProps{}
+	chart := scope.Chart("cluster-secret-store", cprops)
 	k8sapp.NewSecret(chart, jsii.String("secret"), &k8sapp.SecretProps{
 		Name:      "doppler-token-auth-api",
 		Namespace: "default",

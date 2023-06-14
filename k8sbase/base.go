@@ -33,7 +33,7 @@ func logModuleTiming(moduleName string) func() {
 
 func NewBase(scope packager.Construct, props BaseProps) packager.Construct {
 	defer logModuleTiming("base")()
-	construct := packager.NewCdk8sConstruct(scope, "base")
+	construct := scope.Construct("base")
 
 	// secrets
 	NewSecrets(construct, props.Secrets)

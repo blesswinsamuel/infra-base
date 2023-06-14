@@ -63,10 +63,10 @@ func NewCertIssuer(scope packager.Construct, props CertIssuerProps) packager.Cha
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: "cert-manager",
 	}
-	chart := packager.NewChart(scope, "cert-issuer", cprops)
+	chart := scope.Chart("cert-issuer", cprops)
 
 	// NewNamespace(chart, jsii.String("namespace"), &NamespaceProps{Name: "cert-manager"})
 	letsEncryptIssuer(chart, props, "letsencrypt-prod", "https://acme-v02.api.letsencrypt.org/directory")

@@ -16,10 +16,10 @@ func NewCrowdsecTraefikBouncer(scope packager.Construct, props CrowdsecTraefikBo
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "crowdsec-traefik-bouncer", cprops)
+	chart := scope.Chart("crowdsec-traefik-bouncer", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

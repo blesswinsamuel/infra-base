@@ -27,10 +27,10 @@ func NewGrafana(scope packager.Construct, props GrafanaProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "grafana", cprops)
+	chart := scope.Chart("grafana", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

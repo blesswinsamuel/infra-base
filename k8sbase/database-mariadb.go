@@ -17,10 +17,10 @@ func NewMariaDB(scope packager.Construct, props MariaDBProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "mariadb", cprops)
+	chart := scope.Chart("mariadb", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

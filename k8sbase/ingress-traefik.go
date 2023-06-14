@@ -39,10 +39,10 @@ func NewTraefik(scope packager.Construct, props TraefikProps) packager.Chart {
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "traefik", cprops)
+	chart := scope.Chart("traefik", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("traefik"), &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,

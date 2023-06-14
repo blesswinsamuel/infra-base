@@ -15,10 +15,10 @@ func NewKubeStateMetrics(scope packager.Construct, props KubeStateMetricsProps) 
 	if !props.Enabled {
 		return nil
 	}
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "kube-state-metrics", cprops)
+	chart := scope.Chart("kube-state-metrics", cprops)
 
 	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

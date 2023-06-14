@@ -34,8 +34,8 @@ func NewApp(outputDir string) packager.App {
 }
 
 func NewKappConfig(scope packager.Construct) packager.Construct {
-	chart := packager.NewChart(scope, "kapp-config", &packager.ChartProps{})
-	packager.NewCdk8sApiObjectFromMap(chart, "config", packager.ApiObjectProps{
+	chart := scope.Chart("kapp-config", packager.ChartProps{})
+	chart.ApiObjectFromMap("config", packager.ApiObjectProps{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "Config",
 			APIVersion: "kapp.k14s.io/v1alpha1",

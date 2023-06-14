@@ -109,7 +109,7 @@ func NewHelm(scope packager.Construct, id *string, props *HelmProps) packager.Co
 		if len(obj) == 0 {
 			continue
 		}
-		packager.NewCdk8sApiObjectFromMap(scope, "api-"+strconv.Itoa(i), packager.ApiObjectProps{
+		scope.ApiObjectFromMap("api-"+strconv.Itoa(i), packager.ApiObjectProps{
 			TypeMeta: v1.TypeMeta{
 				APIVersion: obj["apiVersion"].(string),
 				Kind:       obj["kind"].(string),
@@ -122,10 +122,10 @@ func NewHelm(scope packager.Construct, id *string, props *HelmProps) packager.Co
 }
 
 func NewHelmChart(scope packager.Construct, id *string, props *HelmProps) packager.Chart {
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, *id, cprops)
+	chart := scope.Chart(*id, cprops)
 	NewHelm(chart, jsii.String("helm"), props)
 	return chart
 }

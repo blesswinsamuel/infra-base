@@ -14,10 +14,10 @@ type GrafanaDatasourceProps struct {
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-alert
 
 func NewGrafanaDatasource(scope packager.Construct, props GrafanaDatasourceProps) packager.Chart {
-	cprops := &packager.ChartProps{
+	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := packager.NewChart(scope, "grafana-datasource", cprops)
+	chart := scope.Chart("grafana-datasource", cprops)
 
 	k8sapp.NewConfigMap(chart, jsii.String("grafana-datasource-victoriametrics"), &k8sapp.ConfigmapProps{
 		Name: "grafana-datasource-victoriametrics",
