@@ -1,9 +1,5 @@
 package packager
 
-import (
-	"fmt"
-)
-
 type Chart interface {
 	Construct
 	Namespace() string
@@ -23,7 +19,7 @@ func (c *chart) Namespace() string {
 }
 
 func (c *construct) Chart(id string, props ChartProps) Chart {
-	fmt.Println("AddChart", c.node.FullID(), id)
+	// fmt.Println("AddChart", c.node.FullID(), id)
 	chart := &chart{construct: &construct{}, props: props}
 	chart.construct.node = c.node.AddChildNode(id, chart)
 	// chart.SetContext("chart:namespace", props.Namespace)

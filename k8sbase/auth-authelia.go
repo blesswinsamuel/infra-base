@@ -26,12 +26,12 @@ type AutheliaProps struct {
 		BaseDN string `json:"baseDN"`
 	} `json:"ldap"`
 	SMTP struct {
-		Host        string  `json:"host"`
-		Port        int     `json:"port"`
-		Username    string  `json:"username"`
-		EmailDomain string  `json:"emailDomain"`
-		Sender      *string `json:"sender"`
-		Subject     *string `json:"subject"`
+		Host        string `json:"host"`
+		Port        int    `json:"port"`
+		Username    string `json:"username"`
+		EmailDomain string `json:"emailDomain"`
+		Sender      string `json:"sender"`
+		Subject     string `json:"subject"`
 	} `json:"smtp"`
 	Database struct {
 		Postgres struct {
@@ -155,12 +155,12 @@ func NewAuthelia(scope packager.Construct, props AutheliaProps) packager.Constru
 						"host":     props.SMTP.Host,
 						"port":     props.SMTP.Port,
 						"username": props.SMTP.Username,
-						"sender": infrahelpers.UseOrDefaultPtr(
+						"sender": infrahelpers.UseOrDefault(
 							props.SMTP.Sender,
 							fmt.Sprintf("Authelia <authelia@%s>", props.SMTP.EmailDomain),
 						),
 						"identifier":            props.SMTP.EmailDomain,
-						"subject":               infrahelpers.UseOrDefaultPtr(props.SMTP.Subject, "[authelia] {title}"),
+						"subject":               infrahelpers.UseOrDefault(props.SMTP.Subject, "[authelia] {title}"),
 						"startup_check_address": fmt.Sprintf("test@%s", props.SMTP.EmailDomain),
 						"enabledSecret":         true,
 					},
