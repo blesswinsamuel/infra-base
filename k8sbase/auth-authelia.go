@@ -6,7 +6,6 @@ import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/packager"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 )
 
@@ -69,7 +68,7 @@ func NewAuthelia(scope packager.Construct, props AutheliaProps) packager.Constru
 		},
 	}
 	if props.AuthMode == "file" {
-		k8sapp.NewExternalSecret(chart, jsii.String("users-db"), &k8sapp.ExternalSecretProps{
+		k8sapp.NewExternalSecret(chart, "users-db", &k8sapp.ExternalSecretProps{
 			Name: "authelia-users-db",
 			RemoteRefs: map[string]string{
 				"users_database.yml": "AUTHELIA_USERS_DATABASE_YML",
@@ -91,9 +90,9 @@ func NewAuthelia(scope packager.Construct, props AutheliaProps) packager.Constru
 			},
 		}
 	}
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,
-		ReleaseName: jsii.String("authelia"),
+		ReleaseName: "authelia",
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			"domain": GetDomain(scope),
@@ -231,7 +230,7 @@ func NewAuthelia(scope packager.Construct, props AutheliaProps) packager.Constru
 		secrets["OIDC_PRIVATE_KEY"] = "AUTHELIA_OIDC_PRIVATE_KEY"
 		secrets["OIDC_HMAC_SECRET"] = "AUTHELIA_OIDC_HMAC_SECRET"
 	}
-	k8sapp.NewExternalSecret(chart, jsii.String("external-secrets"), &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, "external-secrets", &k8sapp.ExternalSecretProps{
 		Name:       "authelia",
 		RemoteRefs: secrets,
 	})

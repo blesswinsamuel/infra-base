@@ -1,7 +1,6 @@
 package k8sapp
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/packager"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,11 +11,11 @@ func NewNamespaceChart(scope packager.Construct, namespaceName string) packager.
 		Namespace: namespaceName,
 	})
 	SetNamespaceContext(chart, namespaceName)
-	NewNamespace(chart, jsii.String("namespace"), namespaceName)
+	NewNamespace(chart, "namespace", namespaceName)
 	return chart
 }
 
-func NewNamespace(scope packager.Construct, id *string, namespaceName string) packager.Construct {
+func NewNamespace(scope packager.Construct, id string, namespaceName string) packager.Construct {
 	return NewK8sObject(scope, id, &corev1.Namespace{
 		ObjectMeta: v1.ObjectMeta{
 			Name: namespaceName,
@@ -30,10 +29,6 @@ func NewNamespace(scope packager.Construct, id *string, namespaceName string) pa
 func SetNamespaceContext(scope packager.Construct, namespaceName string) packager.Construct {
 	scope.SetContext("namespace", namespaceName)
 	return nil
-}
-
-func GetNamespaceContextPtr(scope packager.Construct) *string {
-	return jsii.String(GetNamespaceContext(scope))
 }
 
 func GetNamespaceContext(scope packager.Construct) string {

@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 )
@@ -20,9 +19,9 @@ func NewRedis(scope packager.Construct, props RedisProps) packager.Chart {
 	}
 	chart := scope.Chart("redis", cprops)
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("redis"),
+		ReleaseName: "redis",
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			"architecture": "standalone",

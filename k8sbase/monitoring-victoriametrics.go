@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 	corev1 "k8s.io/api/core/v1"
@@ -29,9 +28,9 @@ func NewVictoriaMetrics(scope packager.Construct, props VictoriametricsProps) pa
 	}
 	chart := scope.Chart("victoriametrics", cprops)
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("victoriametrics"),
+		ReleaseName: "victoriametrics",
 		Namespace:   chart.Namespace(),
 		Values: map[string]any{
 			"server": map[string]any{

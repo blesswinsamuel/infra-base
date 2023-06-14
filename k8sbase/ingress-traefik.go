@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 	"github.com/traefik/traefik/v2/pkg/config/dynamic"
@@ -44,9 +43,9 @@ func NewTraefik(scope packager.Construct, props TraefikProps) packager.Chart {
 	}
 	chart := scope.Chart("traefik", cprops)
 
-	k8sapp.NewHelm(chart, jsii.String("traefik"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "traefik", &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,
-		ReleaseName: jsii.String("traefik"),
+		ReleaseName: "traefik",
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			// "deployment": map[string]any{
@@ -163,7 +162,7 @@ func NewTraefik(scope packager.Construct, props TraefikProps) packager.Chart {
 	})
 
 	if props.DashboardIngress.Enabled {
-		k8sapp.NewIngress(chart, jsii.String("traefik-dashboard-external"), &k8sapp.IngressProps{
+		k8sapp.NewIngress(chart, "traefik-dashboard-external", &k8sapp.IngressProps{
 			Name: "traefik-dashboard",
 			Hosts: []k8sapp.IngressHost{
 				{Host: props.DashboardIngress.SubDomain + "." + GetDomain(chart), Paths: []k8sapp.IngressHostPath{{Path: "/", ServiceName: "api@internal"}}, Tls: true},
@@ -173,7 +172,7 @@ func NewTraefik(scope packager.Construct, props TraefikProps) packager.Chart {
 	}
 
 	if props.Middlewares.StripPrefix.Enabled {
-		k8sapp.NewK8sObject(chart, jsii.String("traefik-strip-prefix"), &traefikv1alpha1.Middleware{
+		k8sapp.NewK8sObject(chart, "traefik-strip-prefix", &traefikv1alpha1.Middleware{
 			ObjectMeta: v1.ObjectMeta{Name: "traefik-strip-prefix"},
 			Spec: traefikv1alpha1.MiddlewareSpec{
 				StripPrefixRegex: &dynamic.StripPrefixRegex{

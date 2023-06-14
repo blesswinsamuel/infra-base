@@ -3,7 +3,6 @@ package k8sbase
 import (
 	_ "embed"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
@@ -36,9 +35,9 @@ func NewVmagent(scope packager.Construct, props VmagentProps) packager.Chart {
 
 	vmagentConfig := infrahelpers.FromYamlString[map[string]any](vmagentConfig)
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("vmagent"),
+		ReleaseName: "vmagent",
 		Namespace:   chart.Namespace(),
 		Values: map[string]any{
 			"remoteWriteUrls": []string{

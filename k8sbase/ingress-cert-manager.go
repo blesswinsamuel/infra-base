@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 )
@@ -18,9 +17,9 @@ func NewCertManager(scope packager.Construct, props CertManagerProps) packager.C
 		return nil
 	}
 
-	chart := k8sapp.NewHelmChart(scope, jsii.String("helm"), &k8sapp.HelmProps{
+	chart := k8sapp.NewHelmChart(scope, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("cert-manager"),
+		ReleaseName: "cert-manager",
 		Values: map[string]interface{}{
 			"installCRDs": "true",
 		},

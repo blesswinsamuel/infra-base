@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 )
@@ -22,9 +21,9 @@ func NewMariaDB(scope packager.Construct, props MariaDBProps) packager.Chart {
 	}
 	chart := scope.Chart("mariadb", cprops)
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("mariadb"),
+		ReleaseName: "mariadb",
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			"nameOverride": "mariadb",
@@ -37,7 +36,7 @@ func NewMariaDB(scope packager.Construct, props MariaDBProps) packager.Chart {
 		},
 	})
 
-	k8sapp.NewExternalSecret(chart, jsii.String("external-secret"), &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, "external-secret", &k8sapp.ExternalSecretProps{
 		Name: "mariadb-passwords",
 		RemoteRefs: map[string]string{
 			"mariadb-password":             "MARIADB_PASSWORD",

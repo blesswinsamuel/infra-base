@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/packager"
 	"gopkg.in/yaml.v3"
@@ -25,13 +24,13 @@ type ChartInfo struct {
 
 type HelmProps struct {
 	ChartInfo           ChartInfo
-	ChartFileNamePrefix *string
-	ReleaseName         *string
+	ChartFileNamePrefix string
+	ReleaseName         string
 	Namespace           string
 	Values              map[string]interface{}
 }
 
-func NewHelm(scope packager.Construct, id *string, props *HelmProps) packager.Construct {
+func NewHelm(scope packager.Construct, id string, props *HelmProps) packager.Construct {
 	globals := GetGlobalContext(scope)
 	chartsCacheDir := fmt.Sprintf("%s/%s", globals.CacheDir, "charts")
 	if err := os.MkdirAll(chartsCacheDir, os.ModePerm); err != nil {
@@ -41,11 +40,11 @@ func NewHelm(scope packager.Construct, id *string, props *HelmProps) packager.Co
 		log.Fatalln("helm LookPath failed", err)
 	}
 	if props.ChartInfo.Repo == nil {
-		log.Fatalf("props.ChartInfo is nil for %s", *props.ReleaseName)
+		log.Fatalf("props.ChartInfo is nil for %s", props.ReleaseName)
 	}
 	chartFileName := *props.ChartInfo.Chart + "-" + *props.ChartInfo.Version + ".tgz"
-	if props.ChartFileNamePrefix != nil {
-		chartFileName = *props.ChartFileNamePrefix + *props.ChartInfo.Version + ".tgz"
+	if props.ChartFileNamePrefix != "" {
+		chartFileName = props.ChartFileNamePrefix + *props.ChartInfo.Version + ".tgz"
 	}
 	chartPath := fmt.Sprintf("%s/%s", chartsCacheDir, chartFileName)
 	if _, err := os.Stat(chartPath); err != nil {
@@ -72,7 +71,7 @@ func NewHelm(scope packager.Construct, id *string, props *HelmProps) packager.Co
 	cmd := exec.Command(
 		"helm",
 		"template",
-		*props.ReleaseName,
+		props.ReleaseName,
 		chartPath,
 		"--namespace",
 		namespace,
@@ -121,11 +120,11 @@ func NewHelm(scope packager.Construct, id *string, props *HelmProps) packager.Co
 	return scope
 }
 
-func NewHelmChart(scope packager.Construct, id *string, props *HelmProps) packager.Chart {
+func NewHelmChart(scope packager.Construct, id string, props *HelmProps) packager.Chart {
 	cprops := packager.ChartProps{
 		Namespace: GetNamespaceContext(scope),
 	}
-	chart := scope.Chart(*id, cprops)
-	NewHelm(chart, jsii.String("helm"), props)
+	chart := scope.Chart(id, cprops)
+	NewHelm(chart, "helm", props)
 	return chart
 }

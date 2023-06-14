@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 	"golang.org/x/exp/slices"
@@ -133,7 +132,7 @@ func NewAlertingRules(scope packager.Construct, props AlertingRulesProps) packag
 			}
 		}
 	}
-	k8sapp.NewConfigMap(chart, jsii.String("config-map"), &k8sapp.ConfigmapProps{
+	k8sapp.NewConfigMap(chart, "config-map", &k8sapp.ConfigmapProps{
 		Name: "alerting-rules",
 		Data: rules,
 	})

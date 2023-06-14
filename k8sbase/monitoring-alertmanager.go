@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"strings"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
@@ -68,7 +67,7 @@ func NewAlertmanager(scope packager.Construct, props AlertmanagerProps) packager
 			SecurityContext: &corev1.SecurityContext{
 				RunAsGroup:   infrahelpers.Ptr(int64(65534)),
 				RunAsUser:    infrahelpers.Ptr(int64(65534)),
-				RunAsNonRoot: jsii.Bool(true),
+				RunAsNonRoot: infrahelpers.Ptr(true),
 			},
 		}},
 		Secrets: []k8sapp.ApplicationSecret{{
@@ -150,7 +149,7 @@ func NewAlertmanager(scope packager.Construct, props AlertmanagerProps) packager
 		}},
 	})
 
-	k8sapp.NewK8sObject(scope, jsii.String("alertmanager-sa"), &corev1.ServiceAccount{
+	k8sapp.NewK8sObject(scope, "alertmanager-sa", &corev1.ServiceAccount{
 		ObjectMeta: v1.ObjectMeta{
 			Name: "alertmanager",
 		},

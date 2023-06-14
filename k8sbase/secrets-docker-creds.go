@@ -3,7 +3,6 @@ package k8sbase
 import (
 	"strings"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 	"github.com/muesli/reflow/dedent"
@@ -23,7 +22,7 @@ func NewSecretsDockerCreds(scope packager.Construct, props SecretsDockerCredsPro
 		Namespace: props.Namespace,
 	}
 	chart := scope.Chart("docker-creds", cprops)
-	k8sapp.NewExternalSecret(chart, jsii.String("externalsecret"), &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, "externalsecret", &k8sapp.ExternalSecretProps{
 		Name:       "regcred",
 		SecretType: "kubernetes.io/dockerconfigjson",
 		Template: map[string]string{

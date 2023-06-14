@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 )
@@ -23,9 +22,9 @@ func NewPostgres(scope packager.Construct, props PostgresProps) packager.Chart {
 	}
 	chart := scope.Chart("postgres", cprops)
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("postgres"),
+		ReleaseName: "postgres",
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			"nameOverride": "postgres",
@@ -39,7 +38,7 @@ func NewPostgres(scope packager.Construct, props PostgresProps) packager.Chart {
 		},
 	})
 
-	k8sapp.NewExternalSecret(chart, jsii.String("external-secret"), &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, "external-secret", &k8sapp.ExternalSecretProps{
 		Name: "postgres-passwords",
 		RemoteRefs: map[string]string{
 			"postgres-password":    "POSTGRES_ADMIN_PASSWORD",

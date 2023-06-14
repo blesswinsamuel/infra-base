@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 )
@@ -21,9 +20,9 @@ func NewExternalSecrets(scope packager.Construct, props ExternalSecretsProps) pa
 	}
 	chart := scope.Chart("external-secrets", cprops)
 
-	k8sapp.NewHelm(chart, jsii.String("helm"), &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("external-secrets"),
+		ReleaseName: "external-secrets",
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			"installCRDs": "true",

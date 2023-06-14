@@ -1,7 +1,7 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 	certmanageracmev1 "github.com/cert-manager/cert-manager/pkg/apis/acme/v1"
@@ -34,7 +34,7 @@ func letsEncryptIssuer(chart packager.Construct, props CertIssuerProps, name str
 			{
 				HTTP01: &certmanageracmev1.ACMEChallengeSolverHTTP01{
 					Ingress: &certmanageracmev1.ACMEChallengeSolverHTTP01Ingress{
-						Class: jsii.String("traefik"),
+						Class: infrahelpers.Ptr("traefik"),
 					},
 				},
 			},
@@ -56,7 +56,7 @@ func letsEncryptIssuer(chart packager.Construct, props CertIssuerProps, name str
 		}
 	}
 
-	k8sapp.NewK8sObject(chart, jsii.String(name), issuer)
+	k8sapp.NewK8sObject(chart, name, issuer)
 }
 
 func NewCertIssuer(scope packager.Construct, props CertIssuerProps) packager.Chart {
@@ -68,12 +68,12 @@ func NewCertIssuer(scope packager.Construct, props CertIssuerProps) packager.Cha
 	}
 	chart := scope.Chart("cert-issuer", cprops)
 
-	// NewNamespace(chart, jsii.String("namespace"), &NamespaceProps{Name: "cert-manager"})
+	// NewNamespace(chart, ("namespace"), &NamespaceProps{Name: "cert-manager"})
 	letsEncryptIssuer(chart, props, "letsencrypt-prod", "https://acme-v02.api.letsencrypt.org/directory")
 	letsEncryptIssuer(chart, props, "letsencrypt-staging", "https://acme-staging-v02.api.letsencrypt.org/directory")
 
 	if props.Solver == "dns" {
-		k8sapp.NewExternalSecret(chart, jsii.String("cloudflare-externalsecret"), &k8sapp.ExternalSecretProps{
+		k8sapp.NewExternalSecret(chart, "cloudflare-externalsecret", &k8sapp.ExternalSecretProps{
 			Name: "cloudflare-api-token",
 			RemoteRefs: map[string]string{
 				"api-token": "CLOUDFLARE_API_TOKEN",

@@ -1,7 +1,6 @@
 package k8sbase
 
 import (
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 )
@@ -21,9 +20,9 @@ func NewKubernetesDashboard(scope packager.Construct, props KubernetesDashboardP
 		return nil
 	}
 
-	chart := k8sapp.NewHelmChart(scope, jsii.String("kubernetes-dashboard"), &k8sapp.HelmProps{
+	chart := k8sapp.NewHelmChart(scope, "kubernetes-dashboard", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: jsii.String("kubernetes-dashboard"),
+		ReleaseName: "kubernetes-dashboard",
 		Values: map[string]any{
 			"protocolHttp": true,
 			"extraArgs": []string{
@@ -62,26 +61,26 @@ func NewKubernetesDashboard(scope packager.Construct, props KubernetesDashboardP
 		},
 	})
 
-	// k8s.NewKubeServiceAccount(chart, jsii.String("service-account"), &k8s.KubeServiceAccountProps{
+	// k8s.NewKubeServiceAccount(chart, ("service-account"), &k8s.KubeServiceAccountProps{
 	// 	Metadata: &k8s.ObjectMeta{
-	// 		Name:      jsii.String("kubernetes-dashboard"),
+	// 		Name:      ("kubernetes-dashboard"),
 	// 		Namespace: chart.Namespace(),
 	// 	},
 	// })
 
-	// k8s.NewKubeClusterRoleBinding(chart, jsii.String("cluster-role-binding"), &k8s.KubeClusterRoleBindingProps{
+	// k8s.NewKubeClusterRoleBinding(chart, ("cluster-role-binding"), &k8s.KubeClusterRoleBindingProps{
 	// 	Metadata: &k8s.ObjectMeta{
-	// 		Name: jsii.String("kubernetes-dashboard"),
+	// 		Name: ("kubernetes-dashboard"),
 	// 	},
 	// 	RoleRef: &k8s.RoleRef{
-	// 		ApiGroup: jsii.String("rbac.authorization.k8s.io"),
-	// 		Kind:     jsii.String("ClusterRole"),
-	// 		Name:     jsii.String("cluster-admin"),
+	// 		ApiGroup: ("rbac.authorization.k8s.io"),
+	// 		Kind:     ("ClusterRole"),
+	// 		Name:     ("cluster-admin"),
 	// 	},
 	// 	Subjects: &[]*k8s.Subject{
 	// 		{
-	// 			Kind:      jsii.String("ServiceAccount"),
-	// 			Name:      jsii.String("kubernetes-dashboard"),
+	// 			Kind:      ("ServiceAccount"),
+	// 			Name:      ("kubernetes-dashboard"),
 	// 			Namespace: chart.Namespace(),
 	// 		},
 	// 	},

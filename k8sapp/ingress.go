@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/jsii-runtime-go"
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/packager"
 	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
@@ -43,7 +42,7 @@ type CertIssuerRefProps struct {
 	Kind string
 }
 
-func NewIngress(scope packager.Construct, id *string, props *IngressProps) packager.Construct {
+func NewIngress(scope packager.Construct, id string, props *IngressProps) packager.Construct {
 	if props.IngressType == "" {
 		props.IngressType = "kubernetes"
 	}
@@ -88,7 +87,7 @@ func NewIngress(scope packager.Construct, id *string, props *IngressProps) packa
 		}
 		tlsDomains := []traefiktypes.Domain{}
 		if len(tlsHosts) > 0 {
-			NewCertificate(scope, jsii.String(*id+"-cert"), &CertificateProps{
+			NewCertificate(scope, id+"-cert", &CertificateProps{
 				Name:       props.Name,
 				Hosts:      infrahelpers.MapKeys(tlsHosts),
 				CertIssuer: props.CertIssuer,

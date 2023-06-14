@@ -15,7 +15,7 @@ type SecretProps struct {
 	Data        map[string][]byte
 }
 
-func NewSecret(scope packager.Construct, id *string, props *SecretProps) packager.ApiObject {
+func NewSecret(scope packager.Construct, id string, props *SecretProps) packager.ApiObject {
 	configMap := v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        props.Name,

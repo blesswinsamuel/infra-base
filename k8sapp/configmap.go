@@ -13,7 +13,7 @@ type ConfigmapProps struct {
 	Data        map[string]string
 }
 
-func NewConfigMap(scope packager.Construct, id *string, props *ConfigmapProps) packager.ApiObject {
+func NewConfigMap(scope packager.Construct, id string, props *ConfigmapProps) packager.ApiObject {
 	configMap := v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        props.Name,
