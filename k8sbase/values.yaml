@@ -352,5 +352,5 @@ system:
     postgres:
       image:
         repository: postgres
-        tag: "14.8"
+        tag: "15.3"
       host: "postgres.database.svc.cluster.local"
