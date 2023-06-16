@@ -3,15 +3,15 @@ module github.com/blesswinsamuel/infra-base
 go 1.20
 
 require (
-	github.com/cert-manager/cert-manager v1.12.1
-	github.com/external-secrets/external-secrets v0.8.4-0.20230609105147-7a7ab8ad2996
+	github.com/cert-manager/cert-manager v1.12.2
+	github.com/external-secrets/external-secrets v0.8.4-0.20230615095418-a4508a809161
 	github.com/goccy/go-yaml v1.11.0
 	github.com/muesli/reflow v0.3.0
 	github.com/traefik/traefik/v2 v2.10.1
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.27.2
-	k8s.io/apimachinery v0.27.2
+	k8s.io/api v0.27.3
+	k8s.io/apimachinery v0.27.3
 )
 
 require (
@@ -38,7 +38,7 @@ require (
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
-	github.com/go-openapi/swag v0.22.3 // indirect
+	github.com/go-openapi/swag v0.22.4 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -76,9 +76,9 @@ require (
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/apiextensions-apiserver v0.27.2 // indirec0
-	k8s.io/client-go v0.27.2 // indirec0
-	k8s.io/component-base v0.27.2 // indirect; indirec0
+	k8s.io/apiextensions-apiserver v0.27.3 // indirec0
+	k8s.io/client-go v0.27.3 // indirec0
+	k8s.io/component-base v0.27.3 // indirect; indirec0
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230523194449-df37dd07aa00 // indirect
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106 // indirect
@@ -91,7 +91,7 @@ require (
 
 // Containous forks
 replace (
-	github.com/abbot/go-http-auth => github.com/containous/go-http-auth v0.4.1-0.20200324110947-a37a7636d23e
+	github.com/abbot/go-http-auth => github.com/containous/go-http-auth v0.4.1-0.20181019201920-860ed7f246ff
 	github.com/go-check/check => github.com/containous/check v0.0.0-20170915194414-ca0bf163426a
 	github.com/mailgun/minheap => github.com/containous/minheap v0.0.0-20190809180810-6e71eb837595
 )
