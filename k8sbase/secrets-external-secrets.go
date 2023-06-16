@@ -26,6 +26,19 @@ func NewExternalSecrets(scope packager.Construct, props ExternalSecretsProps) pa
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			"installCRDs": "true",
+			"prometheus": map[string]interface{}{
+				"enabled": "true",
+			},
+			"webhook": map[string]interface{}{
+				"prometheus": map[string]interface{}{
+					"enabled": "true",
+				},
+			},
+			"certController": map[string]interface{}{
+				"prometheus": map[string]interface{}{
+					"enabled": "true",
+				},
+			},
 		},
 	})
 
