@@ -27,12 +27,14 @@ func NewKopia(scope packager.Construct, props KopiaProps) packager.Construct {
 			Image: props.ImageInfo,
 			Ports: []k8sapp.ContainerPort{
 				{Name: "web", Port: 51515, Ingress: &k8sapp.ApplicationIngress{Host: "kopia." + GetDomain(scope)}},
+				{Name: "metrics", Port: 51516, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{Path: "/metrics"}},
 			},
 			Args: []string{
 				"server",
 				"start",
 				"--disable-csrf-token-checks",
 				"--insecure",
+				"--metrics-listen-addr=0.0.0.0:51516",
 				"--address=0.0.0.0:51515",
 				// "--server-username=" + props.User,
 				// "--server-password=kopia-secret-password",
@@ -41,7 +43,7 @@ func NewKopia(scope packager.Construct, props KopiaProps) packager.Construct {
 				"--file-log-level=error",
 				"--json-log-console",
 				// "--override-username=" + props.User,
-				// "--refresh-interval=60s",
+				"--refresh-interval=24h", // to avoid high class C transactions
 				"--no-check-for-updates",
 				"--no-grpc",
 				"--no-legacy-api",
