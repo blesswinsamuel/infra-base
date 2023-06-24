@@ -22,7 +22,6 @@ require (
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/traefik/paerser v0.2.0 // indirect
 	golang.org/x/crypto v0.10.0 // indirect
 )
