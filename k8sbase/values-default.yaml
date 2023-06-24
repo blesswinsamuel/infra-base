@@ -66,3 +66,21 @@ monitoring:
     ingress:
       enabled: false
       subDomain: vector
+
+system:
+  kubeGitOps:
+    gitSync:
+      image:
+        repository: blesswinsamuel/git-sync
+        tag: v1.0.0
+    webhook:
+      image:
+        repository: blesswinsamuel/docker-helm
+        tag: v1.0.1
+    gitRepo:
+      url: ""
+      branch: ""
+    kapp:
+      appName: ""
+      directory: ""
+      namespace: ""

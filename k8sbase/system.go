@@ -8,10 +8,9 @@ import (
 type SystemProps struct {
 	Reloader            ReloaderProps            `json:"reloader"`
 	KubernetesDashboard KubernetesDashboardProps `json:"kubernetesDashboard"`
+	KubeGitOps          KubeGitOpsProps          `json:"kubeGitOps"`
 	Kopia               KopiaProps               `json:"kopia"`
 	BackupJob           BackupJobProps           `json:"backupJob"`
-
-	HelmOps map[string]interface{} `json:"helmOps"` // not implemented
 }
 
 func NewSystem(scope packager.Construct, props SystemProps) packager.Construct {
@@ -21,6 +20,7 @@ func NewSystem(scope packager.Construct, props SystemProps) packager.Construct {
 
 	NewReloader(chart, props.Reloader)
 	NewKubernetesDashboard(chart, props.KubernetesDashboard)
+	NewKubeGitOps(chart, props.KubeGitOps)
 	NewKopia(chart, props.Kopia)
 	NewBackupJob(chart, props.BackupJob)
 

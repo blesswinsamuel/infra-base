@@ -24,6 +24,7 @@ type DefaultValuesProps struct {
 	Databases  DatabaseProps   `json:"databases"`
 	Auth       AuthProps       `json:"auth"`
 	Monitoring MonitoringProps `json:"monitoring"`
+	System     SystemProps     `json:"system"`
 }
 
 func init() {

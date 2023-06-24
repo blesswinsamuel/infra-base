@@ -320,15 +320,6 @@ system:
       repo: https://stakater.github.io/stakater-charts
       chart: reloader
       version: "v1.0.25"
-  helmOps:
-    enabled: false
-    # gitRepo:
-    #   url: ""
-    #   branch: ""
-    # helmChartPath: ""
-    # helmReleaseName: ""
-    helmReleaseNamespace: default
-    helmExtraValuesFiles: ["versions.yaml"]
   kubernetesDashboard:
     enabled: false
     helm:
