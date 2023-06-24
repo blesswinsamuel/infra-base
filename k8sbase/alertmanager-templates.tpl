@@ -28,20 +28,24 @@
 
 {{/* https://core.telegram.org/bots/update56kabdkb12ibuisabdubodbasbdaosd#html-style */}}
 {{/* https://github.com/prometheus/alertmanager/blob/main/docs/notifications.md */}}
+{{/* https://github.com/prometheus/alertmanager/blob/a85979e19d24490322d5ce342301d17b0f13dcc5/template/template.go#L170-L195 */}}
 {{- define "telegram.message" -}}
-  {{- if eq .Status "firing" }}
-  <b>Status</b>: <b>{{.Status | toUpper}} 🔥</b> <code>{{ .CommonLabels.alertname }}</code> for job <code>{{ .CommonLabels.job }}</code>
-  {{- end }}
-  {{- if eq .Status "resolved" }}
-  <b>Status</b>: <b>{{.Status | toUpper}} ✅</b> <code>{{ .CommonLabels.alertname }}</code> for job <code>{{ .CommonLabels.job }}</code>
-  {{- end }}
-  {{- range .Alerts }}
-  <b>Alert</b>: {{ .Annotations.summary | reReplaceAll "&" "&amp;" | reReplaceAll "<" "&lt;" | reReplaceAll ">" "&gt;" }}
-  <b>Description</b>: {{ .Annotations.description | reReplaceAll "&" "&amp;" | reReplaceAll "<" "&lt;" | reReplaceAll ">" "&gt;" }}
+{{- $emoji := "" }}
+{{- if eq .Status "firing" }}
+{{- $emoji = "🔥" }}
+{{- end }}
+{{- if eq .Status "resolved" }}
+{{- $emoji = "✅" }}
+{{- end }}
+<b>Status</b>: <b>{{.Status | toUpper}} {{$emoji}}</b> <code>{{ .CommonLabels.alertname }}</code> for job <code>{{ .CommonLabels.job }}</code>
+{{- range .Alerts }}
+  <b>Alert</b>: {{ .Annotations.summary }}
+  <b>Description</b>: {{ .Annotations.description }}
   <b>Details</b>:
-  {{ range .Labels.SortedPairs }}   - <b>{{ .Name }}</b>: <code>{{ .Value }}</code>
-  {{ end -}}
-  <b>Graph</b>: <a href="{{ .GeneratorURL | reReplaceAll "\"" "%22" }}">📈 Grafana</a>
-  <b>Severity</b>: {{ .Labels.severity }}{{ if eq .Labels.severity "warning" }} ⚠️{{ else if eq .Labels.severity "critical" }} 🚨{{ end }}
+  {{- range .Labels.SortedPairs }}
+    - <b>{{ .Name }}</b>: <code>{{ .Value }}</code>
   {{- end }}
+  <b>Graph</b>: <a href="{{ .GeneratorURL }}">📈 Grafana</a>
+  <b>Severity</b>: {{ .Labels.severity }}{{ if eq .Labels.severity "warning" }} ⚠️{{ else if eq .Labels.severity "critical" }} 🚨{{ end }}
+{{- end }}
 {{- end -}}
