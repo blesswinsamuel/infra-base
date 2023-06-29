@@ -1,0 +1,48 @@
+version: 3
+
+# https://go-task.github.io/slim-sprig/
+tasks:
+  backup-all:
+    dir: "{{.USER_WORKING_DIR}}"
+    cmds:
+      - yq e '.system.backupJob.postgres.databases[]' ../../homelab/values.yaml | xargs -I{} task postgres-backup -- {}
+
+  restore-all:
+    dir: "{{.USER_WORKING_DIR}}"
+    cmds:
+      - yq e '.system.backupJob.postgres.databases[]' ../../homelab/values.yaml | xargs -I{} task postgres-restore -- {}
+
+  backup:
+    # yq e '.system.backupJob.postgres.databases[]' homelab/values.yaml
+    cmds:
+      - defer: kubectl delete job -n system backup-job-postgres-{{ .DATABASE }}-manual
+      - kubectl create job -n system --from=cronjob/backup-job-postgres-{{ .DATABASE }} backup-job-postgres-{{ .DATABASE }}-manual
+      # - task: logs
+      #   vars: { CLI_ARGS: "backup-job-postgres-{{ .DATABASE }}-manual" }
+      # - kubectl get po -n system -w -l job-name=backup-job-postgres-manual
+      # - kubectl wait pod -n system --for=condition=initialized -l job-name=backup-job-postgres-{{ .DATABASE }}-manual --timeout=60s
+      # - kubectl wait -n system --for=condition=ready job/backup-job-postgres-{{ .DATABASE }}-manual --timeout=60s
+      # - kubectl logs -n system -f -l job-name=backup-job-postgres-{{ .DATABASE }}-manual --all-containers --prefix --ignore-errors
+      - >
+        bash -c "
+        (trap 'echo Exiting; jobs; jobs -p | xargs -r kill' SIGINT SIGTERM EXIT;
+        stern -n system job/backup-job-postgres-{{ .DATABASE }}-manual &
+        kubectl wait -n system --for=condition=complete job/backup-job-postgres-{{ .DATABASE }}-manual --timeout=600s)
+        "
+    vars:
+      DATABASE: '{{ .CLI_ARGS | splitList " " | first }}'
+
+  restore:
+    cmds:
+      - defer: kubectl delete job restore-job-postgres-{{ .DATABASE }}-manual -n system
+      - kubectl create job --from=cronjob/restore-job-postgres-{{ .DATABASE }} restore-job-postgres-{{ .DATABASE }}-manual -n system
+      # - task: logs
+      #   vars: { CLI_ARGS: restore-job-postgres-manual }
+      - >
+        bash -c "
+        trap 'echo Exiting; jobs; jobs -p | xargs -r kill' SIGINT SIGTERM EXIT;
+        stern -n system job/restore-job-postgres-{{ .DATABASE }}-manual &
+        kubectl wait -n system --for=condition=complete job/restore-job-postgres-{{ .DATABASE }}-manual --timeout=600s
+        "
+    vars:
+      DATABASE: '{{ .CLI_ARGS | splitList " " | first }}'

@@ -202,6 +202,7 @@ func NewBackupPostgresJob(chart packager.Construct, props BackupJobProps) {
 				DATABASE=$1
 				FOLDER=$2
 			
+				mkdir -p $FOLDER
 				rm -f $FOLDER/*
 			
 				FILENAME="$DATABASE.pgdump"
@@ -231,18 +232,12 @@ func NewBackupPostgresJob(chart packager.Construct, props BackupJobProps) {
 
 	for _, databaseName := range props.Postgres.Databases {
 		sharedMountPath := "/pgdumps/" + databaseName
-		localBackupVolume := props.Postgres.LocalBackupVolume
-		if nfs := localBackupVolume.NFS; nfs != nil {
-			nfs := *localBackupVolume.NFS
-			nfs.Path = nfs.Path + "/" + databaseName
-			localBackupVolume.NFS = &nfs
-		}
 		newCronJob(chart, "backup-job-postgres-"+databaseName, cronJobProps{
 			Name:              "backup-job-postgres-" + databaseName,
 			Schedule:          props.Postgres.Schedule,
 			ScriptsConfigMap:  "backup-job-postgres-scripts",
-			LocalBackupVolume: localBackupVolume,
-			SharedFolder:      sharedMountPath,
+			LocalBackupVolume: props.Postgres.LocalBackupVolume,
+			SharedFolder:      "/pgdumps",
 			Commands: []cronJobScript{
 				{Name: "take-dump", Image: props.Postgres.Image, Command: []string{"/script/take-postgres-dump.sh", databaseName, sharedMountPath}, EnvFromSecret: "backup-restore-job-postgres", MountScript: "take-postgres-dump.sh"},
 				{Name: "kopia-snapshot", Image: props.Kopia.Image, Command: []string{"/script/kopia-postgres-snapshot.sh", sharedMountPath}, EnvFromSecret: "backup-restore-job-s3", MountScript: "kopia-postgres-snapshot.sh"},
@@ -266,6 +261,7 @@ func NewRestorePostgresJob(chart packager.Construct, props BackupJobProps) {
 
 				FOLDER=$1
 
+				mkdir -p $FOLDER
 				# rm -f $FOLDER/*
 
 				kopia repository connect s3 --bucket=$S3_BUCKET --access-key=$S3_ACCESS_KEY --secret-access-key=$S3_SECRET_KEY --endpoint=$S3_ENDPOINT --override-username kopia --override-hostname kopia
@@ -296,18 +292,12 @@ func NewRestorePostgresJob(chart packager.Construct, props BackupJobProps) {
 
 	for _, databaseName := range props.Postgres.Databases {
 		sharedMountPath := "/pgdumps/" + databaseName
-		localBackupVolume := props.Postgres.LocalBackupVolume
-		if nfs := localBackupVolume.NFS; nfs != nil {
-			nfs := *localBackupVolume.NFS
-			nfs.Path = nfs.Path + "/" + databaseName
-			localBackupVolume.NFS = &nfs
-		}
 		newCronJob(chart, "restore-job-postgres-"+databaseName, cronJobProps{
 			DisabledByDefault: true,
 			Name:              "restore-job-postgres-" + databaseName,
-			LocalBackupVolume: localBackupVolume,
+			LocalBackupVolume: props.Postgres.LocalBackupVolume,
 			ScriptsConfigMap:  "restore-job-postgres-scripts",
-			SharedFolder:      sharedMountPath,
+			SharedFolder:      "/pgdumps",
 			Commands: []cronJobScript{
 				{Name: "kopia-restore", Image: props.Kopia.Image, Command: []string{"/script/kopia-restore.sh", sharedMountPath}, EnvFromSecret: "backup-restore-job-s3", MountScript: "kopia-restore.sh"},
 				{Name: "restore-dump", Image: props.Postgres.Image, Command: []string{"/script/restore-postgres-dump.sh", databaseName, sharedMountPath}, EnvFromSecret: "backup-restore-job-postgres", MountScript: "restore-postgres-dump.sh"},
