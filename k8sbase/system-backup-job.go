@@ -183,7 +183,7 @@ func NewBackupJob(scope packager.Construct, props BackupJobProps) packager.Const
 	NewBackupPostgresJob(chart, props)
 	NewRestorePostgresJob(chart, props)
 	NewBackupFilesystemJob(chart, props)
-	// NewRestoreFilesystemJob(chart, props)
+	NewRestoreFilesystemJob(chart, props)
 	return chart
 }
 
@@ -347,6 +347,54 @@ func NewBackupFilesystemJob(chart packager.Construct, props BackupJobProps) {
 					Command:       []string{"/script/kopia-filesystem-snapshot.sh"},
 					EnvFromSecret: "backup-restore-job-s3",
 					MountScript:   "kopia-filesystem-snapshot.sh",
+					Env:           map[string]string{"FOLDERS": strings.Join(folders, " ")},
+				},
+			},
+		})
+	}
+}
+
+func NewRestoreFilesystemJob(chart packager.Construct, props BackupJobProps) {
+	if !props.Filesystem.Enabled {
+		return
+	}
+	k8sapp.NewConfigMap(chart, "restore-job-filesystem-scripts-cm", &k8sapp.ConfigmapProps{
+		Name: "restore-job-filesystem-scripts",
+		Data: map[string]string{
+			"kopia-filesystem-restore.sh": infrahelpers.GoTemplate(strings.TrimSpace(dedent.String(`
+				#!/bin/bash
+				set -e
+				set -o pipefail
+
+				kopia repository connect s3 --bucket=$S3_BUCKET --access-key=$S3_ACCESS_KEY --secret-access-key=$S3_SECRET_KEY --endpoint=$S3_ENDPOINT --override-username kopia --override-hostname kopia
+				for FOLDER in ${FOLDERS}
+				do
+				    kopia snapshot restore $FOLDER --snapshot-time latest
+				done
+			`)), props.Kopia),
+		},
+	})
+
+	for _, job := range props.Filesystem.Jobs {
+		sharedMountPath := "/filesystem"
+
+		folders := []string{}
+		for _, path := range job.Paths {
+			folders = append(folders, sharedMountPath+"/"+strings.TrimPrefix(path, "/"))
+		}
+		newCronJob(chart, "restore-job-filesystem-"+job.Name, cronJobProps{
+			Name:              "restore-job-filesystem-" + job.Name,
+			Schedule:          job.Schedule,
+			LocalBackupVolume: job.SourceVolume,
+			ScriptsConfigMap:  "restore-job-filesystem-scripts",
+			SharedFolder:      sharedMountPath,
+			Commands: []cronJobScript{
+				{
+					Name:          "kopia-snapshot",
+					Image:         props.Kopia.Image,
+					Command:       []string{"/script/kopia-filesystem-restore.sh"},
+					EnvFromSecret: "backup-restore-job-s3",
+					MountScript:   "kopia-filesystem-restore.sh",
 					Env:           map[string]string{"FOLDERS": strings.Join(folders, " ")},
 				},
 			},
