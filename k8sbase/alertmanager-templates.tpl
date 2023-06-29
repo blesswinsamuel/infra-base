@@ -1,29 +1,34 @@
 {{- define "slack.title" -}}
-    [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
-    {{- if gt (len .CommonLabels) (len .GroupLabels) -}}
-      {{" "}}(
-      {{- with .CommonLabels.Remove .GroupLabels.Names }}
-        {{- range $index, $label := .SortedPairs -}}
-          {{ if $index }}, {{ end }}
-          {{- $label.Name }}="{{ $label.Value -}}"
-        {{- end }}
-      {{- end -}}
-      )
+{{- $emoji := "" }}
+{{- if eq .Status "firing" }}
+{{- $emoji = ":fire:" }}
+{{- end }}
+{{- if eq .Status "resolved" }}
+{{- $emoji = ":white_check_mark:" }}
+{{- end }}
+{{ $emoji }} [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}
+{{- if gt (len .CommonLabels) (len .GroupLabels) -}}
+  {{" "}}(
+  {{- with .CommonLabels.Remove .GroupLabels.Names }}
+    {{- range $index, $label := .SortedPairs -}}
+      {{ if $index }}, {{ end }}
+      {{- $label.Name }}="{{ $label.Value -}}"
     {{- end }}
+  {{- end -}}
+  )
+{{- end }}
 {{- end -}}
 
 {{- define "slack.text" -}}
-    {{ range .Alerts -}}
-    *Alert:* {{ .Annotations.summary }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }}
-
-    *Description:* {{ .Annotations.description }}
-
-    *Graph:* <{{ .GeneratorURL }}|:chart_with_upwards_trend:>
-
-    *Details:*
-      {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
-      {{ end }}
-    {{ end }}
+{{- range .Alerts }}
+*Alert:* {{ .Annotations.summary }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }}
+*Description:* {{ .Annotations.description }}
+*Graph:* <{{ .GeneratorURL }}|:chart_with_upwards_trend:>
+*Details:*
+  {{- range .Labels.SortedPairs }}
+  • *{{ .Name }}:* `{{ .Value }}`
+  {{- end }}
+{{ end }}
 {{- end -}}
 
 {{/* https://core.telegram.org/bots/update56kabdkb12ibuisabdubodbasbdaosd#html-style */}}

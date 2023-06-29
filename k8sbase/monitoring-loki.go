@@ -10,7 +10,10 @@ type LokiProps struct {
 	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 	Storage       string           `json:"storage"`
-	S3            struct {
+	Local         struct {
+		StorageClass *string `json:"storageClass"`
+	} `json:"local"`
+	S3 struct {
 		Endpoint        string `json:"endpoint"`
 		SecretAccessKey string `json:"secret_access_key"`
 		AccessKeyID     string `json:"access_key_id"`
@@ -34,6 +37,9 @@ func NewLoki(scope packager.Construct, props LokiProps) packager.Chart {
 		Values: map[string]any{
 			"singleBinary": map[string]any{
 				"replicas": 1,
+				"persistence": map[string]any{
+					"storageClass": props.Local.StorageClass,
+				},
 			},
 			"monitoring": map[string]any{
 				"dashboards": map[string]any{

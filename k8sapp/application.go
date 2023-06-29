@@ -124,6 +124,7 @@ type ApplicationContainer struct {
 type ContainerPort struct {
 	Name             string
 	Port             int
+	Protocol         corev1.Protocol
 	Ingress          *ApplicationIngress
 	Ingresses        []ApplicationIngress
 	PrometheusScrape *ApplicationPrometheusScrape
@@ -323,6 +324,7 @@ func NewApplication(scope packager.Construct, id string, props *ApplicationProps
 			ports = append(ports, corev1.ContainerPort{
 				Name:          port.Name,
 				ContainerPort: int32(port.Port),
+				Protocol:      port.Protocol,
 			})
 		}
 
@@ -331,6 +333,7 @@ func NewApplication(scope packager.Construct, id string, props *ApplicationProps
 				Name:       port.Name,
 				Port:       int32(port.Port),
 				TargetPort: intstr.FromString(port.Name),
+				Protocol:   port.Protocol,
 			})
 			if port.Ingress != nil {
 				ingressHosts = append(ingressHosts, IngressHost{

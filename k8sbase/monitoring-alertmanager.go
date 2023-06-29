@@ -57,6 +57,7 @@ func NewAlertmanager(scope packager.Construct, props AlertmanagerProps) packager
 			Args: []string{
 				"--storage.path=/alertmanager",
 				"--config.file=/etc/alertmanager/alertmanager.yml",
+				"--web.external-url=https://" + props.Ingress.SubDomain + "." + GetDomain(scope),
 			},
 			ExtraEnvs: []corev1.EnvVar{{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{APIVersion: "v1", FieldPath: "status.podIP"}}}},
 			Ports: []k8sapp.ContainerPort{
@@ -116,6 +117,7 @@ func NewAlertmanager(scope packager.Construct, props AlertmanagerProps) packager
 					  - url: {{ . }}
 					  {{- end }}
 					- name: notify-main
+					  {{- if .slackApiUrl }}
 					  slack_configs:
 					  - channel: "` + props.Config.Slack.Channel + `"
 					    send_resolved: true
@@ -123,12 +125,15 @@ func NewAlertmanager(scope packager.Construct, props AlertmanagerProps) packager
 					    icon_url: 'https://avatars3.githubusercontent.com/u/3380462'
 					    title: {{ ` + "`" + `'{{ template "slack.title" . }}'` + "`" + ` }}
 					    text: {{ ` + "`" + `'{{ template "slack.text" . }}'` + "`" + ` }}
+					  {{- end }}
+					  {{- if and .telegramBotToken .telegramChatID }}
 					  telegram_configs:
 					  - api_url: https://api.telegram.org
 					    bot_token: {{ .telegramBotToken | quote }}
 					    chat_id: {{ .telegramChatID }}
 					    message: {{ ` + "`" + `'{{ template "telegram.message" . }}'` + "`" + ` }}
 					    parse_mode: "` + props.Config.Telegram.ParseMode + `"
+					  {{- end }}
 				`)),
 			},
 			RemoteRefs: map[string]string{
