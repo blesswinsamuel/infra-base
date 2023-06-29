@@ -3,7 +3,7 @@ databases:
     helm:
       repo: https://charts.bitnami.com/bitnami
       chart: postgresql
-      version: "12.5.8"
+      version: "12.5.9"
     image:
       # not straightforward to upgrade to postgres 15
       # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server

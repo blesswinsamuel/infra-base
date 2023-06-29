@@ -8,7 +8,7 @@ require (
 	github.com/goccy/go-yaml v1.11.0
 	github.com/muesli/reflow v0.3.0
 	github.com/traefik/traefik/v2 v2.10.3
-	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
+	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.27.3
 	k8s.io/apimachinery v0.27.3
