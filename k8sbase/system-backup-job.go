@@ -383,8 +383,8 @@ func NewRestoreFilesystemJob(chart packager.Construct, props BackupJobProps) {
 			folders = append(folders, sharedMountPath+"/"+strings.TrimPrefix(path, "/"))
 		}
 		newCronJob(chart, "restore-job-filesystem-"+job.Name, cronJobProps{
+			DisabledByDefault: true,
 			Name:              "restore-job-filesystem-" + job.Name,
-			Schedule:          job.Schedule,
 			LocalBackupVolume: job.SourceVolume,
 			ScriptsConfigMap:  "restore-job-filesystem-scripts",
 			SharedFolder:      sharedMountPath,
