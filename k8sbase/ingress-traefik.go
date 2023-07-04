@@ -98,6 +98,13 @@ func NewTraefik(scope packager.Construct, props TraefikProps) packager.Chart {
 				"--accesslog=true",
 				"--accesslog.format=json",
 				"--log.format=json",
+				"--experimental.plugins.htransformation.modulename=github.com/tomMoulard/htransformation",
+				"--experimental.plugins.htransformation.version=v0.2.7",
+			},
+			"experimental": map[string]any{
+				"plugins": map[string]any{
+					"enabled": true,
+				},
 			},
 			"ports": map[string]any{
 				// "traefik": map[string]any{
