@@ -1,6 +1,8 @@
 package k8sapp
 
 import (
+	"strings"
+
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/packager"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
@@ -33,8 +35,8 @@ func NewExternalSecret(scope packager.Construct, id string, props *ExternalSecre
 			RemoteRef: externalsecretsv1beta1.ExternalSecretDataRemoteRef{Key: v},
 		})
 	}
-	slices.SortFunc(data, func(a externalsecretsv1beta1.ExternalSecretData, b externalsecretsv1beta1.ExternalSecretData) bool {
-		return a.SecretKey < b.SecretKey
+	slices.SortFunc(data, func(a externalsecretsv1beta1.ExternalSecretData, b externalsecretsv1beta1.ExternalSecretData) int {
+		return strings.Compare(a.SecretKey, b.SecretKey)
 	})
 	globals := GetGlobalContext(scope)
 	externalsecret := externalsecretsv1beta1.ExternalSecret{

@@ -101,8 +101,8 @@ func NewGrafanaDashboards(scope packager.Construct, props GrafanaDashboardsProps
 			dashboardConfig: v,
 		})
 	}
-	slices.SortFunc(dashboardList, func(a dashboardItem, b dashboardItem) bool {
-		return a.id < b.id
+	slices.SortFunc(dashboardList, func(a dashboardItem, b dashboardItem) int {
+		return strings.Compare(a.id, b.id)
 	})
 	for _, item := range dashboardList {
 		id := item.id

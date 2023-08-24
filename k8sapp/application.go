@@ -311,8 +311,8 @@ func NewApplication(scope packager.Construct, id string, props *ApplicationProps
 		for k, v := range container.Env {
 			env = append(env, corev1.EnvVar{Name: k, Value: v})
 		}
-		slices.SortFunc(env, func(a corev1.EnvVar, b corev1.EnvVar) bool {
-			return a.Name < b.Name
+		slices.SortFunc(env, func(a corev1.EnvVar, b corev1.EnvVar) int {
+			return strings.Compare(a.Name, b.Name)
 		})
 		envFrom := []corev1.EnvFromSource{}
 		for _, v := range container.EnvFromSecretRef {
