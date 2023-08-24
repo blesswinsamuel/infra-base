@@ -21,7 +21,7 @@ ingress:
     helm:
       repo: https://traefik.github.io/charts
       chart: traefik
-      version: "23.1.0"
+      version: "23.2.0"
     dashboardIngress:
       enabled: false
       subDomain: traefik
@@ -63,13 +63,13 @@ monitoring:
     helm:
       repo: https://prometheus-community.github.io/helm-charts
       chart: kube-state-metrics
-      version: "5.8.1"
+      version: "5.10.1"
   grafana:
     enabled: true
     helm:
       repo: https://grafana.github.io/helm-charts
       chart: grafana
-      version: "6.57.4"
+      version: "6.58.9"
     namespaced: false
     authProxyEnabled: true
     anonymousAuthEnabled: false
@@ -245,7 +245,7 @@ monitoring:
     helm:
       repo: https://victoriametrics.github.io/helm-charts
       chart: victoria-metrics-agent
-      version: "0.8.40"
+      version: "0.9.4"
     ingress:
       subDomain: "vmagent"
     resources:
@@ -259,7 +259,7 @@ monitoring:
     enabled: true
     image:
       repository: victoriametrics/vmalert
-      tag: v1.91.2
+      tag: v1.93.1
     ingress:
       enabled: true
       subDomain: "vmalert"
@@ -267,7 +267,7 @@ monitoring:
     enabled: true
     image:
       repository: quay.io/prometheus/alertmanager
-      tag: "v0.25.0"
+      tag: "v0.26.0"
     ingress:
       enabled: true
       subDomain: "alertmanager"
@@ -281,13 +281,13 @@ monitoring:
     helm:
       repo: https://prometheus-community.github.io/helm-charts
       chart: prometheus-node-exporter
-      version: "4.18.1"
+      version: "4.22.0"
   victoriametrics:
     enabled: true
     helm:
       repo: https://victoriametrics.github.io/helm-charts
       chart: victoria-metrics-single
-      version: "0.8.63"
+      version: "0.9.4"
     ingress:
       enabled: true
       subDomain: "victoriametrics"
@@ -304,7 +304,7 @@ monitoring:
     helm:
       repo: https://grafana.github.io/helm-charts
       chart: loki
-      version: "5.8.7"
+      version: "5.15.0"
     storage: local
   vector:
     enabled: true
@@ -343,5 +343,5 @@ system:
     postgres:
       image:
         repository: postgres
-        tag: "14.8"
+        tag: "14.9"
       host: "postgres.database.svc.cluster.local"
