@@ -3,13 +3,13 @@ databases:
     helm:
       repo: https://charts.bitnami.com/bitnami
       chart: postgresql
-      version: "12.5.9"
+      version: "12.9.0"
     image:
       # not straightforward to upgrade to postgres 15
       # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
       # 2023-03-18 16:30:09.021 GMT [1] DETAIL:  The data directory was initialized by PostgreSQL version 14, which is not compatible with this version 15.2.
       repository: bitnami/postgresql
-      tag: 14.8.0
+      tag: 14.9.0
     database: null
     username: null
 
@@ -17,7 +17,7 @@ databases:
     helm:
       repo: https://charts.bitnami.com/bitnami
       chart: redis
-      version: "17.11.6"
+      version: "17.16.0"
 
 auth:
   authelia:
@@ -60,7 +60,7 @@ monitoring:
     helm:
       repo: https://helm.vector.dev
       chart: vector
-      version: "0.22.1"
+      version: "0.24.1"
     syslogServer:
       enabled: false
     ingress:
