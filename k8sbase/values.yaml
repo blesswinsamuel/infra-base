@@ -9,7 +9,7 @@ ingress:
     helm:
       repo: https://charts.jetstack.io
       chart: cert-manager
-      version: "v1.12.2"
+      version: "v1.12.3"
   certIssuer:
     enabled: false
     # namespace: ""
@@ -38,7 +38,7 @@ secrets:
     helm:
       repo: https://charts.external-secrets.io
       chart: external-secrets
-      version: "0.9.0"
+      version: "0.9.4"
   dockerCreds:
     enabled: false
   clusterSecretStore:
@@ -51,7 +51,7 @@ monitoring:
     helm:
       repo: https://crowdsecurity.github.io/helm-charts
       chart: crowdsec
-      version: "0.9.6"
+      version: "0.9.7"
   crowdsec-traefik-bouncer:
     enabled: false
     helm:
@@ -69,7 +69,7 @@ monitoring:
     helm:
       repo: https://grafana.github.io/helm-charts
       chart: grafana
-      version: "6.58.9"
+      version: "6.58.10"
     namespaced: false
     authProxyEnabled: true
     anonymousAuthEnabled: false
@@ -319,7 +319,7 @@ system:
     helm:
       repo: https://stakater.github.io/stakater-charts
       chart: reloader
-      version: "1.0.29"
+      version: "1.0.38"
   kubernetesDashboard:
     enabled: false
     helm:
