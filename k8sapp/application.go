@@ -119,6 +119,7 @@ type ApplicationContainer struct {
 	LivenessProbe     *corev1.Probe
 	ReadinessProbe    *corev1.Probe
 	StartupProbe      *corev1.Probe
+	Resources         corev1.ResourceRequirements
 }
 
 type ContainerPort struct {
@@ -295,6 +296,7 @@ func NewApplication(scope packager.Construct, id string, props *ApplicationProps
 			LivenessProbe:            container.LivenessProbe,
 			ReadinessProbe:           container.ReadinessProbe,
 			StartupProbe:             container.StartupProbe,
+			Resources:                container.Resources,
 			TerminationMessagePolicy: "FallbackToLogsOnError",
 			SecurityContext:          container.SecurityContext,
 		})
@@ -373,6 +375,7 @@ func NewApplication(scope packager.Construct, id string, props *ApplicationProps
 			StartupProbe:             container.StartupProbe,
 			TerminationMessagePolicy: "FallbackToLogsOnError",
 			SecurityContext:          container.SecurityContext,
+			Resources:                container.Resources,
 		})
 	}
 	for _, vol := range props.ExtraVolumes {
