@@ -14,8 +14,7 @@ import (
 )
 
 type BackupJobProps struct {
-	Enabled bool `json:"enabled"`
-	Kopia   struct {
+	Kopia struct {
 		Image k8sapp.ImageInfo `json:"image"`
 	} `json:"kopia"`
 	Postgres struct {
@@ -149,10 +148,7 @@ func newCronJob(chart packager.Construct, id string, props cronJobProps) package
 	})
 }
 
-func NewBackupJob(scope packager.Construct, props BackupJobProps) packager.Construct {
-	if !props.Enabled {
-		return nil
-	}
+func (props *BackupJobProps) Chart(scope packager.Construct) packager.Construct {
 	chart := scope.Chart("backup-job", packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	})
@@ -187,7 +183,7 @@ func NewBackupJob(scope packager.Construct, props BackupJobProps) packager.Const
 	return chart
 }
 
-func NewBackupPostgresJob(chart packager.Construct, props BackupJobProps) {
+func NewBackupPostgresJob(chart packager.Construct, props *BackupJobProps) {
 	if !props.Postgres.Enabled {
 		return
 	}
@@ -247,7 +243,7 @@ func NewBackupPostgresJob(chart packager.Construct, props BackupJobProps) {
 	}
 }
 
-func NewRestorePostgresJob(chart packager.Construct, props BackupJobProps) {
+func NewRestorePostgresJob(chart packager.Construct, props *BackupJobProps) {
 	if !props.Postgres.Enabled {
 		return
 	}
@@ -306,7 +302,7 @@ func NewRestorePostgresJob(chart packager.Construct, props BackupJobProps) {
 	}
 }
 
-func NewBackupFilesystemJob(chart packager.Construct, props BackupJobProps) {
+func NewBackupFilesystemJob(chart packager.Construct, props *BackupJobProps) {
 	if !props.Filesystem.Enabled {
 		return
 	}
@@ -354,7 +350,7 @@ func NewBackupFilesystemJob(chart packager.Construct, props BackupJobProps) {
 	}
 }
 
-func NewRestoreFilesystemJob(chart packager.Construct, props BackupJobProps) {
+func NewRestoreFilesystemJob(chart packager.Construct, props *BackupJobProps) {
 	if !props.Filesystem.Enabled {
 		return
 	}

@@ -7,7 +7,6 @@ import (
 )
 
 type LokiProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 	Storage       string           `json:"storage"`
 	Local         struct {
@@ -21,10 +20,7 @@ type LokiProps struct {
 }
 
 // https://github.com/grafana/loki/tree/main/production/helm/loki
-func NewLoki(scope packager.Construct, props LokiProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *LokiProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

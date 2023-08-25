@@ -6,15 +6,11 @@ import (
 )
 
 type ExternalSecretsProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
 // https://github.com/external-secrets/external-secrets/tree/main/deploy/charts/external-secrets
-func NewExternalSecrets(scope packager.Construct, props ExternalSecretsProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *ExternalSecretsProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

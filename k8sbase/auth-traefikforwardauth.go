@@ -10,7 +10,6 @@ import (
 )
 
 type TraefikForwardAuthProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 	ImageInfo     k8sapp.ImageInfo `json:"image"`
 	Ingress       struct {
@@ -24,10 +23,7 @@ type TraefikForwardAuthProps struct {
 // https://github.com/k8s-at-home/charts/tree/master/charts/stable/traefik-forward-auth
 // https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common
 // https://github.com/thomseddon/traefik-forward-auth
-func NewTraefikForwardAuth(scope packager.Construct, props TraefikForwardAuthProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *TraefikForwardAuthProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

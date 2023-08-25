@@ -6,17 +6,12 @@ import (
 )
 
 type ReloaderProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
 // https://github.com/stakater/Reloader/blob/master/deployments/kubernetes/chart/reloader
 
-func NewReloader(scope packager.Construct, props ReloaderProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
-
+func (props *ReloaderProps) Chart(scope packager.Construct) packager.Construct {
 	chart := k8sapp.NewHelmChart(scope, "reloader", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "reloader",

@@ -7,7 +7,6 @@ import (
 )
 
 type GrafanaProps struct {
-	Enabled              bool             `json:"enabled"`
 	HelmChartInfo        k8sapp.ChartInfo `json:"helm"`
 	AnonymousAuthEnabled bool             `json:"anonymousAuthEnabled"`
 	AuthProxyEnabled     bool             `json:"authProxyEnabled"`
@@ -22,10 +21,7 @@ type GrafanaProps struct {
 }
 
 // https://github.com/grafana/helm-charts/tree/main/charts/grafana
-func NewGrafana(scope packager.Construct, props GrafanaProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *GrafanaProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

@@ -6,14 +6,10 @@ import (
 )
 
 type RedisProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
-func NewRedis(scope packager.Construct, props RedisProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *RedisProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

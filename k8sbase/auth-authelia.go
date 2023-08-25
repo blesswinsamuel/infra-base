@@ -10,7 +10,6 @@ import (
 )
 
 type AutheliaProps struct {
-	Enabled   bool             `json:"enabled"`
 	ChartInfo k8sapp.ChartInfo `json:"helm"`
 	Ingress   struct {
 		SubDomain string `json:"subDomain"`
@@ -57,10 +56,7 @@ type AutheliaProps struct {
 
 // https://github.com/authelia/chartrepo/tree/master/charts/authelia
 
-func NewAuthelia(scope packager.Construct, props AutheliaProps) packager.Construct {
-	if !props.Enabled {
-		return nil
-	}
+func (props *AutheliaProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

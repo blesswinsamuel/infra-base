@@ -11,7 +11,6 @@ import (
 )
 
 type KubeGitOpsProps struct {
-	Enabled   bool             `json:"enabled"`
 	ImageInfo k8sapp.ImageInfo `json:"image"`
 	GitRepo   struct {
 		URL    string `json:"url"`
@@ -30,10 +29,7 @@ type KubeGitOpsProps struct {
 	} `json:"kapp"`
 }
 
-func NewKubeGitOps(scope packager.Construct, props KubeGitOpsProps) packager.Construct {
-	if !props.Enabled {
-		return nil
-	}
+func (props *KubeGitOpsProps) Chart(scope packager.Construct) packager.Construct {
 	return k8sapp.NewApplicationChart(scope, "kube-gitops", &k8sapp.ApplicationProps{
 		Name: "kube-gitops",
 		Containers: []k8sapp.ApplicationContainer{

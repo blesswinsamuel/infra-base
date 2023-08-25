@@ -9,7 +9,6 @@ import (
 )
 
 type TraefikProps struct {
-	Enabled          bool             `json:"enabled"`
 	ChartInfo        k8sapp.ChartInfo `json:"helm"`
 	TrustedIPs       []string         `json:"trustedIPs"`
 	DashboardIngress struct {
@@ -25,10 +24,7 @@ type TraefikProps struct {
 }
 
 // https://github.com/traefik/traefik-helm-chart/tree/master/traefik
-func NewTraefik(scope packager.Construct, props TraefikProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *TraefikProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

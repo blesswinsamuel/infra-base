@@ -6,14 +6,10 @@ import (
 )
 
 type NodeExporterProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
-func NewNodeExporter(scope packager.Construct, props NodeExporterProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *NodeExporterProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

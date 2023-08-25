@@ -8,39 +8,22 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/blesswinsamuel/infra-base/packager"
 	"github.com/goccy/go-yaml"
+	"github.com/goccy/go-yaml/ast"
 )
 
-//go:embed values.yaml
-var BaseValues []byte
+// //go:embed values.yaml
+// var BaseValues []byte
 
 //go:embed values-default.yaml
 var defaultValues []byte
 
-var DefaultValues DefaultValuesProps
-
-type DefaultValuesProps struct {
-	Databases  DatabaseProps   `json:"databases"`
-	Auth       AuthProps       `json:"auth"`
-	Monitoring MonitoringProps `json:"monitoring"`
-	System     SystemProps     `json:"system"`
-}
+var DefaultValues map[string]ast.Node
 
 func init() {
 	if err := yaml.UnmarshalWithOptions(defaultValues, &DefaultValues, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
 		panic(err)
 	}
-}
-
-type BaseProps struct {
-	Global     GlobalProps     `json:"global"`
-	Ingress    IngressProps    `json:"ingress"`
-	System     SystemProps     `json:"system"`
-	Secrets    SecretsProps    `json:"secrets"`
-	Auth       AuthProps       `json:"auth"`
-	Monitoring MonitoringProps `json:"monitoring"`
-	Databases  DatabaseProps   `json:"databases"`
 }
 
 func logModuleTiming(moduleName string) func() {
@@ -49,43 +32,6 @@ func logModuleTiming(moduleName string) func() {
 	return func() {
 		log.Printf("Done %q in %s", moduleName, time.Since(startTime))
 	}
-}
-
-func NewBase(scope packager.Construct, props BaseProps) packager.Construct {
-	defer logModuleTiming("base")()
-	construct := scope.Construct("base")
-
-	// secrets
-	NewSecrets(construct, props.Secrets)
-
-	// ingress
-	NewIngress(construct, props.Ingress)
-
-	// system
-	NewSystem(construct, props.System)
-
-	// monitoring
-	NewMonitoring(construct, props.Monitoring)
-
-	// database
-	NewDatabase(construct, props.Databases)
-
-	// auth
-	NewAuth(construct, props.Auth)
-
-	return construct
-}
-
-func GetBaseValues() BaseProps {
-	v := BaseProps{
-		Databases:  DefaultValues.Databases,
-		Auth:       DefaultValues.Auth,
-		Monitoring: DefaultValues.Monitoring,
-	}
-	if err := yaml.UnmarshalWithOptions(BaseValues, &v, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-		panic(err)
-	}
-	return v
 }
 
 func LoadValues[T any](values *T, valuesFiles []string, templateMap map[string]any) {

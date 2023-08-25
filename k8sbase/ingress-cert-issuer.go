@@ -11,9 +11,8 @@ import (
 )
 
 type CertIssuerProps struct {
-	Enabled bool   `json:"enabled"`
-	Email   string `json:"email"`
-	Solver  string `json:"solver"` // dns or http
+	Email  string `json:"email"`
+	Solver string `json:"solver"` // dns or http
 }
 
 func letsEncryptIssuer(chart packager.Construct, props CertIssuerProps, name string, server string) {
@@ -59,18 +58,15 @@ func letsEncryptIssuer(chart packager.Construct, props CertIssuerProps, name str
 	k8sapp.NewK8sObject(chart, name, issuer)
 }
 
-func NewCertIssuer(scope packager.Construct, props CertIssuerProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *CertIssuerProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: "cert-manager",
 	}
 	chart := scope.Chart("cert-issuer", cprops)
 
 	// NewNamespace(chart, ("namespace"), &NamespaceProps{Name: "cert-manager"})
-	letsEncryptIssuer(chart, props, "letsencrypt-prod", "https://acme-v02.api.letsencrypt.org/directory")
-	letsEncryptIssuer(chart, props, "letsencrypt-staging", "https://acme-staging-v02.api.letsencrypt.org/directory")
+	letsEncryptIssuer(chart, *props, "letsencrypt-prod", "https://acme-v02.api.letsencrypt.org/directory")
+	letsEncryptIssuer(chart, *props, "letsencrypt-staging", "https://acme-staging-v02.api.letsencrypt.org/directory")
 
 	if props.Solver == "dns" {
 		k8sapp.NewExternalSecret(chart, "cloudflare-externalsecret", &k8sapp.ExternalSecretProps{

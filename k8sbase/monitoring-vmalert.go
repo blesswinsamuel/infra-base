@@ -8,7 +8,6 @@ import (
 )
 
 type VmalertProps struct {
-	Enabled   bool                        `json:"enabled"`
 	ImageInfo k8sapp.ImageInfo            `json:"image"`
 	Resources corev1.ResourceRequirements `json:"resources"`
 	Ingress   struct {
@@ -18,11 +17,7 @@ type VmalertProps struct {
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-agent
-func NewVmalert(scope packager.Construct, props VmalertProps) packager.Construct {
-	if !props.Enabled {
-		return nil
-	}
-
+func (props *VmalertProps) Chart(scope packager.Construct) packager.Construct {
 	return k8sapp.NewApplicationChart(scope, "vmalert", &k8sapp.ApplicationProps{
 		Name: "vmalert",
 		Containers: []k8sapp.ApplicationContainer{{

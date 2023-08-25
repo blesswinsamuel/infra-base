@@ -10,7 +10,6 @@ import (
 )
 
 type VmagentProps struct {
-	Enabled            bool                        `json:"enabled"`
 	HelmChartInfo      k8sapp.ChartInfo            `json:"helm"`
 	ExtraScrapeConfigs []map[string]any            `json:"extraScrapeConfigs"`
 	Resources          corev1.ResourceRequirements `json:"resources"`
@@ -24,10 +23,7 @@ type VmagentProps struct {
 var vmagentConfig string
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-agent
-func NewVmagent(scope packager.Construct, props VmagentProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *VmagentProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

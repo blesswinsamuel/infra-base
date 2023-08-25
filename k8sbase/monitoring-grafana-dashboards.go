@@ -19,7 +19,6 @@ import (
 )
 
 type GrafanaDashboardsProps struct {
-	Enabled    bool                                    `json:"enabled"`
 	Dashboards map[string]GrafanaDashboardsConfigProps `json:"dashboards"`
 }
 
@@ -80,10 +79,7 @@ func GetCachedDashboard(url string, cacheDir string) []byte {
 	return data
 }
 
-func NewGrafanaDashboards(scope packager.Construct, props GrafanaDashboardsProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *GrafanaDashboardsProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

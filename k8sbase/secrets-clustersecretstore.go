@@ -16,7 +16,7 @@ type ClusterSecretStoreProps struct {
 // https://external-secrets.io/v0.5.8/provider-kubernetes/
 // https://external-secrets.io/v0.5.8/spec/
 
-func NewClusterSecretStore(scope packager.Construct, props ClusterSecretStoreProps) packager.Chart {
+func (props *ClusterSecretStoreProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{}
 	chart := scope.Chart("cluster-secret-store", cprops)
 	k8sapp.NewSecret(chart, "secret", &k8sapp.SecretProps{

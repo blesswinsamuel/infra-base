@@ -8,17 +8,13 @@ import (
 )
 
 type KopiaProps struct {
-	Enabled   bool             `json:"enabled"`
 	ImageInfo k8sapp.ImageInfo `json:"image"`
 	Hostname  string           `json:"hostname"`
 	User      string           `json:"user"`
 }
 
 // https://kopia.io/docs/installation/#docker-images
-func NewKopia(scope packager.Construct, props KopiaProps) packager.Construct {
-	if !props.Enabled {
-		return nil
-	}
+func (props *KopiaProps) Chart(scope packager.Construct) packager.Construct {
 	return k8sapp.NewApplicationChart(scope, "kopia", &k8sapp.ApplicationProps{
 		Name:     "kopia",
 		Hostname: props.Hostname,

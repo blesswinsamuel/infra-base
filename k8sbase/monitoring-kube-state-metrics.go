@@ -6,14 +6,10 @@ import (
 )
 
 type KubeStateMetricsProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
-func NewKubeStateMetrics(scope packager.Construct, props KubeStateMetricsProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *KubeStateMetricsProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

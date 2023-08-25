@@ -17,7 +17,6 @@ import (
 var alertmanagerTemplates string
 
 type AlertmanagerProps struct {
-	Enabled bool             `json:"enabled"`
 	Image   k8sapp.ImageInfo `json:"image"`
 	Ingress struct {
 		Enabled   bool   `json:"enabled"`
@@ -36,11 +35,7 @@ type AlertmanagerProps struct {
 // https://github.com/prometheus-community/helm-charts/blob/main/charts/alertmanager
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-alert
 
-func NewAlertmanager(scope packager.Construct, props AlertmanagerProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
-
+func (props *AlertmanagerProps) Chart(scope packager.Construct) packager.Construct {
 	chart := k8sapp.NewApplicationChart(scope, "alertmanager", &k8sapp.ApplicationProps{
 		Kind:                         "StatefulSet",
 		Name:                         "alertmanager",

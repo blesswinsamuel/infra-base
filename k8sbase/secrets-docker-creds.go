@@ -9,15 +9,11 @@ import (
 )
 
 type SecretsDockerCredsProps struct {
-	Enabled   bool   `json:"enabled"`
 	KeyPrefix string `json:"keyPrefix"`
 	Namespace string `json:"namespace"`
 }
 
-func NewSecretsDockerCreds(scope packager.Construct, props SecretsDockerCredsProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *SecretsDockerCredsProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: props.Namespace,
 	}

@@ -6,17 +6,13 @@ import (
 )
 
 type PostgresProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 	ImageInfo     k8sapp.ImageInfo `json:"image"`
 	Database      string           `json:"database"`
 	Username      string           `json:"username"`
 }
 
-func NewPostgres(scope packager.Construct, props PostgresProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *PostgresProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

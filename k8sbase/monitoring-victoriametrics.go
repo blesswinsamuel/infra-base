@@ -6,8 +6,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-type VictoriametricsProps struct {
-	Enabled       bool                        `json:"enabled"`
+type VictoriaMetricsProps struct {
 	HelmChartInfo k8sapp.ChartInfo            `json:"helm"`
 	Resources     corev1.ResourceRequirements `json:"resources"`
 	Ingress       struct {
@@ -19,10 +18,7 @@ type VictoriametricsProps struct {
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single
-func NewVictoriaMetrics(scope packager.Construct, props VictoriametricsProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *VictoriaMetricsProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

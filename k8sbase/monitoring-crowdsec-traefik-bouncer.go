@@ -6,15 +6,11 @@ import (
 )
 
 type CrowdsecTraefikBouncerProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
 // https://github.com/crowdsecurity/helm-charts/tree/main/charts/crowdsec-traefik-bouncer
-func NewCrowdsecTraefikBouncer(scope packager.Construct, props CrowdsecTraefikBouncerProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *CrowdsecTraefikBouncerProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

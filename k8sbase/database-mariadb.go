@@ -6,16 +6,12 @@ import (
 )
 
 type MariaDBProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 	Database      string           `json:"database"`
 	Username      string           `json:"username"`
 }
 
-func NewMariaDB(scope packager.Construct, props MariaDBProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *MariaDBProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

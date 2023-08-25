@@ -10,16 +10,12 @@ import (
 )
 
 type LLDAPProps struct {
-	Enabled     bool             `json:"enabled"`
 	ImageInfo   k8sapp.ImageInfo `json:"image"`
 	BaseDN      string           `json:"base_dn"`
 	EmailDomain string           `json:"email_domain"`
 }
 
-func NewLLDAP(scope packager.Construct, props LLDAPProps) packager.Construct {
-	if !props.Enabled {
-		return nil
-	}
+func (props *LLDAPProps) Chart(scope packager.Construct) packager.Construct {
 	return k8sapp.NewApplicationChart(scope, "lldap", &k8sapp.ApplicationProps{
 		Name: "lldap",
 		Containers: []k8sapp.ApplicationContainer{{

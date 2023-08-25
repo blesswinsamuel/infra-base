@@ -6,7 +6,6 @@ import (
 )
 
 type KubernetesDashboardProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 	Ingress       struct {
 		Enabled   bool   `json:"enabled"`
@@ -15,11 +14,7 @@ type KubernetesDashboardProps struct {
 }
 
 // https://github.com/kubernetes/dashboard/tree/master/charts/helm-chart/kubernetes-dashboard
-func NewKubernetesDashboard(scope packager.Construct, props KubernetesDashboardProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
-
+func (props *KubernetesDashboardProps) Chart(scope packager.Construct) packager.Construct {
 	chart := k8sapp.NewHelmChart(scope, "kubernetes-dashboard", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "kubernetes-dashboard",

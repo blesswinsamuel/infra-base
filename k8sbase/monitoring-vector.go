@@ -14,7 +14,6 @@ import (
 )
 
 type VectorProps struct {
-	Enabled       bool             `json:"enabled"`
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 	SyslogServer  struct {
 		Enabled bool `json:"enabled"`
@@ -28,10 +27,7 @@ type VectorProps struct {
 // https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector
 // https://helm.vector.dev/index.yaml
 
-func NewVector(scope packager.Construct, props VectorProps) packager.Chart {
-	if !props.Enabled {
-		return nil
-	}
+func (props *VectorProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

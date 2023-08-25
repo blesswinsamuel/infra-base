@@ -11,7 +11,9 @@ func NewNamespaceChart(scope packager.Construct, namespaceName string) packager.
 		Namespace: namespaceName,
 	})
 	SetNamespaceContext(chart, namespaceName)
-	NewNamespace(chart, "namespace", namespaceName)
+	if namespaceName != "default" {
+		NewNamespace(chart, "namespace", namespaceName)
+	}
 	return chart
 }
 

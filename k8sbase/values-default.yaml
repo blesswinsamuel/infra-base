@@ -1,86 +1,415 @@
-databases:
+global:
+  domain: ""
+  clusterCertIssuerName: letsencrypt-prod
+  clusterExternalSecretStoreName: secretstore
+
+### secrets ###
+
+external-secrets:
+  helm:
+    repo: https://charts.external-secrets.io
+    chart: external-secrets
+    version: "0.9.4"
+
+docker-creds:
+
+cluster-secret-store:
+  dopplerServiceToken: ""
+
+### cert-manager ###
+
+cert-manager:
+  helm:
+    repo: https://charts.jetstack.io
+    chart: cert-manager
+    version: "v1.12.3"
+cert-issuer:
+  # namespace: ""
+  solver: dns
+  email: ""
+
+### ingress ###
+
+traefik:
+  helm:
+    repo: https://traefik.github.io/charts
+    chart: traefik
+    version: "23.2.0"
+  dashboardIngress:
+    enabled: false
+    subDomain: traefik
+  trustedIPs:
+    # https://docs.k3s.io/helm#customizing-packaged-components-with-helmchartconfig
+    - "10.0.0.0/8"
+  createMiddlewares:
+    stripPrefix:
+      enabled: false
+
+### databases ###
+
+postgres:
+  helm:
+    repo: https://charts.bitnami.com/bitnami
+    chart: postgresql
+    version: "12.9.0"
+  image:
+    # not straightforward to upgrade to postgres 15
+    # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
+    # 2023-03-18 16:30:09.021 GMT [1] DETAIL:  The data directory was initialized by PostgreSQL version 14, which is not compatible with this version 15.2.
+    repository: bitnami/postgresql
+    tag: 14.9.0
+  database: null
+  username: null
+
+redis:
+  helm:
+    repo: https://charts.bitnami.com/bitnami
+    chart: redis
+    version: "17.16.0"
+
+### auth ###
+
+authelia:
+  helm:
+    repo: https://charts.authelia.com
+    chart: authelia
+    version: "0.8.57"
+  ingress:
+    subDomain: authelia
+  ldap:
+    usersFilter: "(&({username_attribute}={input})(!({username_attribute}=admin))(objectClass=person))"
+    groupsFilter: "(member={dn})"
+    displayNameAttribute: displayName
+    mailAttribute: mail
+  database:
+    postgres:
+      host: "postgres.database.svc.cluster.local"
+    redis:
+      host: "redis-master.database.svc.cluster.local"
+
+lldap:
+  image:
+    repository: ghcr.io/lldap/lldap
+    tag: v0.4.3-alpine
+
+traefik-forward-auth:
+  helm:
+    repo: https://k8s-at-home.com/charts/
+    chart: traefik-forward-auth
+    version: "2.2.2"
+  image:
+    repository: thomseddon/traefik-forward-auth
+    tag: 2.2.0-arm
+  ingress:
+    subDomain: "auth"
+  whilelist: "" # email address
+
+### monitoring ###
+
+vector:
+  helm:
+    repo: https://helm.vector.dev
+    chart: vector
+    version: "0.24.1"
+  syslogServer:
+    enabled: false
+  ingress:
+    enabled: false
+    subDomain: vector
+
+crowdsec:
+  helm:
+    repo: https://crowdsecurity.github.io/helm-charts
+    chart: crowdsec
+    version: "0.9.7"
+crowdsec-traefik-bouncer:
+  helm:
+    repo: https://crowdsecurity.github.io/helm-charts
+    chart: crowdsec-traefik-bouncer
+    version: "0.1.2"
+kube-state-metrics:
+  helm:
+    repo: https://prometheus-community.github.io/helm-charts
+    chart: kube-state-metrics
+    version: "5.10.1"
+grafana:
+  helm:
+    repo: https://grafana.github.io/helm-charts
+    chart: grafana
+    version: "6.58.10"
+  namespaced: false
+  authProxyEnabled: true
+  anonymousAuthEnabled: false
+  datasourceLabel: grafana_datasource
+  datasourceLabelValue: null
+  dashboardLabel: grafana_dashboard
+  dashboardLabelValue: null
+  ingress:
+    subDomain: "grafana"
+grafana-dashboards:
+  dashboards:
+    # Kubernetes
+    community-kubernetes:
+      folder: Kubernetes
+      urls:
+        - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-system-api-server.json
+          gnet_id: 15761
+          id: k8s-system-api-server
+          title: Kubernetes / System / API Server
+          replacements:
+            'sum(rate(apiserver_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (verb)': 'sum(rate(apiserver_request_duration_seconds_sum{job=\"apiserver\"}[$__rate_interval])) by (verb) / sum(rate(apiserver_request_duration_seconds_count{job=\"apiserver\"}[$__rate_interval])) by (verb)'
+            'sum(rate(apiserver_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (instance)': 'sum(rate(apiserver_request_duration_seconds_sum{job=\"apiserver\"}[$__rate_interval])) by (instance) / sum(rate(apiserver_request_duration_seconds_count{job=\"apiserver\"}[$__rate_interval])) by (instance)'
+        - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-system-coredns.json
+          gnet_id: 15762
+          id: k8s-system-coredns
+          title: Kubernetes / System / CoreDNS
+          replacements:
+            'job=\"coredns\"': 'job=\"kube-dns\"'
+        - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-global.json
+          gnet_id: 15757
+          id: k8s-views-global
+          title: Kubernetes / Views / Global
+        - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-namespaces.json
+          gnet_id: 15758
+          id: k8s-views-namespaces
+          title: Kubernetes / Views / Namespaces
+        - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-nodes.json
+          gnet_id: 15759
+          id: k8s-views-nodes
+          title: Kubernetes / Views / Nodes
+          replacements:
+            /d/k8s_views_pods: /d/k8s-views-pods
+        - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-pods.json
+          gnet_id: 15760
+          id: k8s-views-pods
+          title: Kubernetes / Views / Pods
+        - url: https://grafana.com/api/dashboards/13646/revisions/2/download # 13646
+          id: k8s-persistent-volumes
+          title: Kubernetes / Persistent Volumes
+
+    # Monitoring
+    community-monitoring:
+      folder: Monitoring
+      urls:
+        - url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
+          gnet_id: 1860
+          id: node-exporter
+          title: Node Exporter
+        - url: https://github.com/starsliao/Prometheus/raw/master/node_exporter/node-exporter-for-prometheus-dashboard-en.json
+          gnet_id: 11074
+          id: node-exporter-2
+          title: Node Exporter 2
+
+        - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/victoriametrics.json
+          gnet_id: 10229
+          id: victoriametrics-single
+          title: VictoriaMetrics / single
+        - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmagent.json
+          gnet_id: 12683
+          id: victoriametrics-vmagent
+          title: VictoriaMetrics / vmagent
+        - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmalert.json
+          gnet_id: 14950
+          id: victoriametrics-vmalert
+          title: VictoriaMetrics / vmalert
+
+        - url: https://github.com/FUSAKLA/alertmanager-grafana-dashboard/raw/master/dashboard/alertmanager-dashboard.json
+          gnet_id: 9578
+          id: alertmanager-overview
+          title: Alertmanager / Overview
+        - url: https://grafana.com/api/dashboards/3590/revisions/3/download # 3590
+          id: grafana-internals
+          title: Grafana Internals
+          replacements:
+            kubernetes_pod_name: pod
+            grafana_info: grafana_build_info
+
+        # https://github.com/vectordotdev/vector/pull/14369#issuecomment-1292635356
+        - url: https://github.com/zamazan4ik/vector-community/raw/main/grafana_dashboards/full-dashboard.json
+          id: vector
+          title: Vector
+
+    # Traefik
+    community-ingress:
+      folder: Ingress
+      urls:
+        - url: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
+          id: traefik-kubernetes
+          title: Traefik
+        # - url: https://grafana.com/api/dashboards/17501/revisions/1/download
+        #   id: traefik-logs
+        #   title: Traefik Logs
+
+    # # CrowdSec
+    # community-crowdsec:
+    #   folder: CrowdSec
+    #   urls:
+    #     - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Details%20per%20Machine.json
+    #       id: crowdsec-details-per-machine
+    #       title: Crowdsec Details per Machine
+    #       replacements:
+    #         machine: job
+    #     - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Insight.json
+    #       id: crowdsec-insight
+    #       title: Crowdsec Insight
+    #       replacements:
+    #         machine: job
+    #     - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Overview.json
+    #       id: crowdsec-overview
+    #       title: Crowdsec Overview
+    #       replacements:
+    #         machine: job
+    #     - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/LAPI%20Metrics.json
+    #       id: lapi-metrics
+    #       title: LAPI Metrics
+    #       replacements:
+    #         machine: job
+
+    # Databases
+    databases:
+      folder: Databases
+      urls:
+        - url: https://github.com/prometheus-community/postgres_exporter/raw/master/postgres_mixin/dashboards/postgres-overview.json
+          id: postgres
+          title: Postgres
+        - url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
+          id: redis
+          title: Redis
+
+alerting-rules:
+  rules:
+    community-rules:
+      # files:
+      #   - glob: ./alerts/postgres.yaml
+      urls:
+        - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/alertmanager-prometheusRule.yaml
+          id: alertmanager
+          replacements:
+            'job="alertmanager-main"': 'job="alertmanager"'
+        - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubernetesControlPlane-prometheusRule.yaml
+          id: kubernetes-control-plane
+          # skipGroups:
+          #   - kubernetes-system-controller-manager
+          #   - kubernetes-system-scheduler
+          skipAlerts:
+            - KubeControllerManagerDown
+            - KubeSchedulerDown
+            # - KubeletDown
+          replacements:
+            'up{job="kubelet", metrics_path="/metrics"}': 'up{job="apiserver", metrics_path="/metrics"}'
+        - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubePrometheus-prometheusRule.yaml
+          id: kube-prometheus
+        - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubeStateMetrics-prometheusRule.yaml
+          id: kube-state-metrics
+        - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/nodeExporter-prometheusRule.yaml
+          id: node-exporter
+        - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/deployment/docker/alerts.yml
+          id: victoriametrics
+        - url: https://etcd.io/docs/v3.4/op-guide/etcd3_alert.rules.yml
+          id: etcd
+vmagent:
+  helm:
+    repo: https://victoriametrics.github.io/helm-charts
+    chart: victoria-metrics-agent
+    version: "0.9.4"
+  ingress:
+    subDomain: "vmagent"
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "25m"
+    limits:
+      memory: "512Mi"
+      cpu: "300m"
+vmalert:
+  image:
+    repository: victoriametrics/vmalert
+    tag: v1.93.1
+  ingress:
+    enabled: true
+    subDomain: "vmalert"
+alertmanager:
+  image:
+    repository: quay.io/prometheus/alertmanager
+    tag: "v0.26.0"
+  ingress:
+    enabled: true
+    subDomain: "alertmanager"
+  config:
+    slack:
+      channel: "#alertmanager"
+    telegram:
+      parseMode: HTML
+node-exporter:
+  helm:
+    repo: https://prometheus-community.github.io/helm-charts
+    chart: prometheus-node-exporter
+    version: "4.22.0"
+victoria-metrics:
+  helm:
+    repo: https://victoriametrics.github.io/helm-charts
+    chart: victoria-metrics-single
+    version: "0.9.4"
+  ingress:
+    enabled: true
+    subDomain: "victoriametrics"
+  retentionPeriod: 3
+  resources:
+    requests:
+      memory: "384Mi"
+      cpu: "100m"
+    limits:
+      memory: "768Mi"
+      cpu: "400m"
+loki:
+  helm:
+    repo: https://grafana.github.io/helm-charts
+    chart: loki
+    version: "5.15.0"
+  storage: local
+
+### system ###
+kube-git-ops:
+  gitSync:
+    image:
+      repository: blesswinsamuel/git-sync
+      tag: v1.0.0
+  webhook:
+    image:
+      repository: blesswinsamuel/docker-helm
+      tag: v1.0.1
+  gitRepo:
+    url: ""
+    branch: ""
+  kapp:
+    appName: ""
+    directory: ""
+    namespace: ""
+
+reloader:
+  helm:
+    repo: https://stakater.github.io/stakater-charts
+    chart: reloader
+    version: "1.0.38"
+kubernetes-dashboard:
+  helm:
+    repo: https://kubernetes.github.io/dashboard/
+    chart: kubernetes-dashboard
+    version: "6.0.8"
+  ingress:
+    enabled: true
+    subDomain: kubernetes-dashboard
+kopia:
+  image:
+    repository: kopia/kopia
+    tag: "0.13.0"
+backup-job:
+  kopia:
+    image:
+      repository: kopia/kopia
+      tag: "0.13.0"
   postgres:
-    helm:
-      repo: https://charts.bitnami.com/bitnami
-      chart: postgresql
-      version: "12.9.0"
     image:
-      # not straightforward to upgrade to postgres 15
-      # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
-      # 2023-03-18 16:30:09.021 GMT [1] DETAIL:  The data directory was initialized by PostgreSQL version 14, which is not compatible with this version 15.2.
-      repository: bitnami/postgresql
-      tag: 14.9.0
-    database: null
-    username: null
-
-  redis:
-    helm:
-      repo: https://charts.bitnami.com/bitnami
-      chart: redis
-      version: "17.16.0"
-
-auth:
-  authelia:
-    helm:
-      repo: https://charts.authelia.com
-      chart: authelia
-      version: "0.8.57"
-    ingress:
-      subDomain: authelia
-    ldap:
-      usersFilter: "(&({username_attribute}={input})(!({username_attribute}=admin))(objectClass=person))"
-      groupsFilter: "(member={dn})"
-      displayNameAttribute: displayName
-      mailAttribute: mail
-    database:
-      postgres:
-        host: "postgres.database.svc.cluster.local"
-      redis:
-        host: "redis-master.database.svc.cluster.local"
-
-  lldap:
-    image:
-      repository: ghcr.io/lldap/lldap
-      tag: v0.4.3-alpine
-
-  traefikForwardAuth:
-    helm:
-      repo: https://k8s-at-home.com/charts/
-      chart: traefik-forward-auth
-      version: "2.2.2"
-    image:
-      repository: thomseddon/traefik-forward-auth
-      tag: 2.2.0-arm
-    ingress:
-      subDomain: "auth"
-    whilelist: "" # email address
-
-monitoring:
-  vector:
-    helm:
-      repo: https://helm.vector.dev
-      chart: vector
-      version: "0.24.1"
-    syslogServer:
-      enabled: false
-    ingress:
-      enabled: false
-      subDomain: vector
-
-system:
-  kubeGitOps:
-    gitSync:
-      image:
-        repository: blesswinsamuel/git-sync
-        tag: v1.0.0
-    webhook:
-      image:
-        repository: blesswinsamuel/docker-helm
-        tag: v1.0.1
-    gitRepo:
-      url: ""
-      branch: ""
-    kapp:
-      appName: ""
-      directory: ""
-      namespace: ""
+      repository: postgres
+      tag: "14.9"
+    host: "postgres.database.svc.cluster.local"

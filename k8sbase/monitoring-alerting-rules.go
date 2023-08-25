@@ -70,7 +70,7 @@ func GetCachedAlertingRule(url string, cacheDir string) []byte {
 	return data
 }
 
-func NewAlertingRules(scope packager.Construct, props AlertingRulesProps) packager.Chart {
+func (props *AlertingRulesProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
