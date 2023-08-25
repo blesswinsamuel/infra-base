@@ -11,8 +11,6 @@ external-secrets:
     chart: external-secrets
     version: "0.9.4"
 
-docker-creds:
-
 cluster-secret-store:
   dopplerServiceToken: ""
 
@@ -413,3 +411,7 @@ backup-job:
       repository: postgres
       tag: "14.9"
     host: "postgres.database.svc.cluster.local"
+
+### utils ###
+
+docker-creds: {}

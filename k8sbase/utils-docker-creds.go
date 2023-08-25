@@ -8,15 +8,12 @@ import (
 	"github.com/muesli/reflow/dedent"
 )
 
-type SecretsDockerCredsProps struct {
+type UtilsDockerCreds struct {
 	KeyPrefix string `json:"keyPrefix"`
-	Namespace string `json:"namespace"`
 }
 
-func (props *SecretsDockerCredsProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{
-		Namespace: props.Namespace,
-	}
+func (props *UtilsDockerCreds) Chart(scope packager.Construct) packager.Construct {
+	cprops := packager.ChartProps{}
 	chart := scope.Chart("docker-creds", cprops)
 	k8sapp.NewExternalSecret(chart, "externalsecret", &k8sapp.ExternalSecretProps{
 		Name:       "regcred",

@@ -143,7 +143,6 @@ func init() {
 		"vmalert":                  &VmalertProps{},
 
 		"cluster-secret-store": &ClusterSecretStoreProps{},
-		"docker-creds":         &SecretsDockerCredsProps{},
 		"external-secrets":     &ExternalSecretsProps{},
 
 		"backup-job":           &BackupJobProps{},
@@ -151,6 +150,8 @@ func init() {
 		"kube-gitops":          &KubeGitOpsProps{},
 		"kubernetes-dashboard": &KubernetesDashboardProps{},
 		"reloader":             &ReloaderProps{},
+
+		"docker-creds": &UtilsDockerCreds{},
 	}
 	RegisterModules(newModules)
 }
@@ -205,6 +206,9 @@ func Render(scope packager.Construct, values ValuesProps) {
 			}
 			// fmt.Println(namespace, serviceName, service, reflect.TypeOf(module))
 			if defaultValues, ok := DefaultValues[serviceName]; ok {
+				if defaultValues == nil {
+					log.Fatalf("defaultValues for %q is nil.", serviceName)
+				}
 				err := yaml.NodeToValue(defaultValues, module, yaml.Strict(), yaml.UseJSONUnmarshaler(), customUnmarshaller)
 				if err != nil {
 					log.Fatalf("NodeToValue: %v", err)
