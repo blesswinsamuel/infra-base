@@ -63,7 +63,7 @@ monitoring:
     helm:
       repo: https://prometheus-community.github.io/helm-charts
       chart: kube-state-metrics
-      version: "5.10.1"
+      version: "5.11.0"
   grafana:
     enabled: true
     helm:
