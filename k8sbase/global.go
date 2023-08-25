@@ -2,18 +2,13 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 )
 
-type GlobalProps struct {
-	Domain                         string `json:"domain"`
-	CertIssuer                     string `json:"clusterCertIssuerName"`
-	ClusterExternalSecretStoreName string `json:"clusterExternalSecretStoreName"`
-}
-
-func GetGlobal(scope packager.Construct) GlobalProps {
+func GetGlobal(scope packager.Construct) k8sapp.GlobalProps {
 	globalValues := scope.GetContext("global").(string)
-	return infrahelpers.FromYamlString[GlobalProps](globalValues)
+	return infrahelpers.FromYamlString[k8sapp.GlobalProps](globalValues)
 }
 
 func GetCertIssuer(scope packager.Construct) string {
@@ -24,7 +19,7 @@ func GetCertIssuerAnnotation(scope packager.Construct) map[string]string {
 	return map[string]string{"cert-manager.io/cluster-issuer": GetCertIssuer(scope)}
 }
 
-func SetGlobalContext(scope packager.Construct, props GlobalProps) {
+func SetGlobalContext(scope packager.Construct, props k8sapp.GlobalProps) {
 	scope.SetContext("global", infrahelpers.ToYamlString(props))
 }
 
