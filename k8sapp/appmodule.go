@@ -28,6 +28,10 @@ func init() {
 }
 
 func LoadValues[T any](values *T, valuesFiles []string, templateMap map[string]any) {
+	err := yaml.NodeToValue(DefaultValues["global"], &values.Global, yaml.Strict(), yaml.UseJSONUnmarshaler())
+	if err != nil {
+		log.Fatalf("NodeToValue: %v", err)
+	}
 	for _, valuesFile := range valuesFiles {
 		valuesFileBytes, err := os.ReadFile(valuesFile)
 		if err != nil {
@@ -101,10 +105,6 @@ func RegisterModule(name string, module Module) {
 	registeredModules[name] = module
 }
 
-func GetRegisteredModule(name string) Module {
-	return registeredModules[name]
-}
-
 func logModuleTiming(moduleName string, level int) func() {
 	prefix := ""
 	for i := 0; i < level; i++ {
@@ -126,12 +126,7 @@ func Render(scope packager.Construct, values ValuesProps) {
 		for _, v := range services {
 			serviceName, service := v.Key, v.Value
 			t := logModuleTiming(serviceName, 1)
-			// k8sbase.NewService(app, k8sbase.ServiceProps{
-			// 	Namespace:    namespace,
-			// 	ServiceName:  serviceName,
-			// 	ServiceProps: service,
-			// })
-			module := GetRegisteredModule(serviceName)
+			module := registeredModules[serviceName]
 			if module == nil {
 				log.Fatalf("module %q is not registered.", serviceName)
 			}
