@@ -9,9 +9,6 @@ import (
 type GrafanaDatasourceProps struct {
 }
 
-// https://github.com/prometheus-community/helm-charts/blob/main/charts/alertmanager
-// https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-alert
-
 func (props *GrafanaDatasourceProps) Chart(scope packager.Construct) packager.Construct {
 	cprops := packager.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),

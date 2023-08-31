@@ -15,6 +15,7 @@ type GrafanaProps struct {
 	DatasourceLabelValue *string          `json:"datasourceLabelValue"`
 	DashboardLabel       *string          `json:"dashboardLabel"`
 	DashboardLabelValue  *string          `json:"dashboardLabelValue"`
+	DisableSanitizeHTML  bool             `json:"disableSanitizeHTML"`
 	Ingress              struct {
 		SubDomain string `json:"subDomain"`
 	} `json:"ingress"`
@@ -36,6 +37,7 @@ func (props *GrafanaProps) Chart(scope packager.Construct) packager.Construct {
 				map[string]string{
 					"GF_SERVER_ENABLE_GZIP":                      "true",
 					"GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION": "true",
+					"GF_PANELS_DISABLE_SANITIZE_HTML":            infrahelpers.Ternary(props.DisableSanitizeHTML, "true", "false"),
 				},
 				infrahelpers.Ternary(props.AnonymousAuthEnabled, map[string]string{
 					"GF_AUTH_ANONYMOUS_HIDE_VERSION": "true",

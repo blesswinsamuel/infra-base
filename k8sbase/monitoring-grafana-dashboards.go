@@ -171,15 +171,19 @@ func (props *GrafanaDashboardsProps) Chart(scope packager.Construct) packager.Co
 						}
 					}
 					if !isAlreadyTemplated {
+						// fmt.Println(input)
+						query := input["pluginId"]
+						label := input["label"]
+						inputType := input["type"]
 						templatingList = append(templatingList, map[string]any{
 							"hide":    0,
-							"label":   "datasource",
+							"label":   label,
 							"name":    inputName,
 							"options": []any{},
-							"query":   "prometheus",
+							"query":   query,
 							"refresh": 1,
 							"regex":   "",
-							"type":    "datasource",
+							"type":    inputType,
 						})
 					}
 					templating["list"] = templatingList

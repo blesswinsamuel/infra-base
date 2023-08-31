@@ -27,7 +27,7 @@ func init() {
 	}
 }
 
-func LoadValues[T any](values *T, valuesFiles []string, templateMap map[string]any) {
+func LoadValues(values *ValuesProps, valuesFiles []string, templateMap map[string]any) {
 	err := yaml.NodeToValue(DefaultValues["global"], &values.Global, yaml.Strict(), yaml.UseJSONUnmarshaler())
 	if err != nil {
 		log.Fatalf("NodeToValue: %v", err)

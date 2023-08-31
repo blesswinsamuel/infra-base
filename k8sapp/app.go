@@ -14,6 +14,9 @@ func NewApp(outputDir string) packager.App {
 	app := packager.NewApp(packager.AppProps{
 		Outdir:       outputDir,
 		DeleteOutDir: true,
+		// https://pracucci.com/kubernetes-dns-resolution-ndots-options-and-why-it-may-affect-application-performances.html
+		// to avoid polluting the dns logs on blocky with search domain home.local. E.g.: postgres.database.svc.cluster.local.home.local
+		PatchNdots: true,
 	})
 
 	var cacheDir = os.Getenv("CACHE_DIR")

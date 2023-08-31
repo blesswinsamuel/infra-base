@@ -3,6 +3,9 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type PostgresProps struct {
@@ -10,6 +13,10 @@ type PostgresProps struct {
 	ImageInfo     k8sapp.ImageInfo `json:"image"`
 	Database      string           `json:"database"`
 	Username      string           `json:"username"`
+	LoadBalancer  struct {
+		Enabled bool `json:"enabled"`
+		Port    int  `json:"port"`
+	} `json:"loadBalancer"`
 }
 
 func (props *PostgresProps) Chart(scope packager.Construct) packager.Construct {
@@ -42,6 +49,25 @@ func (props *PostgresProps) Chart(scope packager.Construct) packager.Construct {
 			"replication-password": "POSTGRES_REPLICATION_PASSWORD",
 		},
 	})
+
+	if props.LoadBalancer.Enabled {
+		k8sapp.NewK8sObject(scope, "postgres-lb", &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "postgres-lb",
+			},
+			Spec: corev1.ServiceSpec{
+				Type: corev1.ServiceTypeLoadBalancer,
+				Ports: []corev1.ServicePort{
+					{Name: "tcp-postgresql", Port: 5432, Protocol: "TCP", TargetPort: intstr.FromString("tcp-postgresql")},
+				},
+				Selector: map[string]string{
+					"app.kubernetes.io/component": "primary",
+					"app.kubernetes.io/instance":  "postgres",
+					"app.kubernetes.io/name":      "postgres",
+				},
+			},
+		})
+	}
 
 	return chart
 }

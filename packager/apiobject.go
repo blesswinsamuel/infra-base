@@ -17,6 +17,8 @@ type ApiObject interface {
 	metav1.Type
 	metav1.Object
 	ToYAML() []byte
+	GetObject() runtime.Object
+	SetObject(v unstructured.Unstructured)
 }
 
 type ApiObjectProps struct {
@@ -61,6 +63,14 @@ func (c *construct) ApiObjectFromMap(id string, obj map[string]any) ApiObject {
 	// fmt.Println(apiObject.GetKind(), apiObject.GetAPIVersion())
 	c.node.AddChildNode(id, apiObject)
 	return apiObject
+}
+
+func (a *apiObject) GetObject() runtime.Object {
+	return &a.Unstructured
+}
+
+func (a *apiObject) SetObject(v unstructured.Unstructured) {
+	a.Unstructured = v
 }
 
 func (a *apiObject) ToYAML() []byte {
