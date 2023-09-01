@@ -49,12 +49,12 @@ func NewHelm(scope packager.Construct, id string, props *HelmProps) packager.Con
 	chartPath := fmt.Sprintf("%s/%s", chartsCacheDir, chartFileName)
 	if _, err := os.Stat(chartPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
+			log.Printf("Fetching chart '%s' from repo '%s' version '%s' ...", *props.ChartInfo.Chart, *props.ChartInfo.Repo, *props.ChartInfo.Version)
 			cmd := exec.Command("helm", "pull", *props.ChartInfo.Chart, "--repo", *props.ChartInfo.Repo, "--destination", chartsCacheDir, "--version", *props.ChartInfo.Version)
 			if out, err := cmd.CombinedOutput(); err != nil {
 				log.Println("Error occured during helm pull command", string(out))
 				log.Fatalln("Error occured during helm pull command", err)
 			} else {
-				log.Printf("Fetching chart '%s' from repo '%s' version '%s' ...", *props.ChartInfo.Chart, *props.ChartInfo.Repo, *props.ChartInfo.Version)
 				if len(out) > 0 {
 					log.Println(string(out))
 				}
