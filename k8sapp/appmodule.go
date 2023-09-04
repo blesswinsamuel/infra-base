@@ -3,6 +3,7 @@ package k8sapp
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"html/template"
 	"log"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
 
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/packager"
 
 	_ "embed"
@@ -27,12 +29,33 @@ func init() {
 	}
 }
 
+func mergeMaps(a, b map[string]interface{}) map[string]interface{} {
+	out := make(map[string]interface{}, len(a))
+	for k, v := range a {
+		out[k] = v
+	}
+	for k, v := range b {
+		if v, ok := v.(map[string]interface{}); ok {
+			if bv, ok := out[k]; ok {
+				if bv, ok := bv.(map[string]interface{}); ok {
+					out[k] = mergeMaps(bv, v)
+					continue
+				}
+			}
+		}
+		out[k] = v
+	}
+	return out
+}
+
 func LoadValues(values *ValuesProps, valuesFiles []string, templateMap map[string]any) {
 	err := yaml.NodeToValue(DefaultValues["global"], &values.Global, yaml.Strict(), yaml.UseJSONUnmarshaler())
 	if err != nil {
 		log.Fatalf("NodeToValue: %v", err)
 	}
+	valuesMerged := map[string]interface{}{}
 	for _, valuesFile := range valuesFiles {
+		fmt.Println("Loading values from", valuesFile)
 		valuesFileBytes, err := os.ReadFile(valuesFile)
 		if err != nil {
 			log.Fatalf("ReadFile: %v", err)
@@ -48,9 +71,18 @@ func LoadValues(values *ValuesProps, valuesFiles []string, templateMap map[strin
 			out.Execute(w, templateMap)
 			valuesFileBytes = w.Bytes()
 		}
-		if err := yaml.UnmarshalWithOptions(valuesFileBytes, values, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
+		fileValues := map[string]interface{}{}
+		if err := yaml.UnmarshalWithOptions(valuesFileBytes, &fileValues, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
 			log.Fatalf("Unmarshal: %v", err)
 		}
+		valuesMerged = mergeMaps(valuesMerged, fileValues)
+	}
+	valuesNode, err := yaml.ValueToNode(valuesMerged)
+	if err != nil {
+		log.Fatalf("ValueToNode: %v", err)
+	}
+	if err := yaml.NodeToValue(valuesNode, values, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
+		log.Fatalf("Unmarshal: %v", err)
 	}
 }
 
@@ -58,27 +90,36 @@ type Module interface {
 	Chart(scope packager.Construct) packager.Construct
 }
 
-type OrderedMapItem[K comparable, V any] struct {
-	Key   K
-	Value V
+type OrderedMap[K comparable, V any] struct {
+	keyOrder []K
+	Map      map[K]V
 }
 
-type OrderedMap[K comparable, V any] []OrderedMapItem[K, V]
-
 func (m *OrderedMap[K, V]) UnmarshalYAML(ctx context.Context, data []byte) error {
-	var goMap map[K]V
-	if err := yaml.UnmarshalContext(ctx, data, &goMap); err != nil {
+	newMap := infrahelpers.MergeableMap[K, V](m.Map)
+	if err := yaml.UnmarshalContext(ctx, data, &newMap); err != nil {
 		return err
 	}
 	var orderedMapItems yaml.MapSlice
 	if err := yaml.UnmarshalContext(ctx, data, &orderedMapItems); err != nil {
 		return err
 	}
+	if m.Map == nil {
+		m.Map = make(map[K]V)
+	}
+	// fmt.Println(m.keyOrder, m.Map)
 	for _, item := range orderedMapItems {
 		k := item.Key.(K)
-		v := goMap[k]
-		*m = append(*m, OrderedMapItem[K, V]{k, v})
+		if _, ok := m.Map[k]; !ok {
+			m.keyOrder = append(m.keyOrder, k)
+			m.Map[k] = newMap[k]
+		}
+		// else {
+		// 	var v ast.Node
+		// 	// m.Map[k] = infrahelpers.Merge(m.Map[k], newMap[k])
+		// }
 	}
+	// fmt.Println(m.keyOrder, m.Map)
 	return nil
 }
 
@@ -119,21 +160,33 @@ func logModuleTiming(moduleName string, level int) func() {
 }
 
 func Render(scope packager.Construct, values ValuesProps) {
-	for _, v := range values.Services {
-		namespace, services := v.Key, v.Value
+	for _, key := range values.Services.keyOrder {
+		namespace, services := key, values.Services.Map[key]
 		t := logModuleTiming(namespace, 0)
 		namespaceChart := NewNamespaceChart(scope, namespace)
-		for _, v := range services {
-			serviceName, service := v.Key, v.Value
+		for _, key := range services.keyOrder {
+			serviceName, service := key, services.Map[key]
+			moduleName := serviceName
+			if service != nil {
+				servicePart := struct {
+					Module string `json:"_module"`
+				}{}
+				if err := yaml.NodeToValue(service, &servicePart); err != nil {
+					log.Fatalf("NodeToValue: %v", err)
+				}
+				if servicePart.Module != "" {
+					moduleName = servicePart.Module
+				}
+			}
 			t := logModuleTiming(serviceName, 1)
-			module := registeredModules[serviceName]
+			module := registeredModules[moduleName]
 			if module == nil {
-				log.Fatalf("module %q is not registered.", serviceName)
+				log.Fatalf("module %q is not registered.", moduleName)
 			}
 			// fmt.Println(namespace, serviceName, service, reflect.TypeOf(module))
-			if defaultValues, ok := DefaultValues[serviceName]; ok {
+			if defaultValues, ok := DefaultValues[moduleName]; ok {
 				if defaultValues == nil {
-					log.Fatalf("defaultValues for %q is nil.", serviceName)
+					log.Fatalf("defaultValues for %q is nil.", moduleName)
 				}
 				err := yaml.NodeToValue(defaultValues, module, yaml.Strict(), yaml.UseJSONUnmarshaler())
 				if err != nil {
@@ -141,14 +194,37 @@ func Render(scope packager.Construct, values ValuesProps) {
 				}
 			}
 			if service != nil {
-				err := yaml.NodeToValue(service, module, yaml.Strict(), yaml.UseJSONUnmarshaler())
+				moduleMap := map[string]interface{}{}
+				if err := yaml.NodeToValue(service, &moduleMap, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
+					log.Fatalf("NodeToValue(map): %v", err)
+				}
+				delete(moduleMap, "_module")
+				service, err := yaml.ValueToNode(moduleMap)
 				if err != nil {
-					log.Fatalf("NodeToValue: %v", err)
+					log.Fatalf("ValueToNode: %v", err)
+				}
+				if err := yaml.NodeToValue(service, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
+					log.Fatalf("NodeToValue(Module): %v", err)
 				}
 			}
+			// unmarshal(module, service)
+			namespaceChart.SetContext("name", serviceName)
 			module.Chart(namespaceChart)
 			t()
 		}
 		t()
 	}
 }
+
+// func unmarshal[T Module](module T, val ast.Node) {
+// 	moduleWithMeta := &struct {
+// 		ModuleName string `json:"_module"`
+// 		Module     T      `json:",inline"`
+// 	}{Module: module}
+// 	if val != nil {
+// 		err := yaml.NodeToValue(val, moduleWithMeta, yaml.Strict(), yaml.UseJSONUnmarshaler())
+// 		if err != nil {
+// 			log.Fatalf("NodeToValue: %v", err)
+// 		}
+// 	}
+// }

@@ -10,14 +10,8 @@ import (
 	"github.com/blesswinsamuel/infra-base/packager"
 )
 
-func NewApp(outputDir string) packager.App {
-	app := packager.NewApp(packager.AppProps{
-		Outdir:       outputDir,
-		DeleteOutDir: true,
-		// https://pracucci.com/kubernetes-dns-resolution-ndots-options-and-why-it-may-affect-application-performances.html
-		// to avoid polluting the dns logs on blocky with search domain home.local. E.g.: postgres.database.svc.cluster.local.home.local
-		PatchNdots: true,
-	})
+func NewApp(props packager.AppProps) packager.App {
+	app := packager.NewApp(props)
 
 	var cacheDir = os.Getenv("CACHE_DIR")
 	if cacheDir == "" {

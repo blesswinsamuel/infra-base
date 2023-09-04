@@ -2,11 +2,13 @@ package infrahelpers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"time"
 
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	"github.com/goccy/go-yaml"
 	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -161,4 +163,25 @@ func ToDuration(duration string) *metav1.Duration {
 		panic(err)
 	}
 	return &metav1.Duration{Duration: dur}
+}
+
+type MergeableMap[K comparable, V any] map[K]V
+
+func (m *MergeableMap[K, V]) MergeMap(other map[K]V) {
+	if *m == nil {
+		*m = make(map[K]V)
+	}
+	for k, v := range other {
+		(*m)[k] = v
+	}
+}
+
+func (m *MergeableMap[K, V]) UnmarshalYAML(ctx context.Context, data []byte) error {
+	// workaround to allow merging of maps
+	var goMap map[K]V
+	if err := yaml.UnmarshalContext(ctx, data, &goMap, yaml.Strict()); err != nil {
+		return err
+	}
+	m.MergeMap(goMap)
+	return nil
 }

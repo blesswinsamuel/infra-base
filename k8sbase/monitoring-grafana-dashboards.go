@@ -2,7 +2,6 @@ package k8sbase
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,33 +13,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
-	"github.com/goccy/go-yaml"
 	"golang.org/x/exp/slices"
 )
 
-type MergeableMap[K comparable, V any] map[K]V
-
-func (m *MergeableMap[K, V]) UnmarshalYAML(ctx context.Context, data []byte) error {
-	// workaround to allow merging of maps
-	var goMap map[K]V
-	if err := yaml.UnmarshalContext(ctx, data, &goMap, yaml.Strict()); err != nil {
-		return err
-	}
-
-	if *m == nil {
-		*m = make(map[K]V)
-	}
-
-	for k, v := range goMap {
-		(*m)[k] = v
-	}
-	return nil
-}
-
 type GrafanaDashboardsProps struct {
-	Dashboards MergeableMap[string, GrafanaDashboardsConfigProps] `json:"dashboards"`
+	Dashboards infrahelpers.MergeableMap[string, GrafanaDashboardsConfigProps] `json:"dashboards"`
 }
 
 type GrafanaDashboardsConfigProps struct {
