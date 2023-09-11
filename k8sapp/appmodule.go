@@ -198,13 +198,20 @@ func Render(scope packager.Construct, values ValuesProps) {
 				if err := yaml.NodeToValue(service, &moduleMap, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
 					log.Fatalf("NodeToValue(map): %v", err)
 				}
-				delete(moduleMap, "_module")
-				service, err := yaml.ValueToNode(moduleMap)
-				if err != nil {
-					log.Fatalf("ValueToNode: %v", err)
-				}
-				if err := yaml.NodeToValue(service, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-					log.Fatalf("NodeToValue(Module): %v", err)
+				if _, ok := moduleMap["_module"]; ok {
+					delete(moduleMap, "_module")
+					service, err := yaml.ValueToNode(moduleMap)
+					if err != nil {
+						log.Fatalf("ValueToNode: %v", err)
+					}
+					if err := yaml.NodeToValue(service, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
+						log.Fatalf("NodeToValue(Module): %v", err)
+					}
+					// TODO: fix this - sometimes, extra quotes are getting added
+				} else {
+					if err := yaml.NodeToValue(service, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
+						log.Fatalf("NodeToValue(Module): %v", err)
+					}
 				}
 			}
 			// unmarshal(module, service)
