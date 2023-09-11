@@ -2,9 +2,14 @@ package k8sbase
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/packager"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 )
@@ -51,6 +56,10 @@ type AutheliaProps struct {
 			Host *string `json:"host"`
 		} `json:"redis"`
 	} `json:"database"`
+	Assets *struct {
+		LogoURL    string `json:"logoURL"`
+		FaviconURL string `json:"faviconURL"`
+	} `json:"assets"`
 	RedirectionSubDomain string `json:"redirectionSubDomain"`
 }
 
@@ -93,10 +102,148 @@ func (props *AutheliaProps) Chart(scope packager.Construct) packager.Construct {
 			},
 		}
 	}
+	configMap := map[string]interface{}{
+		"server": map[string]interface{}{
+			"asset_path": "",
+		},
+		"telemetry": map[string]interface{}{
+			"metrics": map[string]interface{}{
+				"enabled": true,
+			},
+		},
+		"regulation": map[string]interface{}{
+			"max_retries": 3,
+			"find_time":   "2m",
+			"ban_time":    "5m",
+		},
+		"default_redirection_url": "https://" +
+			infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") +
+			GetDomain(scope),
+		"access_control": props.AccessControl,
+		"session": map[string]interface{}{
+			"redis": map[string]interface{}{
+				"host": props.Database.Redis.Host,
+			},
+		},
+		"storage": map[string]interface{}{
+			"postgres": map[string]interface{}{
+				"host":     props.Database.Postgres.Host,
+				"port":     props.Database.Postgres.Port,
+				"database": props.Database.Postgres.Database,
+				"schema":   props.Database.Postgres.Schema,
+				"username": props.Database.Postgres.Username,
+			},
+		},
+		"notifier": map[string]interface{}{
+			"smtp": map[string]interface{}{
+				"host":     props.SMTP.Host,
+				"port":     props.SMTP.Port,
+				"username": props.SMTP.Username,
+				"sender": infrahelpers.UseOrDefault(
+					props.SMTP.Sender,
+					fmt.Sprintf("Authelia <authelia@%s>", props.SMTP.EmailDomain),
+				),
+				"identifier":            props.SMTP.EmailDomain,
+				"subject":               infrahelpers.UseOrDefault(props.SMTP.Subject, "[authelia] {title}"),
+				"startup_check_address": fmt.Sprintf("test@%s", props.SMTP.EmailDomain),
+				"enabledSecret":         true,
+			},
+		},
+		"authentication_backend": map[string]interface{}{
+			"password_reset": map[string]interface{}{
+				"disable": false,
+			},
+			// # How often authelia should check if there is an user update in LDAP
+			// # refresh_interval: 1m
+			"refresh_interval": "always",
+			// https://github.com/nitnelave/lldap/blob/main/example_configs/authelia_config.yml
+			"ldap": map[string]interface{}{
+				"enabled":             props.AuthMode == "ldap",
+				"implementation":      "custom",
+				"url":                 props.LDAP.URL,
+				"timeout":             "5s",
+				"start_tls":           false,
+				"base_dn":             props.LDAP.BaseDN,
+				"username_attribute":  "uid",
+				"additional_users_dn": "ou=people",
+				// # users_filter: "(&({username_attribute}={input})(objectClass=person))"
+				"users_filter":           props.LDAP.UsersFilter,
+				"additional_groups_dn":   "ou=groups",
+				"groups_filter":          props.LDAP.GroupsFilter,
+				"group_name_attribute":   "cn",
+				"mail_attribute":         props.LDAP.MailAttribute,
+				"display_name_attribute": props.LDAP.DisplayNameAttribute,
+				"user":                   props.LDAP.User + "," + props.LDAP.BaseDN,
+			},
+			"file": map[string]interface{}{
+				"enabled": props.AuthMode == "file",
+			},
+		},
+		"identity_providers": map[string]interface{}{
+			"oidc": map[string]interface{}{
+				"enabled": props.OIDC.Enabled,
+				"cors": map[string]interface{}{
+					"endpoints": []string{
+						"token",
+						"userinfo",
+						// below ones may not be needed
+						"authorization",
+						"revocation",
+						"introspection",
+					},
+				},
+				"issuer_certificate_chain": props.OIDC.IssuerCertificateChain,
+				"clients":                  props.OIDC.Clients,
+			},
+		},
+	}
+	var patchResource func(resource *unstructured.Unstructured)
+	if props.Assets != nil {
+		pod["extraVolumeMounts"] = []map[string]interface{}{
+			{
+				"name":      "assets",
+				"mountPath": "/assets",
+			},
+		}
+		configMap["server"].(map[string]interface{})["asset_path"] = "/assets"
+		patchResource = func(resource *unstructured.Unstructured) {
+			if resource.Object["kind"] == "Deployment" {
+				var deployment appsv1.Deployment
+				err := runtime.DefaultUnstructuredConverter.FromUnstructured(resource.UnstructuredContent(), &deployment)
+				if err != nil {
+					log.Fatalf("FromUnstructured: %v", err)
+				}
+				deployment.Spec.Template.Spec.InitContainers = []corev1.Container{
+					{
+						Name:  "init",
+						Image: "docker.io/curlimages/curl:8.2.1",
+						Command: []string{
+							"sh",
+							"-c",
+							fmt.Sprintf("sleep 1 && curl %q -o /assets/logo.png && curl %q -o /assets/favicon.ico", props.Assets.LogoURL, props.Assets.FaviconURL),
+						},
+						VolumeMounts: []corev1.VolumeMount{{Name: "assets", MountPath: "/assets"}},
+					},
+				}
+				deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
+					Name: "assets",
+					VolumeSource: corev1.VolumeSource{
+						EmptyDir: &corev1.EmptyDirVolumeSource{},
+					},
+				})
+				unstructuredObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&deployment)
+				if err != nil {
+					log.Fatalf("ToUnstructured: %v", err)
+				}
+				resource.Object = unstructuredObj
+			}
+		}
+	}
 	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
-		ChartInfo:   props.ChartInfo,
-		ReleaseName: "authelia",
-		Namespace:   chart.Namespace(),
+		ChartInfo:     props.ChartInfo,
+		ReleaseName:   "authelia",
+		Namespace:     chart.Namespace(),
+		PatchResource: patchResource,
 		Values: map[string]interface{}{
 			"domain": GetDomain(scope),
 			"pod":    pod,
@@ -124,98 +271,7 @@ func (props *AutheliaProps) Chart(scope packager.Construct) packager.Construct {
 			"secret": map[string]interface{}{
 				"existingSecret": "authelia",
 			},
-			"configMap": map[string]interface{}{
-				"telemetry": map[string]interface{}{
-					"metrics": map[string]interface{}{
-						"enabled": true,
-					},
-				},
-				"regulation": map[string]interface{}{
-					"max_retries": 3,
-					"find_time":   "2m",
-					"ban_time":    "5m",
-				},
-				"default_redirection_url": "https://" +
-					infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") +
-					GetDomain(scope),
-				"access_control": props.AccessControl,
-				"session": map[string]interface{}{
-					"redis": map[string]interface{}{
-						"host": props.Database.Redis.Host,
-					},
-				},
-				"storage": map[string]interface{}{
-					"postgres": map[string]interface{}{
-						"host":     props.Database.Postgres.Host,
-						"port":     props.Database.Postgres.Port,
-						"database": props.Database.Postgres.Database,
-						"schema":   props.Database.Postgres.Schema,
-						"username": props.Database.Postgres.Username,
-					},
-				},
-				"notifier": map[string]interface{}{
-					"smtp": map[string]interface{}{
-						"host":     props.SMTP.Host,
-						"port":     props.SMTP.Port,
-						"username": props.SMTP.Username,
-						"sender": infrahelpers.UseOrDefault(
-							props.SMTP.Sender,
-							fmt.Sprintf("Authelia <authelia@%s>", props.SMTP.EmailDomain),
-						),
-						"identifier":            props.SMTP.EmailDomain,
-						"subject":               infrahelpers.UseOrDefault(props.SMTP.Subject, "[authelia] {title}"),
-						"startup_check_address": fmt.Sprintf("test@%s", props.SMTP.EmailDomain),
-						"enabledSecret":         true,
-					},
-				},
-				"authentication_backend": map[string]interface{}{
-					"password_reset": map[string]interface{}{
-						"disable": false,
-					},
-					// # How often authelia should check if there is an user update in LDAP
-					// # refresh_interval: 1m
-					"refresh_interval": "always",
-					// https://github.com/nitnelave/lldap/blob/main/example_configs/authelia_config.yml
-					"ldap": map[string]interface{}{
-						"enabled":             props.AuthMode == "ldap",
-						"implementation":      "custom",
-						"url":                 props.LDAP.URL,
-						"timeout":             "5s",
-						"start_tls":           false,
-						"base_dn":             props.LDAP.BaseDN,
-						"username_attribute":  "uid",
-						"additional_users_dn": "ou=people",
-						// # users_filter: "(&({username_attribute}={input})(objectClass=person))"
-						"users_filter":           props.LDAP.UsersFilter,
-						"additional_groups_dn":   "ou=groups",
-						"groups_filter":          props.LDAP.GroupsFilter,
-						"group_name_attribute":   "cn",
-						"mail_attribute":         props.LDAP.MailAttribute,
-						"display_name_attribute": props.LDAP.DisplayNameAttribute,
-						"user":                   props.LDAP.User + "," + props.LDAP.BaseDN,
-					},
-					"file": map[string]interface{}{
-						"enabled": props.AuthMode == "file",
-					},
-				},
-				"identity_providers": map[string]interface{}{
-					"oidc": map[string]interface{}{
-						"enabled": props.OIDC.Enabled,
-						"cors": map[string]interface{}{
-							"endpoints": []string{
-								"token",
-								"userinfo",
-								// below ones may not be needed
-								"authorization",
-								"revocation",
-								"introspection",
-							},
-						},
-						"issuer_certificate_chain": props.OIDC.IssuerCertificateChain,
-						"clients":                  props.OIDC.Clients,
-					},
-				},
-			},
+			"configMap": configMap,
 		},
 	})
 
