@@ -9,7 +9,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.9.4"
+    version: "0.9.5"
 
 cluster-secret-store:
   dopplerServiceToken: ""
@@ -119,7 +119,7 @@ crowdsec:
   helm:
     repo: https://crowdsecurity.github.io/helm-charts
     chart: crowdsec
-    version: "0.9.7"
+    version: "0.9.8"
 crowdsec-traefik-bouncer:
   helm:
     repo: https://crowdsecurity.github.io/helm-charts
@@ -309,7 +309,7 @@ vmagent:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
     chart: victoria-metrics-agent
-    version: "0.9.4"
+    version: "0.9.11"
   ingress:
     subDomain: "vmagent"
   resources:
@@ -347,7 +347,7 @@ victoria-metrics:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
     chart: victoria-metrics-single
-    version: "0.9.4"
+    version: "0.9.9"
   ingress:
     enabled: true
     subDomain: "victoriametrics"
@@ -388,7 +388,7 @@ reloader:
   helm:
     repo: https://stakater.github.io/stakater-charts
     chart: reloader
-    version: "1.0.38"
+    version: "1.0.42"
 kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
