@@ -20,7 +20,7 @@ cert-manager:
   helm:
     repo: https://charts.jetstack.io
     chart: cert-manager
-    version: "v1.12.3"
+    version: "v1.13.1"
 cert-issuer:
   # namespace: ""
   solver: dns
@@ -49,7 +49,7 @@ postgres:
   helm:
     repo: https://charts.bitnami.com/bitnami
     chart: postgresql
-    version: "12.9.0"
+    version: "12.12.10"
   image:
     # not straightforward to upgrade to postgres 15
     # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
@@ -63,7 +63,7 @@ redis:
   helm:
     repo: https://charts.bitnami.com/bitnami
     chart: redis
-    version: "17.16.0"
+    version: "17.17.1"
 
 ### auth ###
 
@@ -88,7 +88,7 @@ authelia:
 lldap:
   image:
     repository: ghcr.io/lldap/lldap
-    tag: v0.4.3-alpine
+    tag: v0.5.0-alpine
 
 traefik-forward-auth:
   helm:
@@ -108,7 +108,7 @@ vector:
   helm:
     repo: https://helm.vector.dev
     chart: vector
-    version: "0.24.1"
+    version: "0.26.0"
   syslogServer:
     enabled: false
   ingress:
@@ -129,12 +129,12 @@ kube-state-metrics:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: kube-state-metrics
-    version: "5.10.1"
+    version: "5.14.0"
 grafana:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: grafana
-    version: "6.58.10"
+    version: "6.60.2"
   namespaced: false
   authProxyEnabled: true
   anonymousAuthEnabled: false
@@ -322,7 +322,7 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.93.1
+    tag: v1.94.0
   ingress:
     enabled: true
     subDomain: "vmalert"
@@ -342,7 +342,7 @@ node-exporter:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: prometheus-node-exporter
-    version: "4.22.0"
+    version: "4.23.2"
 victoria-metrics:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
@@ -363,7 +363,7 @@ loki:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: loki
-    version: "5.15.0"
+    version: "5.26.0"
   storage: local
 
 ### system ###
@@ -400,12 +400,12 @@ kubernetes-dashboard:
 kopia:
   image:
     repository: kopia/kopia
-    tag: "0.13.0"
+    tag: "0.14.1"
 backup-job:
   kopia:
     image:
       repository: kopia/kopia
-      tag: "0.13.0"
+      tag: "0.14.1"
   postgres:
     image:
       repository: postgres
