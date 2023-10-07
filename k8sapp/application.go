@@ -134,6 +134,7 @@ type ContainerPort struct {
 type ApplicationIngress struct {
 	Host string
 	Path string // defaults to "/"
+	TLS  *bool
 }
 
 type ApplicationPrometheusScrape struct {
@@ -338,17 +339,16 @@ func NewApplication(scope packager.Construct, id string, props *ApplicationProps
 				Protocol:   port.Protocol,
 			})
 			if port.Ingress != nil {
-				ingressHosts = append(ingressHosts, IngressHost{
-					Host:  port.Ingress.Host,
-					Paths: []IngressHostPath{{Path: port.Ingress.Path, ServiceName: props.Name, ServicePortName: port.Name}},
-					Tls:   true,
-				})
+				port.Ingresses = append(port.Ingresses, *port.Ingress)
 			}
 			for _, ingress := range port.Ingresses {
+				if ingress.TLS == nil {
+					ingress.TLS = infrahelpers.Ptr(true)
+				}
 				ingressHosts = append(ingressHosts, IngressHost{
 					Host:  ingress.Host,
 					Paths: []IngressHostPath{{Path: ingress.Path, ServiceName: props.Name, ServicePortName: port.Name}},
-					Tls:   true,
+					Tls:   *ingress.TLS,
 				})
 			}
 			if prometheusScrape := port.PrometheusScrape; prometheusScrape != nil {
