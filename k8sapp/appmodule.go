@@ -90,6 +90,12 @@ type Module interface {
 	Chart(scope packager.Construct) packager.Construct
 }
 
+type ModuleWithMeta interface {
+	Module
+	GetModuleName() string
+	GetDashboards() []GrafanaDashboardProps
+}
+
 type OrderedMap[K comparable, V any] struct {
 	keyOrder []K
 	Map      map[K]V
@@ -134,15 +140,34 @@ type ValuesProps struct {
 	Services OrderedMap[string, OrderedMap[string, ast.Node]] `json:"services"`
 }
 
-var registeredModules map[string]Module = map[string]Module{}
+type ModuleCommons[T Module] struct {
+	Module     string                  `json:"_module"`
+	Dashboards []GrafanaDashboardProps `json:"_dashboards"`
 
-func RegisterModules(modules map[string]Module) {
+	Rest T `json:",inline"`
+}
+
+func (m ModuleCommons[T]) Chart(scope packager.Construct) packager.Construct {
+	return m.Rest.Chart(scope)
+}
+
+func (m ModuleCommons[T]) GetModuleName() string {
+	return m.Module
+}
+
+func (m ModuleCommons[T]) GetDashboards() []GrafanaDashboardProps {
+	return m.Dashboards
+}
+
+var registeredModules map[string]ModuleWithMeta = map[string]ModuleWithMeta{}
+
+func RegisterModules(modules map[string]ModuleWithMeta) {
 	for k, v := range modules {
 		RegisterModule(k, v)
 	}
 }
 
-func RegisterModule(name string, module Module) {
+func RegisterModule(name string, module ModuleWithMeta) {
 	registeredModules[name] = module
 }
 
@@ -165,17 +190,18 @@ func Render(scope packager.Construct, values ValuesProps) {
 		t := logModuleTiming(namespace, 0)
 		namespaceChart := NewNamespaceChart(scope, namespace)
 		for _, key := range services.keyOrder {
-			serviceName, service := key, services.Map[key]
+			serviceName, serviceProps := key, services.Map[key]
 			moduleName := serviceName
-			if service != nil {
-				servicePart := struct {
+			if serviceProps != nil {
+				// module name is different from service name
+				serviceCommons := struct {
 					Module string `json:"_module"`
 				}{}
-				if err := yaml.NodeToValue(service, &servicePart); err != nil {
-					log.Fatalf("NodeToValue: %v", err)
+				if err := yaml.NodeToValue(serviceProps, &serviceCommons, yaml.UseJSONUnmarshaler()); err != nil {
+					log.Fatalf("NodeToValue (module): %v", err)
 				}
-				if servicePart.Module != "" {
-					moduleName = servicePart.Module
+				if serviceCommons.Module != "" {
+					moduleName = serviceCommons.Module
 				}
 			}
 			t := logModuleTiming(serviceName, 1)
@@ -188,35 +214,19 @@ func Render(scope packager.Construct, values ValuesProps) {
 				if defaultValues == nil {
 					log.Fatalf("defaultValues for %q is nil.", moduleName)
 				}
-				err := yaml.NodeToValue(defaultValues, module, yaml.Strict(), yaml.UseJSONUnmarshaler())
-				if err != nil {
-					log.Fatalf("NodeToValue: %v", err)
+				if err := yaml.NodeToValue(defaultValues, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
+					log.Fatalf("NodeToValue(defaults): %v", err)
 				}
 			}
-			if service != nil {
-				moduleMap := map[string]interface{}{}
-				if err := yaml.NodeToValue(service, &moduleMap, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-					log.Fatalf("NodeToValue(map): %v", err)
-				}
-				if _, ok := moduleMap["_module"]; ok {
-					delete(moduleMap, "_module")
-					service, err := yaml.ValueToNode(moduleMap)
-					if err != nil {
-						log.Fatalf("ValueToNode: %v", err)
-					}
-					if err := yaml.NodeToValue(service, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-						log.Fatalf("NodeToValue(Module): %v", err)
-					}
-					// TODO: fix this - sometimes, extra quotes are getting added
-				} else {
-					if err := yaml.NodeToValue(service, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-						log.Fatalf("NodeToValue(Module): %v", err)
-					}
+			if serviceProps != nil {
+				if err := yaml.NodeToValue(serviceProps, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
+					log.Fatalf("NodeToValue(Module): %v", err)
 				}
 			}
 			// unmarshal(module, service)
 			namespaceChart.SetContext("name", serviceName)
-			module.Chart(namespaceChart)
+			chart := module.Chart(namespaceChart)
+			NewGrafanaDashboards(chart, module.GetDashboards())
 			t()
 		}
 		t()

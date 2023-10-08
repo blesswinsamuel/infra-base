@@ -82,6 +82,7 @@ func (props *GrafanaProps) Chart(scope packager.Construct) packager.Construct {
 					"resource":        "configmap",
 					"skipReload":      true,
 					"initDatasources": true,
+					"searchNamespace": "ALL",
 				},
 				"dashboards": map[string]interface{}{
 					"enabled":          true,
@@ -92,6 +93,7 @@ func (props *GrafanaProps) Chart(scope packager.Construct) packager.Construct {
 					"provider": map[string]interface{}{
 						"foldersFromFilesStructure": true,
 					},
+					"searchNamespace": "ALL",
 					// "skipReload":     true,
 				},
 			},

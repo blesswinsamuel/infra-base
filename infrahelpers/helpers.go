@@ -3,6 +3,7 @@ package infrahelpers
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"text/template"
 
 	"github.com/goccy/go-yaml"
@@ -136,4 +137,12 @@ func Ternary[V any](cond bool, trueVal V, falseVal V) V {
 		return trueVal
 	}
 	return falseVal
+}
+
+func GetFileContents(path string) string {
+	valuesFile, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	return string(valuesFile)
 }

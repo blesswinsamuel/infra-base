@@ -1,83 +1,13 @@
 package k8sbase
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"hash/fnv"
-	"io"
-	"log"
-	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
-	"golang.org/x/exp/slices"
 )
 
 type GrafanaDashboardsProps struct {
-	Dashboards infrahelpers.MergeableMap[string, GrafanaDashboardsConfigProps] `json:"dashboards"`
-}
-
-type GrafanaDashboardsConfigProps struct {
-	Type     string              `json:"type"` // local or remote
-	GlobPath *string             `json:"globPath"`
-	URL      []DashboardURLProps `json:"urls"`
-	Folder   string              `json:"folder"`
-}
-
-type DashboardURLProps struct {
-	URL          string            `json:"url"`
-	GnetID       *int              `json:"gnet_id"`
-	ID           string            `json:"id"`
-	Title        *string           `json:"title"`
-	Replacements map[string]string `json:"replacements"`
-}
-
-func hash(s string) string {
-	h := fnv.New32a()
-	h.Write([]byte(s))
-	return fmt.Sprintf("%v", h.Sum32())
-}
-
-func GetCachedDashboard(url string, cacheDir string) []byte {
-	fileName := hash(url) + ".json"
-	dashboardsCacheDir := fmt.Sprintf("%s/%s", cacheDir, "dashboards")
-	if err := os.MkdirAll(dashboardsCacheDir, os.ModePerm); err != nil {
-		log.Fatalln("GetCachedDashboard MkdirAll failed", err)
-	}
-
-	if _, err := os.Stat(dashboardsCacheDir + "/" + fileName); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			log.Println("GetCachedDashboard downloading", url)
-			resp, err := http.Get(url)
-			if err != nil {
-				panic(err)
-			}
-			defer resp.Body.Close()
-			if resp.StatusCode != 200 {
-				panic(resp.Status)
-			}
-			data, err := io.ReadAll(resp.Body)
-			if err != nil {
-				panic(err)
-			}
-			if err := os.WriteFile(dashboardsCacheDir+"/"+fileName, data, 0644); err != nil {
-				panic(err)
-			}
-		} else {
-			log.Fatalln("GetCachedDashboard Stat failed", err)
-		}
-	}
-	data, err := os.ReadFile(dashboardsCacheDir + "/" + fileName)
-	if err != nil {
-		panic(err)
-	}
-	return data
+	Dashboards infrahelpers.MergeableMap[string, []k8sapp.GrafanaDashboardProps] `json:"dashboards"`
 }
 
 func (props *GrafanaDashboardsProps) Chart(scope packager.Construct) packager.Construct {
@@ -86,135 +16,10 @@ func (props *GrafanaDashboardsProps) Chart(scope packager.Construct) packager.Co
 	}
 	chart := scope.Chart("grafana-dashboards", cprops)
 
-	cacheDir := k8sapp.GetGlobalContext(scope).CacheDir
-	type dashboardItem struct {
-		id              string
-		dashboardConfig GrafanaDashboardsConfigProps
+	for _, dashboard := range props.Dashboards {
+		k8sapp.NewGrafanaDashboards(chart, dashboard)
 	}
-	dashboardList := []dashboardItem{}
-	for k, v := range props.Dashboards {
-		dashboardList = append(dashboardList, dashboardItem{
-			id:              k,
-			dashboardConfig: v,
-		})
-	}
-	slices.SortFunc(dashboardList, func(a dashboardItem, b dashboardItem) int {
-		return strings.Compare(a.id, b.id)
-	})
-	for _, item := range dashboardList {
-		id := item.id
-		dashboardConfig := item.dashboardConfig
-		if dashboardConfig.GlobPath != nil {
-			for _, filePath := range GetFilePaths(*dashboardConfig.GlobPath) {
-				fileContents := GetFileContents(filePath)
-				baseName := strings.TrimSuffix(filepath.Base(filePath), filepath.Ext(filePath))
-				k8sapp.NewConfigMap(chart, id+"-"+baseName, &k8sapp.ConfigmapProps{
-					Name: "grafana-dashboard-" + "-" + baseName + "-json",
-					// Name: ("grafana-dashboards-" + id + "-" + baseName),
-					Labels: map[string]string{
-						"grafana_dashboard": "1",
-					},
-					Annotations: map[string]string{
-						"grafana_folder": dashboardConfig.Folder,
-					},
-					Data: map[string]string{
-						filepath.Base(filePath): fileContents,
-					},
-				})
-			}
-		}
-		for _, url := range dashboardConfig.URL {
-			dashboardContents := GetCachedDashboard(url.URL, cacheDir)
-			dashboard := map[string]interface{}{}
-			if err := json.Unmarshal(dashboardContents, &dashboard); err != nil {
-				panic(err)
-			}
-			if url.GnetID != nil {
-				dashboard["gnet_id"] = *url.GnetID
-			}
-			if url.Title != nil {
-				dashboard["title"] = *url.Title
-			}
-			dashboard["uid"] = url.ID
-			if dashboard["__inputs"] != nil {
-				inputs := dashboard["__inputs"].([]any)
-				for _, input := range inputs {
-					input := input.(map[string]any)
-					inputName := input["name"].(string)
-					templating := dashboard["templating"].(map[string]any)
-					templatingList := templating["list"].([]any)
-					isAlreadyTemplated := false
-					for _, templatingItem := range templatingList {
-						templatingItem := templatingItem.(map[string]any)
-						if templatingItem["name"] == inputName {
-							isAlreadyTemplated = true
-						}
-					}
-					if !isAlreadyTemplated {
-						// fmt.Println(input)
-						query := input["pluginId"]
-						label := input["label"]
-						inputType := input["type"]
-						templatingList = append(templatingList, map[string]any{
-							"hide":    0,
-							"label":   label,
-							"name":    inputName,
-							"options": []any{},
-							"query":   query,
-							"refresh": 1,
-							"regex":   "",
-							"type":    inputType,
-						})
-					}
-					templating["list"] = templatingList
-				}
-			}
-
-			buf := new(bytes.Buffer)
-			enc := json.NewEncoder(buf)
-			enc.SetIndent("", "  ")
-			if err := enc.Encode(dashboard); err != nil {
-				panic(err)
-			}
-			outStr := buf.String()
-			for k, v := range url.Replacements {
-				outStr = strings.ReplaceAll(outStr, k, v)
-			}
-
-			k8sapp.NewConfigMap(chart, url.ID, &k8sapp.ConfigmapProps{
-				Name: "grafana-dashboard-" + url.ID + "-json",
-				// Name: ("grafana-dashboards-" + id + "-" + baseName),
-				Labels: map[string]string{
-					"grafana_dashboard": "1",
-				},
-				Annotations: map[string]string{
-					"grafana_folder": dashboardConfig.Folder,
-				},
-				Data: map[string]string{
-					url.ID + ".json": outStr,
-				},
-			})
-		}
-	}
-
 	return chart
-}
-
-func GetFilePaths(globPath string) []string {
-	paths, err := filepath.Glob(globPath)
-	if err != nil {
-		panic(err)
-	}
-	slices.Sort(paths)
-	return paths
-}
-
-func GetFileContents(path string) string {
-	valuesFile, err := os.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-	return string(valuesFile)
 }
 
 // # [x] alertmanager-overview.json - "Alertmanager / Overview"
