@@ -40,6 +40,9 @@ func (props *GrafanaDatasourceProps) Chart(scope packager.Construct) packager.Co
 						"isDefault": true,
 						"version":   1,
 						"editable":  false,
+						"jsonData": map[string]interface{}{
+							"timeInterval": "60s",
+						},
 						// # jsonData:
 						// #   alertmanagerUid: alertmanager
 					},

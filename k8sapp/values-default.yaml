@@ -233,7 +233,13 @@ grafana-dashboards:
       urls:
         - url: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
           id: traefik-kubernetes
+          title: Traefik Kubernetes (official)
+        - url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/traefik.json
+          id: traefik
           title: Traefik
+        - url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/cert-manager.json
+          id: cert-manager
+          title: Cert Manager
         # - url: https://grafana.com/api/dashboards/17501/revisions/1/download
         #   id: traefik-logs
         #   title: Traefik Logs
@@ -268,6 +274,9 @@ grafana-dashboards:
       folder: Databases
       urls:
         - url: https://github.com/prometheus-community/postgres_exporter/raw/master/postgres_mixin/dashboards/postgres-overview.json
+          id: postgres-exporter
+          title: Postgres (official)
+        - url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/postgres.json
           id: postgres
           title: Postgres
         - url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
