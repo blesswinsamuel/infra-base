@@ -16,8 +16,8 @@ func (props *GrafanaDashboardsProps) Chart(scope packager.Construct) packager.Co
 	}
 	chart := scope.Chart("grafana-dashboards", cprops)
 
-	for _, dashboard := range props.Dashboards {
-		k8sapp.NewGrafanaDashboards(chart, dashboard)
+	for _, dashboardID := range infrahelpers.MapKeys(props.Dashboards) {
+		k8sapp.NewGrafanaDashboards(chart, props.Dashboards[dashboardID])
 	}
 	return chart
 }
