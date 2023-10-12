@@ -22,7 +22,6 @@ func RegisterModules() {
 		"crowdsec-traefik-bouncer": &k8sapp.ModuleCommons[*CrowdsecTraefikBouncerProps]{},
 		"crowdsec":                 &k8sapp.ModuleCommons[*CrowdsecProps]{},
 		"grafana-dashboards":       &k8sapp.ModuleCommons[*GrafanaDashboardsProps]{},
-		"grafana-datasource":       &k8sapp.ModuleCommons[*GrafanaDatasourceProps]{},
 		"grafana":                  &k8sapp.ModuleCommons[*GrafanaProps]{},
 		"kube-state-metrics":       &k8sapp.ModuleCommons[*KubeStateMetricsProps]{},
 		"loki":                     &k8sapp.ModuleCommons[*LokiProps]{},

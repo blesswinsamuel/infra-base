@@ -119,5 +119,37 @@ func (props *LokiProps) Chart(scope packager.Construct) packager.Construct {
 		},
 	})
 
+	k8sapp.NewConfigMap(chart, "grafana-datasource-loki", &k8sapp.ConfigmapProps{
+		Name: "grafana-datasource-loki",
+		Labels: map[string]string{
+			"grafana_datasource": "1",
+		},
+		Data: map[string]string{
+			"loki.yaml": infrahelpers.ToYamlString(map[string]interface{}{
+				"apiVersion": 1,
+				"deleteDatasources": []map[string]interface{}{
+					{
+						"name":  "Loki",
+						"orgId": 1,
+					},
+				},
+				"datasources": []map[string]interface{}{
+					{
+						"name":   "Loki",
+						"type":   "loki",
+						"access": "proxy",
+						"orgId":  1,
+						"uid":    "loki",
+						"url":    "http://loki:3100",
+						"jsonData": map[string]interface{}{
+							"maxLines": 1000,
+							// # alertmanagerUid: alertmanager
+						},
+					},
+				},
+			}),
+		},
+	})
+
 	return chart
 }

@@ -158,3 +158,31 @@ func (props *AlertmanagerProps) Chart(scope packager.Construct) packager.Constru
 
 	return chart
 }
+
+// {{ define "cluster-base.monitoring.datasource.alertmanager" }}
+// ---
+// # apiVersion: v1
+// # kind: ConfigMap
+// # metadata:
+// #   name: grafana-datasource-alertmanager
+// #   namespace: monitoring
+// #   labels:
+// #     grafana_datasource: "1"
+// # data:
+// #   loki.yaml: |-
+// #     apiVersion: 1
+
+// #     deleteDatasources:
+// #       - name: Alertmanager
+// #         orgId: 1
+
+// #     datasources:
+// #       - name: Alertmanager
+// #         type: alertmanager
+// #         access: proxy
+// #         orgId: 1
+// #         uid: alertmanager
+// #         url: http://vmalert-alertmanager:9093
+// #         jsonData:
+// #           implementation: prometheus
+// {{- end }}

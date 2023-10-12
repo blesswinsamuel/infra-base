@@ -1,6 +1,7 @@
 package k8sbase
 
 import (
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/packager"
 	corev1 "k8s.io/api/core/v1"
@@ -68,6 +69,42 @@ func (props *VictoriaMetricsProps) Chart(scope packager.Construct) packager.Cons
 				"resources":        props.Resources,
 				"persistentVolume": props.PersistentVolume,
 			},
+		},
+	})
+
+	k8sapp.NewConfigMap(chart, "grafana-datasource-victoriametrics", &k8sapp.ConfigmapProps{
+		Name: "grafana-datasource-victoriametrics",
+		Labels: map[string]string{
+			"grafana_datasource": "1",
+		},
+		Data: map[string]string{
+			"victoriametrics.yaml": infrahelpers.ToYamlString(map[string]interface{}{
+				"apiVersion": 1,
+				"deleteDatasources": []map[string]interface{}{
+					{
+						"name":  "VictoriaMetrics",
+						"orgId": 1,
+					},
+				},
+				"datasources": []map[string]interface{}{
+					{
+						"name":      "VictoriaMetrics",
+						"type":      "prometheus",
+						"access":    "proxy",
+						"orgId":     1,
+						"uid":       "victoriametrics",
+						"url":       "http://victoriametrics-victoria-metrics-single-server:8428",
+						"isDefault": true,
+						"version":   1,
+						"editable":  false,
+						"jsonData": map[string]interface{}{
+							"timeInterval": "60s",
+						},
+						// # jsonData:
+						// #   alertmanagerUid: alertmanager
+					},
+				},
+			}),
 		},
 	})
 
