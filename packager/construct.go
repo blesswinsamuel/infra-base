@@ -37,3 +37,7 @@ func (c *construct) GetContext(key string) any {
 func (c *construct) ID() string {
 	return c.node.id
 }
+
+func (c *construct) Chart(id string, props ChartProps) Chart {
+	return newChart(id, props, c.node)
+}

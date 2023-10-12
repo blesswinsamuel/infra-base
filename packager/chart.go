@@ -18,13 +18,13 @@ func (c *chart) Namespace() string {
 	return c.props.Namespace
 }
 
-func (c *construct) Chart(id string, props ChartProps) Chart {
+func newChart(id string, props ChartProps, parentNode *node[Construct]) Chart {
 	// fmt.Println("AddChart", c.node.FullID(), id)
 	chart := &chart{construct: &construct{}, props: props}
-	chart.construct.node = c.node.AddChildNode(id, chart)
+	chart.construct.node = parentNode.AddChildNode(id, chart)
 	if props.Namespace != "" {
 		chart.SetContext("namespace", props.Namespace)
 	}
-	c.node.AddChildNode(id, chart)
+	// parentNode.AddChildNode(id, chart)
 	return chart
 }
