@@ -66,7 +66,7 @@ postgres:
   helm:
     repo: https://charts.bitnami.com/bitnami
     chart: postgresql
-    version: "13.1.0"
+    version: "13.1.4"
   image:
     # not straightforward to upgrade to postgres 15
     # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
@@ -89,7 +89,7 @@ redis:
   helm:
     repo: https://charts.bitnami.com/bitnami
     chart: redis
-    version: "18.1.2"
+    version: "18.1.5"
   _dashboards:
     - url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
       id: redis
@@ -156,7 +156,7 @@ crowdsec:
   helm:
     repo: https://crowdsecurity.github.io/helm-charts
     chart: crowdsec
-    version: "0.9.8"
+    version: "0.9.9"
   _dashboards:
     - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Details%20per%20Machine.json
       id: crowdsec-details-per-machine
@@ -196,7 +196,7 @@ grafana:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: grafana
-    version: "6.60.2"
+    version: "6.60.4"
   namespaced: false
   authProxyEnabled: true
   anonymousAuthEnabled: false
@@ -362,7 +362,7 @@ victoria-metrics:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
     chart: victoria-metrics-single
-    version: "0.9.9"
+    version: "0.9.10"
   ingress:
     enabled: true
     subDomain: "victoriametrics"
@@ -409,7 +409,7 @@ reloader:
   helm:
     repo: https://stakater.github.io/stakater-charts
     chart: reloader
-    version: "1.0.42"
+    version: "1.0.43"
 kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
