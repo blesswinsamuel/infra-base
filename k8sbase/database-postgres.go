@@ -80,7 +80,7 @@ func (props *PostgresProps) Chart(scope packager.Construct) packager.Construct {
 	for _, grafanaDatasource := range props.GrafanaDatasources {
 		k8sapp.NewExternalSecret(chart, "grafana-datasource-postgres", &k8sapp.ExternalSecretProps{
 			Name: fmt.Sprintf("grafana-datasource-postgres-%s", grafanaDatasource.Database),
-			Labels: map[string]string{
+			SecretLabels: map[string]string{
 				"grafana_datasource": "1",
 			},
 			RemoteRefs: map[string]string{

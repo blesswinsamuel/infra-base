@@ -38,6 +38,9 @@ func (props *GrafanaProps) Chart(scope packager.Construct) packager.Construct {
 					"GF_SERVER_ENABLE_GZIP":                      "true",
 					"GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION": "true",
 					"GF_PANELS_DISABLE_SANITIZE_HTML":            infrahelpers.Ternary(props.DisableSanitizeHTML, "true", "false"),
+					"GF_ANALYTICS_REPORTING_ENABLED":             "false",
+					"GF_ANALYTICS_CHECK_FOR_UPDATES":             "false",
+					"GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES":      "false",
 				},
 				infrahelpers.Ternary(props.AnonymousAuthEnabled, map[string]string{
 					"GF_AUTH_ANONYMOUS_HIDE_VERSION": "true",
@@ -79,7 +82,7 @@ func (props *GrafanaProps) Chart(scope packager.Construct) packager.Construct {
 					"enabled":         true,
 					"label":           props.DatasourceLabel,
 					"labelValue":      props.DatasourceLabelValue,
-					"resource":        "configmap",
+					"resource":        "both",
 					"skipReload":      true,
 					"initDatasources": true,
 					"searchNamespace": "ALL",
@@ -88,7 +91,7 @@ func (props *GrafanaProps) Chart(scope packager.Construct) packager.Construct {
 					"enabled":          true,
 					"label":            props.DashboardLabel,
 					"labelValue":       props.DashboardLabelValue,
-					"resource":         "configmap",
+					"resource":         "both",
 					"folderAnnotation": "grafana_folder",
 					"provider": map[string]interface{}{
 						"foldersFromFilesStructure": true,

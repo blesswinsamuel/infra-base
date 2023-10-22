@@ -17,13 +17,13 @@ type ExternalSecretStoreProps struct {
 }
 
 type ExternalSecretProps struct {
-	Name   string
-	Labels map[string]string
+	Name string
 	// Namespace       string // optional
 	RefreshInterval string // optional
 	RemoteRefs      map[string]string
 	Template        map[string]string
 	SecretType      string
+	SecretLabels    map[string]string
 	SecretStore     ExternalSecretStoreProps
 }
 
@@ -41,7 +41,7 @@ func NewExternalSecret(scope packager.Construct, id string, props *ExternalSecre
 	})
 	globals := GetGlobalContext(scope)
 	externalsecret := externalsecretsv1beta1.ExternalSecret{
-		ObjectMeta: metav1.ObjectMeta{Name: props.Name, Labels: props.Labels}, // , Namespace: infrahelpers.StrPtrIfNonEmpty(props.Namespace)
+		ObjectMeta: metav1.ObjectMeta{Name: props.Name}, // , Namespace: infrahelpers.StrPtrIfNonEmpty(props.Namespace)
 		Spec: externalsecretsv1beta1.ExternalSecretSpec{
 			RefreshInterval: infrahelpers.ToDuration(infrahelpers.UseOrDefault(props.RefreshInterval, globals.DefaultExternalSecretRefreshInterval)),
 			SecretStoreRef: externalsecretsv1beta1.SecretStoreRef{
@@ -54,6 +54,9 @@ func NewExternalSecret(scope packager.Construct, id string, props *ExternalSecre
 	if len(props.Template) > 0 {
 		externalsecret.Spec.Target.Template = &externalsecretsv1beta1.ExternalSecretTemplate{
 			Type: corev1.SecretType(props.SecretType),
+			Metadata: externalsecretsv1beta1.ExternalSecretTemplateMetadata{
+				Labels: props.SecretLabels,
+			},
 			Data: props.Template,
 		}
 	}
