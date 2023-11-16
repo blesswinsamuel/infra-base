@@ -9,7 +9,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.9.5"
+    version: "0.9.9"
 
 cluster-secret-store:
   dopplerServiceToken: ""
@@ -20,7 +20,7 @@ cert-manager:
   helm:
     repo: https://charts.jetstack.io
     chart: cert-manager
-    version: "v1.13.1"
+    version: "v1.13.2"
   _dashboards:
     - url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/cert-manager.json
       id: cert-manager
@@ -102,7 +102,7 @@ authelia:
   helm:
     repo: https://charts.authelia.com
     chart: authelia
-    version: "0.8.57"
+    version: "0.8.58"
   ingress:
     subDomain: authelia
   ldap:
@@ -156,7 +156,7 @@ crowdsec:
   helm:
     repo: https://crowdsecurity.github.io/helm-charts
     chart: crowdsec
-    version: "0.9.9"
+    version: "0.9.10"
   _dashboards:
     - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Details%20per%20Machine.json
       id: crowdsec-details-per-machine
@@ -295,7 +295,7 @@ vmagent:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
     chart: victoria-metrics-agent
-    version: "0.9.11"
+    version: "0.9.13"
   ingress:
     subDomain: "vmagent"
   resources:
@@ -362,7 +362,7 @@ victoria-metrics:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
     chart: victoria-metrics-single
-    version: "0.9.10"
+    version: "0.9.12"
   ingress:
     enabled: true
     subDomain: "victoriametrics"
@@ -409,7 +409,7 @@ reloader:
   helm:
     repo: https://stakater.github.io/stakater-charts
     chart: reloader
-    version: "1.0.43"
+    version: "1.0.52"
 kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
