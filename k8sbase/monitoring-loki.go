@@ -115,6 +115,9 @@ func (props *LokiProps) Chart(scope packager.Construct) packager.Construct {
 						nil,
 					),
 				),
+				"analytics": map[string]any{
+					"reporting_enabled": false,
+				},
 			},
 		},
 	})
