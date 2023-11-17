@@ -107,7 +107,7 @@ func (props *TraefikProps) Chart(scope packager.Construct) packager.Construct {
 				// 	"expose": true,
 				// },
 				"web": map[string]any{
-					"redirectTo":       "websecure",
+					"redirectTo":       map[string]any{"port": "websecure"},
 					"forwardedHeaders": map[string]any{"trustedIPs": props.TrustedIPs},
 					"proxyProtocol":    map[string]any{"trustedIPs": props.TrustedIPs},
 				},
