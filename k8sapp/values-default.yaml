@@ -353,6 +353,8 @@ node-exporter:
       id: node-exporter
       title: Node Exporter
       folder: Monitoring
+      replacements:
+        '"000000001"': '"${DS_PROMETHEUS}"'
     - url: https://github.com/starsliao/Prometheus/raw/master/node_exporter/node-exporter-for-prometheus-dashboard-en.json
       gnet_id: 11074
       id: node-exporter-2
