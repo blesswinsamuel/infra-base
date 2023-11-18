@@ -432,7 +432,7 @@ backup-job:
   postgres:
     image:
       repository: postgres
-      tag: "14.9.0"
+      tag: "14.10"
     host: "postgres.database.svc.cluster.local"
 
 ### utils ###
