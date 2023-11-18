@@ -54,9 +54,13 @@
 {{- end }}
 🏷 Labels:
 {{- range .Labels.SortedPairs }}
+{{- if .Value }}
   <i>{{ .Name }}</i>: <code>{{ .Value }}</code>
 {{- end }}
+{{- end }}
+{{- if .GeneratorURL }}
 📈 <a href="{{ .GeneratorURL }}">Grafana</a> 📈
+{{- end }}
 {{- end }}
 {{- end -}}
 
