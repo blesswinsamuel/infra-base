@@ -22,7 +22,7 @@
 {{- define "slack.text" -}}
 {{- range .Alerts }}
 *Alert:* {{ .Annotations.summary }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }}
-*Description:* {{ .Annotations.runbook_url }}
+*Description:* {{ .Annotations.description }}
 *Graph:* <{{ .GeneratorURL }}|:chart_with_upwards_trend:>
 *Details:*
   {{- range .Labels.SortedPairs }}
@@ -39,9 +39,10 @@
 {{/* https://gist.github.com/jidckii/5ac5f8f20368b56de72af70222509b7b */}}
 {{ define "__alertmanagerURL" }}{{ .ExternalURL }}/#/alerts?receiver={{ .Receiver | urlquery }}{{ end }}
 
-{{ define "telegram.message.alert.list" }}{{ range . }}
+{{- define "telegram.message.alert.list" -}}
+{{- range . }}
 ---
-🪪 <b>{{ .Labels.alertname }}</b>{{ if eq .Labels.severity "warning" }} ⚠️{{ else if eq .Labels.severity "critical" }} 🚨{{ end }}{{ if .Status }} ({{ .Status }}){{ end }}
+{{ if eq .Status "firing" }}🔥{{ else if eq .Status "resolved" }}✅{{ else }}🪪{{ end }} <b>{{ .Labels.alertname }}</b>{{ if eq .Labels.severity "warning" }} ⚠️{{ else if eq .Labels.severity "critical" }} 🚨{{ end }}{{ if .Status }} ({{ .Status }}){{ end }}
 {{- if .Annotations.summary }}
 📝 {{ .Annotations.summary }}
 {{- end }}
@@ -57,16 +58,11 @@
 {{- end }}
 📈 <a href="{{ .GeneratorURL }}">Grafana</a> 📈
 {{- end }}
-{{ end }}
+{{- end -}}
 
 {{- define "telegram.message" -}}
-{{- if gt (len .Alerts.Firing) 0 }}
-🔥 Alerts Firing 🔥
-{{- template "telegram.message.alert.list" .Alerts.Firing }}
-{{- end }}
-{{- if gt (len .Alerts.Resolved) 0 }}
-✅ Alerts Resolved ✅
-{{- template "telegram.message.alert.list" .Alerts.Resolved }}
-{{- end }}
+<b>{{ if eq .Status "firing" }}🔥{{ else if eq .Status "resolved" }}✅{{ end }} {{.Status | toUpper}}</b>
+{{- template "telegram.message.alert.list" .Alerts }}
+
 💊 <a href="{{ template "__alertmanagerURL" . }}">Alertmanager</a> 💊
 {{- end -}}
