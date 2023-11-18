@@ -1,0 +1,66 @@
+{
+  "receiver": "receiver",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertgroup": "kubernetes-apps",
+        "alertname": "KubeJobFailed",
+        "condition": "true",
+        "container": "kube-state-metrics",
+        "instance": "10.42.0.202:8080",
+        "job": "kube-state-metrics",
+        "job_name": "backup-job-filesystem-cloud-28337430",
+        "namespace": "system",
+        "node": "homelab-hp-laptop",
+        "pod": "kube-state-metrics-7c49cf696c-vkmt6",
+        "service": "kube-state-metrics",
+        "severity": "warning"
+      },
+      "annotations": {
+        "description": "Job system/backup-job-filesystem-cloud-28337430 failed to complete. Removing failed job after investigation should clear this alert.",
+        "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed",
+        "summary": "Job failed to complete."
+      },
+      "startsAt": "2021-01-11T15:05:00Z",
+      "endsAt": "2021-01-11T15:10:00Z",
+      "generatorURL": "https://grafana.home.bless.win/explore?orgId=1&left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"kube_job_failed%7Bjob%3D%5C%22kube-state-metrics%5C%22%7D++%3E+0%5Cn\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+      "fingerprint": "3e566536bbc3b19d"
+    },
+    {
+      "status": "resolved",
+      "labels": {
+        "foo": "bar",
+        "baz": "qux",
+        "commonlabelkey1": "commonlabelvalue1",
+        "commonlabelkey2": "commonlabelvalue2"
+      },
+      "annotations": {
+        "aaa": "bbb",
+        "ccc": "ddd",
+        "commonannotationkey1": "commonannotationvalue1",
+        "commonannotationkey2": "commonannotationvalue2"
+      },
+      "startsAt": "2021-01-11T15:00:00Z",
+      "endsAt": "2021-01-11T15:10:00Z",
+      "generatorURL": "https://generatorurl.com",
+      "fingerprint": "fingerprint2"
+    }
+  ],
+  "groupLabels": {
+    "grouplabelkey1": "grouplabelvalue1",
+    "grouplabelkey2": "grouplabelvalue2"
+  },
+  "commonLabels": {
+    "alertname": "AlertmanagerFailedToSendAlerts",
+    "job": "commonjobname",
+    "commonlabelkey1": "commonlabelvalue1",
+    "commonlabelkey2": "commonlabelvalue2"
+  },
+  "commonAnnotations": {
+    "commonannotationkey1": "commonannotationvalue1",
+    "commonannotationkey2": "commonannotationvalue2"
+  },
+  "externalURL": "https://example.com"
+}

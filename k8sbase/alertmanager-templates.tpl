@@ -42,7 +42,7 @@
 {{- define "telegram.message.alert.list" -}}
 {{- range . }}
 ---
-{{ if eq .Status "firing" }}🔥{{ else if eq .Status "resolved" }}✅{{ else }}🪪{{ end }} <b>{{ .Labels.alertname }}</b>{{ if eq .Labels.severity "warning" }} ⚠️{{ else if eq .Labels.severity "critical" }} 🚨{{ end }}{{ if .Status }} ({{ .Status }}){{ end }}
+{{ if eq .Status "firing" }}🔥{{ else if eq .Status "resolved" }}✅{{ else }}🪪{{ end }} <b>{{ .Labels.alertname }}</b>{{ if eq .Labels.severity "warning" }} ⚠️{{ else if eq .Labels.severity "critical" }} 🚨{{ end }}
 {{- if .Annotations.summary }}
 📝 {{ .Annotations.summary }}
 {{- end }}

@@ -1,0 +1,291 @@
+[
+  {
+    "annotations": {
+      "description": "Job system/backup-job-filesystem-cloud-28337430 failed to complete. Removing failed job after investigation should clear this alert.",
+      "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed",
+      "summary": "Job failed to complete."
+    },
+    "endsAt": "2023-11-18T09:20:00.000Z",
+    "fingerprint": "3e566536bbc3b19d1",
+    "startsAt": "2023-11-17T20:55:00.000Z",
+    "status": "firing",
+    "updatedAt": "2023-11-18T09:16:32.567Z",
+    "generatorURL": "https://grafana.home.bless.win/explore?orgId=1\u0026left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"kube_job_failed%7Bjob%3D%5C%22kube-state-metrics%5C%22%7D++%3E+0%5Cn\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+    "labels": {
+      "alertgroup": "kubernetes-apps",
+      "alertname": "KubeJobFailed",
+      "condition": "true",
+      "container": "kube-state-metrics",
+      "instance": "10.42.0.202:8080",
+      "job": "kube-state-metrics",
+      "job_name": "backup-job-filesystem-cloud-28337430",
+      "namespace": "system",
+      "node": "homelab-hp-laptop",
+      "pod": "kube-state-metrics-7c49cf696c-vkmt6",
+      "service": "kube-state-metrics",
+      "severity": "warning"
+    }
+  },
+  {
+    "annotations": {
+      "description": "Job system/backup-job-postgres-wakapi-28337430 failed to complete. Removing failed job after investigation should clear this alert.",
+      "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed",
+      "summary": "Job failed to complete."
+    },
+    "endsAt": "2023-11-18T09:20:00.000Z",
+    "fingerprint": "475e1d98ef60a17d1",
+    "startsAt": "2023-11-17T20:55:00.000Z",
+    "status": "firing",
+    "updatedAt": "2023-11-18T09:16:32.567Z",
+    "generatorURL": "https://grafana.home.bless.win/explore?orgId=1\u0026left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"kube_job_failed%7Bjob%3D%5C%22kube-state-metrics%5C%22%7D++%3E+0%5Cn\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+    "labels": {
+      "alertgroup": "kubernetes-apps",
+      "alertname": "KubeJobFailed",
+      "condition": "true",
+      "container": "kube-state-metrics",
+      "instance": "10.42.0.202:8080",
+      "job": "kube-state-metrics",
+      "job_name": "backup-job-postgres-wakapi-28337430",
+      "namespace": "system",
+      "node": "homelab-hp-laptop",
+      "pod": "kube-state-metrics-7c49cf696c-vkmt6",
+      "service": "kube-state-metrics",
+      "severity": "warning"
+    }
+  },
+  {
+    "annotations": {
+      "description": "Job system/backup-job-postgres-authelia-28337430 failed to complete. Removing failed job after investigation should clear this alert.",
+      "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed",
+      "summary": "Job failed to complete."
+    },
+    "endsAt": "2023-11-18T09:20:00.000Z",
+    "fingerprint": "81497ec06496c04f1",
+    "startsAt": "2023-11-17T20:55:00.000Z",
+    "status": "firing",
+    "updatedAt": "2023-11-18T09:16:32.567Z",
+    "generatorURL": "https://grafana.home.bless.win/explore?orgId=1\u0026left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"kube_job_failed%7Bjob%3D%5C%22kube-state-metrics%5C%22%7D++%3E+0%5Cn\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+    "labels": {
+      "alertgroup": "kubernetes-apps",
+      "alertname": "KubeJobFailed",
+      "condition": "true",
+      "container": "kube-state-metrics",
+      "instance": "10.42.0.202:8080",
+      "job": "kube-state-metrics",
+      "job_name": "backup-job-postgres-authelia-28337430",
+      "namespace": "system",
+      "node": "homelab-hp-laptop",
+      "pod": "kube-state-metrics-7c49cf696c-vkmt6",
+      "service": "kube-state-metrics",
+      "severity": "warning"
+    }
+  },
+  {
+    "annotations": {
+      "description": "Job system/backup-job-filesystem-persistent-volumes-28337430 failed to complete. Removing failed job after investigation should clear this alert.",
+      "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed",
+      "summary": "Job failed to complete."
+    },
+    "endsAt": "2023-11-18T09:20:00.000Z",
+    "fingerprint": "90b1a2580b5dcf1d1",
+    "startsAt": "2023-11-17T20:55:00.000Z",
+    "status": "firing",
+    "updatedAt": "2023-11-18T09:16:32.567Z",
+    "generatorURL": "https://grafana.home.bless.win/explore?orgId=1\u0026left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"kube_job_failed%7Bjob%3D%5C%22kube-state-metrics%5C%22%7D++%3E+0%5Cn\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+    "labels": {
+      "alertgroup": "kubernetes-apps",
+      "alertname": "KubeJobFailed",
+      "condition": "true",
+      "container": "kube-state-metrics",
+      "instance": "10.42.0.202:8080",
+      "job": "kube-state-metrics",
+      "job_name": "backup-job-filesystem-persistent-volumes-28337430",
+      "namespace": "system",
+      "node": "homelab-hp-laptop",
+      "pod": "kube-state-metrics-7c49cf696c-vkmt6",
+      "service": "kube-state-metrics",
+      "severity": "warning"
+    }
+  },
+  {
+    "annotations": {
+      "description": "Job system/backup-job-postgres-lldap-28337430 failed to complete. Removing failed job after investigation should clear this alert.",
+      "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed",
+      "summary": "Job failed to complete."
+    },
+    "endsAt": "2023-11-18T09:20:00.000Z",
+    "fingerprint": "9257ffa5b99652651",
+    "startsAt": "2023-11-17T20:55:00.000Z",
+    "status": "firing",
+    "updatedAt": "2023-11-18T09:16:32.567Z",
+    "generatorURL": "https://grafana.home.bless.win/explore?orgId=1\u0026left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"kube_job_failed%7Bjob%3D%5C%22kube-state-metrics%5C%22%7D++%3E+0%5Cn\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+    "labels": {
+      "alertgroup": "kubernetes-apps",
+      "alertname": "KubeJobFailed",
+      "condition": "true",
+      "container": "kube-state-metrics",
+      "instance": "10.42.0.202:8080",
+      "job": "kube-state-metrics",
+      "job_name": "backup-job-postgres-lldap-28337430",
+      "namespace": "system",
+      "node": "homelab-hp-laptop",
+      "pod": "kube-state-metrics-7c49cf696c-vkmt6",
+      "service": "kube-state-metrics",
+      "severity": "warning"
+    }
+  },
+  {
+    "annotations": {
+      "description": "Job system/backup-job-postgres-immich-28337430 failed to complete. Removing failed job after investigation should clear this alert.",
+      "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed",
+      "summary": "Job failed to complete."
+    },
+    "endsAt": "2023-11-18T09:20:00.000Z",
+    "fingerprint": "aaf9258d7b884d651",
+    "startsAt": "2023-11-17T20:55:00.000Z",
+    "status": "firing",
+    "updatedAt": "2023-11-18T09:16:32.567Z",
+    "generatorURL": "https://grafana.home.bless.win/explore?orgId=1\u0026left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"kube_job_failed%7Bjob%3D%5C%22kube-state-metrics%5C%22%7D++%3E+0%5Cn\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+    "labels": {
+      "alertgroup": "kubernetes-apps",
+      "alertname": "KubeJobFailed",
+      "condition": "true",
+      "container": "kube-state-metrics",
+      "instance": "10.42.0.202:8080",
+      "job": "kube-state-metrics",
+      "job_name": "backup-job-postgres-immich-28337430",
+      "namespace": "system",
+      "node": "homelab-hp-laptop",
+      "pod": "kube-state-metrics-7c49cf696c-vkmt6",
+      "service": "kube-state-metrics",
+      "severity": "warning"
+    }
+  },
+  {
+    "annotations": {
+      "description": "Job system/backup-job-filesystem-photos-28337430 failed to complete. Removing failed job after investigation should clear this alert.",
+      "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed",
+      "summary": "Job failed to complete."
+    },
+    "endsAt": "2023-11-18T09:20:00.000Z",
+    "fingerprint": "b4d0b4316c5a4c531",
+    "startsAt": "2023-11-17T20:55:00.000Z",
+    "status": "firing",
+    "updatedAt": "2023-11-18T09:16:32.567Z",
+    "generatorURL": "https://grafana.home.bless.win/explore?orgId=1\u0026left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"kube_job_failed%7Bjob%3D%5C%22kube-state-metrics%5C%22%7D++%3E+0%5Cn\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+    "labels": {
+      "alertgroup": "kubernetes-apps",
+      "alertname": "KubeJobFailed",
+      "condition": "true",
+      "container": "kube-state-metrics",
+      "instance": "10.42.0.202:8080",
+      "job": "kube-state-metrics",
+      "job_name": "backup-job-filesystem-photos-28337430",
+      "namespace": "system",
+      "node": "homelab-hp-laptop",
+      "pod": "kube-state-metrics-7c49cf696c-vkmt6",
+      "service": "kube-state-metrics",
+      "severity": "warning"
+    }
+  },
+  {
+    "annotations": {
+      "description": "Job system/backup-job-postgres-umami-28337430 failed to complete. Removing failed job after investigation should clear this alert.",
+      "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed",
+      "summary": "Job failed to complete."
+    },
+    "endsAt": "2023-11-18T09:20:00.000Z",
+    "fingerprint": "c6a3dce84d0e4a8b1",
+    "startsAt": "2023-11-17T20:55:00.000Z",
+    "status": "firing",
+    "updatedAt": "2023-11-18T09:16:32.567Z",
+    "generatorURL": "https://grafana.home.bless.win/explore?orgId=1\u0026left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"kube_job_failed%7Bjob%3D%5C%22kube-state-metrics%5C%22%7D++%3E+0%5Cn\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+    "labels": {
+      "alertgroup": "kubernetes-apps",
+      "alertname": "KubeJobFailed",
+      "condition": "true",
+      "container": "kube-state-metrics",
+      "instance": "10.42.0.202:8080",
+      "job": "kube-state-metrics",
+      "job_name": "backup-job-postgres-umami-28337430",
+      "namespace": "system",
+      "node": "homelab-hp-laptop",
+      "pod": "kube-state-metrics-7c49cf696c-vkmt6",
+      "service": "kube-state-metrics",
+      "severity": "warning"
+    }
+  },
+  {
+    "annotations": {
+      "description": "Job system/backup-job-postgres-linkding-28337430 failed to complete. Removing failed job after investigation should clear this alert.",
+      "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed",
+      "summary": "Job failed to complete."
+    },
+    "endsAt": "2023-11-18T09:20:00.000Z",
+    "fingerprint": "e218f4d691a704de1",
+    "startsAt": "2023-11-17T20:55:00.000Z",
+    "status": "firing",
+    "updatedAt": "2023-11-18T09:16:32.567Z",
+    "generatorURL": "https://grafana.home.bless.win/explore?orgId=1\u0026left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"kube_job_failed%7Bjob%3D%5C%22kube-state-metrics%5C%22%7D++%3E+0%5Cn\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+    "labels": {
+      "alertgroup": "kubernetes-apps",
+      "alertname": "KubeJobFailed",
+      "condition": "true",
+      "container": "kube-state-metrics",
+      "instance": "10.42.0.202:8080",
+      "job": "kube-state-metrics",
+      "job_name": "backup-job-postgres-linkding-28337430",
+      "namespace": "system",
+      "node": "homelab-hp-laptop",
+      "pod": "kube-state-metrics-7c49cf696c-vkmt6",
+      "service": "kube-state-metrics",
+      "severity": "warning"
+    }
+  },
+  {
+    "annotations": {
+      "description": "This is an alert meant to ensure that the entire alerting pipeline is functional.\nThis alert is always firing, therefore it should always be firing in Alertmanager\nand always fire against a receiver. There are integrations with various notification\nmechanisms that send a notification when this alert is not firing. For example the\n\"DeadMansSnitch\" integration in PagerDuty.\n",
+      "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/general/watchdog",
+      "summary": "An alert that should always be firing to certify that Alertmanager is working properly."
+    },
+    "endsAt": "2023-11-18T09:19:00.000Z",
+    "fingerprint": "e2306103db8679b01",
+    "receivers": [{ "name": "watchdog" }],
+    "startsAt": "2023-11-17T20:38:00.000Z",
+    "status": "firing",
+    "updatedAt": "2023-11-18T09:16:21.713Z",
+    "generatorURL": "https://grafana.home.bless.win/explore?orgId=1\u0026left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"vector%281%29\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+    "labels": {
+      "alertgroup": "general.rules",
+      "alertname": "Watchdog",
+      "severity": "none"
+    }
+  },
+  {
+    "annotations": {
+      "description": "Job system/backup-job-postgres-vaultwarden-28337430 failed to complete. Removing failed job after investigation should clear this alert.",
+      "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubejobfailed",
+      "summary": "Job failed to complete."
+    },
+    "endsAt": "2023-11-18T09:20:00.000Z",
+    "fingerprint": "ff144d70c9f47bd51",
+    "startsAt": "2023-11-17T20:55:00.000Z",
+    "status": "firing",
+    "updatedAt": "2023-11-18T09:16:32.567Z",
+    "generatorURL": "https://grafana.home.bless.win/explore?orgId=1\u0026left={\"datasource\":\"VictoriaMetrics\",\"queries\":[{\"expr\":\"kube_job_failed%7Bjob%3D%5C%22kube-state-metrics%5C%22%7D++%3E+0%5Cn\",\"refId\":\"A\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}",
+    "labels": {
+      "alertgroup": "kubernetes-apps",
+      "alertname": "KubeJobFailed",
+      "condition": "true",
+      "container": "kube-state-metrics",
+      "instance": "10.42.0.202:8080",
+      "job": "kube-state-metrics",
+      "job_name": "backup-job-postgres-vaultwarden-28337430",
+      "namespace": "system",
+      "node": "homelab-hp-laptop",
+      "pod": "kube-state-metrics-7c49cf696c-vkmt6",
+      "service": "kube-state-metrics",
+      "severity": "warning"
+    }
+  }
+]
