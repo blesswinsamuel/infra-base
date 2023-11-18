@@ -64,7 +64,7 @@ func (props *VictoriaMetricsProps) Chart(scope packager.Construct) packager.Cons
 					"pathType": "Prefix",
 				},
 				"extraArgs": map[string]any{
-					"vmalert.proxyURL": `http://vmalert-victoria-metrics-alert-server:8880`,
+					"vmalert.proxyURL": `http://vmalert:8880`,
 				},
 				"resources":        props.Resources,
 				"persistentVolume": props.PersistentVolume,
