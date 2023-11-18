@@ -114,7 +114,8 @@ func newCronJob(chart packager.Construct, id string, props cronJobProps) package
 		containers = append(containers, echoContainer("Cron Job complete"))
 	}
 	jobSpec := batchv1.CronJobSpec{
-		Schedule: props.Schedule,
+		Schedule:          props.Schedule,
+		ConcurrencyPolicy: batchv1.ReplaceConcurrent,
 		JobTemplate: batchv1.JobTemplateSpec{
 			Spec: batchv1.JobSpec{
 				Template: corev1.PodTemplateSpec{
