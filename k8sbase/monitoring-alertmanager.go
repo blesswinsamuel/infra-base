@@ -53,6 +53,7 @@ func (props *AlertmanagerProps) Chart(scope packager.Construct) packager.Constru
 				"--storage.path=/alertmanager",
 				"--config.file=/etc/alertmanager/alertmanager.yml",
 				"--web.external-url=https://" + props.Ingress.SubDomain + "." + GetDomain(scope),
+				// "--log.level=debug",
 			},
 			ExtraEnvs: []corev1.EnvVar{{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{APIVersion: "v1", FieldPath: "status.podIP"}}}},
 			Ports: []k8sapp.ContainerPort{
