@@ -38,35 +38,48 @@
 {{/* https://github.com/prometheus/alertmanager/blob/ca5089d33eabaf03638a083d9a84f08c6de1acfb/template/default.tmpl#L115-L124 */}}
 {{/* https://gist.github.com/jidckii/5ac5f8f20368b56de72af70222509b7b */}}
 {{ define "__alertmanagerURL" }}{{ .ExternalURL }}/#/alerts?receiver={{ .Receiver | urlquery }}{{ end }}
+{{ define "__severityEmoji" }}{{ if eq . "warning" }}⚠️{{ else if eq . "critical" }}🚨{{ else }}{{ . }}{{ end }}{{ end }}
+{{ define "__alertStatusEmoji" }}{{ if eq . "firing" }}🔥{{ else if eq . "resolved" }}✅{{ else }}🪪{{ end }}{{ end }}
 
 {{- define "telegram.message.alert.list" -}}
-{{- range . }}
+{{- range $i, $alert := . }}
 ---
-{{ if eq .Status "firing" }}🔥{{ else if eq .Status "resolved" }}✅{{ else }}🪪{{ end }} <b>{{ .Labels.alertname }}</b>{{ if eq .Labels.severity "warning" }} ⚠️{{ else if eq .Labels.severity "critical" }} 🚨{{ end }}
-{{- if .Annotations.summary }}
-📝 {{ .Annotations.summary }}
+{{- if lt $i 1 }}
+{{ template "__alertStatusEmoji" $alert.Status }} <b>{{ $alert.Labels.alertname }}</b> {{ template "__severityEmoji" $alert.Labels.severity }}
+{{- if $alert.Annotations.summary }}
+📝 {{ $alert.Annotations.summary }}
 {{- end }}
-{{- if .Annotations.description }}
-📖 {{ .Annotations.description }}
+{{- if $alert.Annotations.description }}
+📖 {{ $alert.Annotations.description }}
 {{- end }}
-{{- if .Annotations.runbook_url }}
-📚 <a href="{{ .Annotations.runbook_url }}">Runbook</a>
+{{- if $alert.Annotations.runbook_url }}
+📚 <a href="{{ $alert.Annotations.runbook_url }}">Runbook</a>
 {{- end }}
 🏷 Labels:
-{{- range .Labels.SortedPairs }}
+{{- range $alert.Labels.SortedPairs }}
 {{- if .Value }}
   <i>{{ .Name }}</i>: <code>{{ .Value }}</code>
 {{- end }}
 {{- end }}
-{{- if .GeneratorURL }}
-📈 <a href="{{ .GeneratorURL }}">Grafana</a> 📈
+{{- if $alert.GeneratorURL }}
+📈 <a href="{{ $alert.GeneratorURL }}">Grafana</a> 📈
+{{- end }}
+{{- else }}
+{{ template "__alertStatusEmoji" $alert.Status }} {{ $alert.Labels.alertname }} {{ template "__severityEmoji" $alert.Labels.severity }}
+{{- if $alert.Annotations.summary }}
+📝 {{ $alert.Annotations.summary }}
+{{- end }}
+{{- if $alert.Annotations.description }}
+📖 {{ $alert.Annotations.description }}
+{{- end }}
+...
 {{- end }}
 {{- end }}
 {{- end -}}
 
 {{- define "telegram.message" -}}
-<b>{{ if eq .Status "firing" }}🔥{{ else if eq .Status "resolved" }}✅{{ end }} {{.Status | toUpper}}</b>
+<b>{{ if eq .Status "firing" }}🔥{{ else if eq .Status "resolved" }}✅{{ end }} {{.Status | toUpper}}</b> ({{ .Alerts | len }})
 {{- template "telegram.message.alert.list" .Alerts }}
-
+---
 💊 <a href="{{ template "__alertmanagerURL" . }}">Alertmanager</a> 💊
 {{- end -}}
