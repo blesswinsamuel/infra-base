@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -32,7 +32,7 @@ type HelmProps struct {
 	PatchResource       func(resource *unstructured.Unstructured)
 }
 
-func NewHelm(scope packager.Construct, id string, props *HelmProps) packager.Construct {
+func NewHelm(scope kubegogen.Construct, id string, props *HelmProps) kubegogen.Construct {
 	globals := GetGlobalContext(scope)
 	chartsCacheDir := fmt.Sprintf("%s/%s", globals.CacheDir, "charts")
 	if err := os.MkdirAll(chartsCacheDir, os.ModePerm); err != nil {
@@ -114,7 +114,7 @@ func NewHelm(scope packager.Construct, id string, props *HelmProps) packager.Con
 			props.PatchResource(runtimeObj)
 		}
 		scope.ApiObject("api-"+strconv.Itoa(i), runtimeObj)
-		// scope.ApiObjectFromMap("api-"+strconv.Itoa(i), packager.ApiObjectProps{
+		// scope.ApiObjectFromMap("api-"+strconv.Itoa(i), kubegogen.ApiObjectProps{
 		// 	// TypeMeta: v1.TypeMeta{
 		// 	// 	APIVersion: obj["apiVersion"].(string),
 		// 	// 	Kind:       obj["kind"].(string),
@@ -126,8 +126,8 @@ func NewHelm(scope packager.Construct, id string, props *HelmProps) packager.Con
 	return scope
 }
 
-func NewHelmChart(scope packager.Construct, id string, props *HelmProps) packager.Chart {
-	cprops := packager.ChartProps{
+func NewHelmChart(scope kubegogen.Construct, id string, props *HelmProps) kubegogen.Chart {
+	cprops := kubegogen.ChartProps{
 		Namespace: GetNamespaceContext(scope),
 	}
 	chart := scope.Chart(id, cprops)

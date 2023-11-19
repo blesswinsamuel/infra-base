@@ -3,15 +3,15 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 )
 
 type GrafanaDashboardsProps struct {
 	Dashboards infrahelpers.MergeableMap[string, []k8sapp.GrafanaDashboardProps] `json:"dashboards"`
 }
 
-func (props *GrafanaDashboardsProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{
+func (props *GrafanaDashboardsProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
 	chart := scope.Chart("grafana-dashboards", cprops)

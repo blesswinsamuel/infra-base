@@ -1,4 +1,4 @@
-package packager
+package kubegogen
 
 type Chart interface {
 	Construct

@@ -6,7 +6,7 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	"github.com/muesli/reflow/dedent"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -72,7 +72,7 @@ func echoContainer(msg string) corev1.Container {
 	}
 }
 
-func newCronJob(chart packager.Construct, id string, props cronJobProps) packager.ApiObject {
+func newCronJob(chart kubegogen.Construct, id string, props cronJobProps) kubegogen.ApiObject {
 	initContainers := []corev1.Container{}
 	props.LocalBackupVolume.Name = "shared-backup-data"
 	for _, command := range props.Commands {
@@ -149,8 +149,8 @@ func newCronJob(chart packager.Construct, id string, props cronJobProps) package
 	})
 }
 
-func (props *BackupJobProps) Chart(scope packager.Construct) packager.Construct {
-	chart := scope.Chart("backup-job", packager.ChartProps{
+func (props *BackupJobProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	chart := scope.Chart("backup-job", kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	})
 	k8sapp.NewExternalSecret(chart, "external-secret-pg", &k8sapp.ExternalSecretProps{
@@ -184,7 +184,7 @@ func (props *BackupJobProps) Chart(scope packager.Construct) packager.Construct 
 	return chart
 }
 
-func NewBackupPostgresJob(chart packager.Construct, props *BackupJobProps) {
+func NewBackupPostgresJob(chart kubegogen.Construct, props *BackupJobProps) {
 	if !props.Postgres.Enabled {
 		return
 	}
@@ -244,7 +244,7 @@ func NewBackupPostgresJob(chart packager.Construct, props *BackupJobProps) {
 	}
 }
 
-func NewRestorePostgresJob(chart packager.Construct, props *BackupJobProps) {
+func NewRestorePostgresJob(chart kubegogen.Construct, props *BackupJobProps) {
 	if !props.Postgres.Enabled {
 		return
 	}
@@ -303,7 +303,7 @@ func NewRestorePostgresJob(chart packager.Construct, props *BackupJobProps) {
 	}
 }
 
-func NewBackupFilesystemJob(chart packager.Construct, props *BackupJobProps) {
+func NewBackupFilesystemJob(chart kubegogen.Construct, props *BackupJobProps) {
 	if !props.Filesystem.Enabled {
 		return
 	}
@@ -351,7 +351,7 @@ func NewBackupFilesystemJob(chart packager.Construct, props *BackupJobProps) {
 	}
 }
 
-func NewRestoreFilesystemJob(chart packager.Construct, props *BackupJobProps) {
+func NewRestoreFilesystemJob(chart kubegogen.Construct, props *BackupJobProps) {
 	if !props.Filesystem.Enabled {
 		return
 	}

@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	"golang.org/x/exp/slices"
 )
 
@@ -70,14 +70,14 @@ func GetCachedDashboard(url string, cacheDir string) []byte {
 	return []byte(infrahelpers.GetFileContents(dashboardsCacheDir + "/" + fileName))
 }
 
-func NewGrafanaDashboards(scope packager.Construct, props []GrafanaDashboardProps) packager.Construct {
+func NewGrafanaDashboards(scope kubegogen.Construct, props []GrafanaDashboardProps) kubegogen.Construct {
 	for _, prop := range props {
 		NewGrafanaDashboard(scope, prop)
 	}
 	return scope
 }
 
-func NewGrafanaDashboard(scope packager.Construct, props GrafanaDashboardProps) packager.Construct {
+func NewGrafanaDashboard(scope kubegogen.Construct, props GrafanaDashboardProps) kubegogen.Construct {
 	cacheDir := GetGlobalContext(scope).CacheDir
 	dashboardContents := GetCachedDashboard(props.URL, cacheDir)
 	dashboard := map[string]interface{}{}

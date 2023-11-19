@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 )
 
 type GrafanaProps struct {
@@ -22,8 +22,8 @@ type GrafanaProps struct {
 }
 
 // https://github.com/grafana/helm-charts/tree/main/charts/grafana
-func (props *GrafanaProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{
+func (props *GrafanaProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
 	chart := scope.Chart("grafana", cprops)

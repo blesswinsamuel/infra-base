@@ -2,15 +2,15 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 )
 
 type NodeExporterProps struct {
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
-func (props *NodeExporterProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{
+func (props *NodeExporterProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
 	chart := scope.Chart("node-exporter", cprops)

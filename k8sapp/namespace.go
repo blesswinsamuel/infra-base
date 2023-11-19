@@ -1,13 +1,13 @@
 package k8sapp
 
 import (
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewNamespaceChart(scope packager.Construct, namespaceName string) packager.Chart {
-	chart := scope.Chart(namespaceName, packager.ChartProps{
+func NewNamespaceChart(scope kubegogen.Construct, namespaceName string) kubegogen.Chart {
+	chart := scope.Chart(namespaceName, kubegogen.ChartProps{
 		Namespace: namespaceName,
 	})
 	SetNamespaceContext(chart, namespaceName)
@@ -17,7 +17,7 @@ func NewNamespaceChart(scope packager.Construct, namespaceName string) packager.
 	return chart
 }
 
-func NewNamespace(scope packager.Construct, id string, namespaceName string) packager.Construct {
+func NewNamespace(scope kubegogen.Construct, id string, namespaceName string) kubegogen.Construct {
 	return NewK8sObject(scope, id, &corev1.Namespace{
 		ObjectMeta: v1.ObjectMeta{
 			Name: namespaceName,
@@ -28,12 +28,12 @@ func NewNamespace(scope packager.Construct, id string, namespaceName string) pac
 	})
 }
 
-func SetNamespaceContext(scope packager.Construct, namespaceName string) packager.Construct {
+func SetNamespaceContext(scope kubegogen.Construct, namespaceName string) kubegogen.Construct {
 	scope.SetContext("namespace", namespaceName)
 	return nil
 }
 
-func GetNamespaceContext(scope packager.Construct) string {
+func GetNamespaceContext(scope kubegogen.Construct) string {
 	ns, _ := scope.GetContext("namespace").(string)
 	return ns
 }

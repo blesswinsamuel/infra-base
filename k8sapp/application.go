@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	"golang.org/x/exp/slices"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -141,15 +141,15 @@ type ApplicationPrometheusScrape struct {
 	Path string // defaults to "/metrics"
 }
 
-func NewApplicationChart(scope packager.Construct, id string, props *ApplicationProps) packager.Chart {
-	chart := scope.Chart(id, packager.ChartProps{
+func NewApplicationChart(scope kubegogen.Construct, id string, props *ApplicationProps) kubegogen.Chart {
+	chart := scope.Chart(id, kubegogen.ChartProps{
 		Namespace: GetNamespaceContext(scope),
 	})
 	NewApplication(chart, "application", props)
 	return chart
 }
 
-func NewApplication(scope packager.Construct, id string, props *ApplicationProps) packager.Construct {
+func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProps) kubegogen.Construct {
 	scope = scope.Construct(id)
 	if props.Kind == "" {
 		props.Kind = "Deployment"

@@ -5,7 +5,7 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -23,8 +23,8 @@ type VmagentProps struct {
 var vmagentConfig string
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-agent
-func (props *VmagentProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{
+func (props *VmagentProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
 	chart := scope.Chart("vmagent", cprops)

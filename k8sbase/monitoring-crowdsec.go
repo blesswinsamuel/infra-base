@@ -2,7 +2,7 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 )
 
 type CrowdsecProps struct {
@@ -10,8 +10,8 @@ type CrowdsecProps struct {
 }
 
 // https://github.com/crowdsecurity/helm-charts/tree/main/charts/crowdsec
-func (props *CrowdsecProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{
+func (props *CrowdsecProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
 	chart := scope.Chart("crowdsec", cprops)

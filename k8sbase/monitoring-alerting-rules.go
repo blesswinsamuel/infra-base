@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
 )
@@ -70,8 +70,8 @@ func GetCachedAlertingRule(url string, cacheDir string) []byte {
 	return data
 }
 
-func (props *AlertingRulesProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{
+func (props *AlertingRulesProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
 	chart := scope.Chart("alerting-rules", cprops)

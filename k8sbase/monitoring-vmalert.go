@@ -2,7 +2,7 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -17,7 +17,7 @@ type VmalertProps struct {
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-agent
-func (props *VmalertProps) Chart(scope packager.Construct) packager.Construct {
+func (props *VmalertProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	return k8sapp.NewApplicationChart(scope, "vmalert", &k8sapp.ApplicationProps{
 		Name: "vmalert",
 		Containers: []k8sapp.ApplicationContainer{{

@@ -2,7 +2,7 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 )
 
 type CertManagerProps struct {
@@ -11,7 +11,7 @@ type CertManagerProps struct {
 
 // https://github.com/cert-manager/cert-manager/tree/master/deploy/charts/cert-manager
 // https://artifacthub.io/packages/helm/cert-manager/cert-manager
-func (props *CertManagerProps) Chart(scope packager.Construct) packager.Construct {
+func (props *CertManagerProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	chart := k8sapp.NewHelmChart(scope, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "cert-manager",

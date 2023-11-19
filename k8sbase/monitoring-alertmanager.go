@@ -6,7 +6,7 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	"github.com/muesli/reflow/dedent"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,7 +35,7 @@ type AlertmanagerProps struct {
 // https://github.com/prometheus-community/helm-charts/blob/main/charts/alertmanager
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-alert
 
-func (props *AlertmanagerProps) Chart(scope packager.Construct) packager.Construct {
+func (props *AlertmanagerProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	chart := k8sapp.NewApplicationChart(scope, "alertmanager", &k8sapp.ApplicationProps{
 		Kind:                         "StatefulSet",
 		Name:                         "alertmanager",

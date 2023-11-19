@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 )
@@ -23,8 +23,8 @@ type TraefikForwardAuthProps struct {
 // https://github.com/k8s-at-home/charts/tree/master/charts/stable/traefik-forward-auth
 // https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common
 // https://github.com/thomseddon/traefik-forward-auth
-func (props *TraefikForwardAuthProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{
+func (props *TraefikForwardAuthProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
 	chart := scope.Chart("traefik-forward-auth", cprops)

@@ -2,7 +2,7 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 )
 
 type ReloaderProps struct {
@@ -11,7 +11,7 @@ type ReloaderProps struct {
 
 // https://github.com/stakater/Reloader/blob/master/deployments/kubernetes/chart/reloader
 
-func (props *ReloaderProps) Chart(scope packager.Construct) packager.Construct {
+func (props *ReloaderProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	chart := k8sapp.NewHelmChart(scope, "reloader", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "reloader",

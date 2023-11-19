@@ -7,11 +7,11 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 )
 
-func NewApp(props packager.AppProps) packager.App {
-	app := packager.NewApp(props)
+func NewApp(props kubegogen.AppProps) kubegogen.App {
+	app := kubegogen.NewApp(props)
 
 	var cacheDir = os.Getenv("CACHE_DIR")
 	if cacheDir == "" {
@@ -29,8 +29,8 @@ func NewApp(props packager.AppProps) packager.App {
 	return app
 }
 
-func NewKappConfig(scope packager.Construct) packager.Construct {
-	chart := scope.Chart("kapp-config", packager.ChartProps{})
+func NewKappConfig(scope kubegogen.Construct) kubegogen.Construct {
+	chart := scope.Chart("kapp-config", kubegogen.ChartProps{})
 	chart.ApiObjectFromMap("config", map[string]interface{}{
 		"apiVersion": "kapp.k14s.io/v1alpha1",
 		"kind":       "Config",
@@ -68,7 +68,7 @@ func NewKappConfig(scope packager.Construct) packager.Construct {
 	return chart
 }
 
-func Synth(app packager.App) {
+func Synth(app kubegogen.App) {
 	log.Println("Starting synth...")
 	startTime := time.Now()
 	NewKappConfig(app)
@@ -78,7 +78,7 @@ func Synth(app packager.App) {
 	log.Printf("Synth done in %s.", time.Since(startTime))
 }
 
-func TemplateOutputFiles(app packager.App, vars any) {
+func TemplateOutputFiles(app kubegogen.App, vars any) {
 	files, err := filepath.Glob(filepath.Join(app.OutDir(), "*.yaml"))
 	if err != nil {
 		log.Fatalf("Glob: %v", err)

@@ -1,4 +1,4 @@
-package packager
+package kubegogen
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"

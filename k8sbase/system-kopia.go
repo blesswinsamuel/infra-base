@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -14,7 +14,7 @@ type KopiaProps struct {
 }
 
 // https://kopia.io/docs/installation/#docker-images
-func (props *KopiaProps) Chart(scope packager.Construct) packager.Construct {
+func (props *KopiaProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	return k8sapp.NewApplicationChart(scope, "kopia", &k8sapp.ApplicationProps{
 		Name:     "kopia",
 		Hostname: props.Hostname,

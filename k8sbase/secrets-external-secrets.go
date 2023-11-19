@@ -2,7 +2,7 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 )
 
 type ExternalSecretsProps struct {
@@ -10,8 +10,8 @@ type ExternalSecretsProps struct {
 }
 
 // https://github.com/external-secrets/external-secrets/tree/main/deploy/charts/external-secrets
-func (props *ExternalSecretsProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{
+func (props *ExternalSecretsProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
 	chart := scope.Chart("external-secrets", cprops)

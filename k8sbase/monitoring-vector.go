@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/muesli/reflow/dedent"
@@ -27,8 +27,8 @@ type VectorProps struct {
 // https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector
 // https://helm.vector.dev/index.yaml
 
-func (props *VectorProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{
+func (props *VectorProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
 	chart := scope.Chart("vector", cprops)

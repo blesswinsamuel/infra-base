@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	externalsecretsmetav1 "github.com/external-secrets/external-secrets/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,8 +16,8 @@ type ClusterSecretStoreProps struct {
 // https://external-secrets.io/v0.5.8/provider-kubernetes/
 // https://external-secrets.io/v0.5.8/spec/
 
-func (props *ClusterSecretStoreProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{}
+func (props *ClusterSecretStoreProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	cprops := kubegogen.ChartProps{}
 	chart := scope.Chart("cluster-secret-store", cprops)
 	k8sapp.NewSecret(chart, "secret", &k8sapp.SecretProps{
 		Name:      "doppler-token-auth-api",

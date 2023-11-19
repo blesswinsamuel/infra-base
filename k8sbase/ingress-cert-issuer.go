@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	certmanageracmev1 "github.com/cert-manager/cert-manager/pkg/apis/acme/v1"
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmanagermetav1 "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
@@ -15,7 +15,7 @@ type CertIssuerProps struct {
 	Solver string `json:"solver"` // dns or http
 }
 
-func letsEncryptIssuer(chart packager.Construct, props CertIssuerProps, name string, server string) {
+func letsEncryptIssuer(chart kubegogen.Construct, props CertIssuerProps, name string, server string) {
 	issuer := &certmanagerv1.ClusterIssuer{
 		ObjectMeta: v1.ObjectMeta{Name: name},
 		Spec: certmanagerv1.IssuerSpec{IssuerConfig: certmanagerv1.IssuerConfig{
@@ -58,8 +58,8 @@ func letsEncryptIssuer(chart packager.Construct, props CertIssuerProps, name str
 	k8sapp.NewK8sObject(chart, name, issuer)
 }
 
-func (props *CertIssuerProps) Chart(scope packager.Construct) packager.Construct {
-	cprops := packager.ChartProps{
+func (props *CertIssuerProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+	cprops := kubegogen.ChartProps{
 		Namespace: "cert-manager",
 	}
 	chart := scope.Chart("cert-issuer", cprops)

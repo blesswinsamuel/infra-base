@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -15,7 +15,7 @@ type LLDAPProps struct {
 	EmailDomain string           `json:"email_domain"`
 }
 
-func (props *LLDAPProps) Chart(scope packager.Construct) packager.Construct {
+func (props *LLDAPProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	return k8sapp.NewApplicationChart(scope, "lldap", &k8sapp.ApplicationProps{
 		Name: "lldap",
 		Containers: []k8sapp.ApplicationContainer{{

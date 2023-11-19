@@ -13,7 +13,7 @@ import (
 	"github.com/goccy/go-yaml/ast"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/packager"
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 
 	_ "embed"
 )
@@ -87,7 +87,7 @@ func LoadValues(values *ValuesProps, valuesFiles []string, templateMap map[strin
 }
 
 type Module interface {
-	Chart(scope packager.Construct) packager.Construct
+	Chart(scope kubegogen.Construct) kubegogen.Construct
 }
 
 type ModuleWithMeta interface {
@@ -147,7 +147,7 @@ type ModuleCommons[T Module] struct {
 	Rest T `json:",inline"`
 }
 
-func (m ModuleCommons[T]) Chart(scope packager.Construct) packager.Construct {
+func (m ModuleCommons[T]) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	return m.Rest.Chart(scope)
 }
 
@@ -184,7 +184,7 @@ func logModuleTiming(moduleName string, level int) func() {
 	}
 }
 
-func Render(scope packager.Construct, values ValuesProps) {
+func Render(scope kubegogen.Construct, values ValuesProps) {
 	for _, key := range values.Services.keyOrder {
 		namespace, services := key, values.Services.Map[key]
 		t := logModuleTiming(namespace, 0)
