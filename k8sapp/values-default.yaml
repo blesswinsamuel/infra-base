@@ -89,7 +89,7 @@ redis:
   helm:
     repo: https://charts.bitnami.com/bitnami
     chart: redis
-    version: "18.4.0"
+    version: "18.6.1"
   _dashboards:
     - url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
       id: redis
@@ -314,7 +314,7 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.95.1
+    tag: v1.96.0
   ingress:
     enabled: true
     subDomain: "vmalert"
@@ -386,7 +386,7 @@ loki:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: loki
-    version: "5.36.3"
+    version: "5.41.4"
   storage: local
 
 ### system ###
