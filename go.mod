@@ -3,12 +3,12 @@ module github.com/blesswinsamuel/infra-base
 go 1.21
 
 require (
-	github.com/cert-manager/cert-manager v1.13.2
-	github.com/external-secrets/external-secrets v0.9.9
+	github.com/cert-manager/cert-manager v1.13.3
+	github.com/external-secrets/external-secrets v0.9.10
 	github.com/goccy/go-yaml v1.11.2
 	github.com/muesli/reflow v0.3.0
-	github.com/traefik/traefik/v2 v2.10.5
-	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
+	github.com/traefik/traefik/v2 v2.10.7
+	golang.org/x/exp v0.0.0-20231219180239-dc181d75b848
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
@@ -17,7 +17,7 @@ require (
 require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/go-acme/lego/v4 v4.14.0 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
@@ -25,7 +25,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/traefik/paerser v0.2.0 // indirect
-	golang.org/x/crypto v0.15.0 // indirect
+	golang.org/x/crypto v0.16.0 // indirect
 )
 
 require (
@@ -63,13 +63,13 @@ require (
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/mod v0.14.0 // indirect
-	golang.org/x/net v0.18.0 // indirect
-	golang.org/x/oauth2 v0.13.0 // indirect
-	golang.org/x/sys v0.14.0 // indirect
-	golang.org/x/term v0.14.0 // indirect
+	golang.org/x/net v0.19.0 // indirect
+	golang.org/x/oauth2 v0.15.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/term v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/time v0.4.0 // indirect
-	golang.org/x/tools v0.15.0 // indirect
+	golang.org/x/time v0.5.0 // indirect
+	golang.org/x/tools v0.16.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
@@ -80,8 +80,8 @@ require (
 	k8s.io/client-go v0.29.0 // indirec0
 	k8s.io/component-base v0.29.0 // indirect; indirec0
 	k8s.io/klog/v2 v2.110.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
-	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
+	k8s.io/kube-openapi v0.0.0-20231206194836-bf4651e18aa8 // indirect
+	k8s.io/utils v0.0.0-20231127182322-b307cd553661 // indirect
 	sigs.k8s.io/controller-runtime v0.16.3 // indirect
 	sigs.k8s.io/gateway-api v0.8.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
