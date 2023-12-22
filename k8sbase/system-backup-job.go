@@ -20,7 +20,6 @@ type BackupJobProps struct {
 	Postgres struct {
 		Enabled           bool             `json:"enabled"`
 		Image             k8sapp.ImageInfo `json:"image"`
-		ImagePullSecrets  []string         `json:"imagePullSecrets"`
 		Schedule          string           `json:"schedule"`
 		Host              string           `json:"host"`
 		LocalBackupVolume corev1.Volume    `json:"localBackupVolume"`
@@ -42,7 +41,6 @@ type BackupJobProps struct {
 type cronJobProps struct {
 	DisabledByDefault bool
 	Name              string
-	ImagePullSecrets  []string
 	Schedule          string
 	LocalBackupVolume corev1.Volume
 	SharedFolder      string
@@ -115,10 +113,6 @@ func newCronJob(chart kubegogen.Construct, id string, props cronJobProps) kubego
 	} else {
 		containers = append(containers, echoContainer("Cron Job complete"))
 	}
-	var imagePullSecrets []corev1.LocalObjectReference
-	for _, secret := range props.ImagePullSecrets {
-		imagePullSecrets = append(imagePullSecrets, corev1.LocalObjectReference{Name: secret})
-	}
 	jobSpec := batchv1.CronJobSpec{
 		Schedule:          props.Schedule,
 		ConcurrencyPolicy: batchv1.ReplaceConcurrent,
@@ -126,7 +120,6 @@ func newCronJob(chart kubegogen.Construct, id string, props cronJobProps) kubego
 			Spec: batchv1.JobSpec{
 				Template: corev1.PodTemplateSpec{
 					Spec: corev1.PodSpec{
-						ImagePullSecrets: imagePullSecrets,
 						Volumes: []corev1.Volume{
 							props.LocalBackupVolume,
 							{
@@ -242,7 +235,6 @@ func NewBackupPostgresJob(chart kubegogen.Construct, props *BackupJobProps) {
 			ScriptsConfigMap:  "backup-job-postgres-scripts",
 			LocalBackupVolume: props.Postgres.LocalBackupVolume,
 			SharedFolder:      "/pgdumps",
-			ImagePullSecrets:  props.Postgres.ImagePullSecrets,
 			Commands: []cronJobScript{
 				{Name: "take-dump", Image: props.Postgres.Image, Command: []string{"/script/take-postgres-dump.sh", databaseName, sharedMountPath}, EnvFromSecret: "backup-restore-job-postgres", MountScript: "take-postgres-dump.sh"},
 				{Name: "kopia-snapshot", Image: props.Kopia.Image, Command: []string{"/script/kopia-postgres-snapshot.sh", sharedMountPath}, EnvFromSecret: "backup-restore-job-s3", MountScript: "kopia-postgres-snapshot.sh"},
@@ -301,7 +293,6 @@ func NewRestorePostgresJob(chart kubegogen.Construct, props *BackupJobProps) {
 			DisabledByDefault: true,
 			Name:              "restore-job-postgres-" + databaseName,
 			LocalBackupVolume: props.Postgres.LocalBackupVolume,
-			ImagePullSecrets:  props.Postgres.ImagePullSecrets,
 			ScriptsConfigMap:  "restore-job-postgres-scripts",
 			SharedFolder:      "/pgdumps",
 			Commands: []cronJobScript{
