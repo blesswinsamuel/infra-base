@@ -2,6 +2,7 @@ package k8sbase
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
@@ -16,12 +17,14 @@ type PostgresGrafanaDatasourceProps struct {
 }
 
 type PostgresProps struct {
-	HelmChartInfo    k8sapp.ChartInfo `json:"helm"`
-	ImagePullSecrets []string         `json:"imagePullSecrets"`
-	ImageInfo        k8sapp.ImageInfo `json:"image"`
-	Database         string           `json:"database"`
-	Username         string           `json:"username"`
-	LoadBalancer     struct {
+	HelmChartInfo          k8sapp.ChartInfo  `json:"helm"`
+	ImagePullSecrets       []string          `json:"imagePullSecrets"`
+	ImageInfo              k8sapp.ImageInfo  `json:"image"`
+	ImagePullPolicy        corev1.PullPolicy `json:"imagePullPolicy"`
+	Database               string            `json:"database"`
+	Username               string            `json:"username"`
+	SharedPreloadLibraries []string          `json:"sharedPreloadLibraries"`
+	LoadBalancer           struct {
 		Enabled bool `json:"enabled"`
 		Port    int  `json:"port"`
 	} `json:"loadBalancer"`
@@ -39,9 +42,11 @@ func (props *PostgresProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 		ReleaseName: "postgres",
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
-			"nameOverride": "postgres",
+			"postgresqlSharedPreloadLibraries": infrahelpers.If(props.SharedPreloadLibraries != nil, strings.Join(props.SharedPreloadLibraries, ","), ""),
+			"nameOverride":                     "postgres",
 			"image": infrahelpers.MergeMaps(props.ImageInfo.ToMap(), map[string]any{
 				"registry":    "",
+				"pullPolicy":  infrahelpers.PtrIfNonEmpty(props.ImagePullPolicy),
 				"pullSecrets": props.ImagePullSecrets,
 			}),
 			"auth": map[string]interface{}{
