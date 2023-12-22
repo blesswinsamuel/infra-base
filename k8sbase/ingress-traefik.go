@@ -94,12 +94,13 @@ func (props *TraefikProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 				"--accesslog=true",
 				"--accesslog.format=json",
 				"--log.format=json",
-				"--experimental.plugins.htransformation.modulename=github.com/tomMoulard/htransformation",
-				"--experimental.plugins.htransformation.version=v0.2.7",
 			},
 			"experimental": map[string]any{
 				"plugins": map[string]any{
-					"enabled": true,
+					"htransformation": map[string]any{
+						"modulename": "github.com/tomMoulard/htransformation",
+						"version":    "v0.2.7",
+					},
 				},
 			},
 			"ports": map[string]any{
