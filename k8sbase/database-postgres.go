@@ -16,11 +16,12 @@ type PostgresGrafanaDatasourceProps struct {
 }
 
 type PostgresProps struct {
-	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
-	ImageInfo     k8sapp.ImageInfo `json:"image"`
-	Database      string           `json:"database"`
-	Username      string           `json:"username"`
-	LoadBalancer  struct {
+	HelmChartInfo    k8sapp.ChartInfo `json:"helm"`
+	ImagePullSecrets []string         `json:"imagePullSecrets"`
+	ImageInfo        k8sapp.ImageInfo `json:"image"`
+	Database         string           `json:"database"`
+	Username         string           `json:"username"`
+	LoadBalancer     struct {
 		Enabled bool `json:"enabled"`
 		Port    int  `json:"port"`
 	} `json:"loadBalancer"`
@@ -39,7 +40,10 @@ func (props *PostgresProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			"nameOverride": "postgres",
-			"image":        props.ImageInfo.ToMap(),
+			"image": infrahelpers.MergeMaps(props.ImageInfo.ToMap(), map[string]any{
+				"registry":    "",
+				"pullSecrets": props.ImagePullSecrets,
+			}),
 			"auth": map[string]interface{}{
 				"database":       props.Database,
 				"username":       props.Username,
