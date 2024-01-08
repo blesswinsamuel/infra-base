@@ -1,9 +1,14 @@
 package k8sbase
 
 import (
+	"log"
+
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
+	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type LokiProps struct {
@@ -11,6 +16,7 @@ type LokiProps struct {
 	Storage       string           `json:"storage"`
 	Local         struct {
 		StorageClass *string `json:"storageClass"`
+		PVName       *string `json:"pvName"`
 	} `json:"local"`
 	S3 struct {
 		Endpoint        string `json:"endpoint"`
@@ -26,10 +32,31 @@ func (props *LokiProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	}
 	chart := scope.Chart("loki", cprops)
 
+	patchResource := func(resource *unstructured.Unstructured) {
+		if props.Local.PVName == nil {
+			return
+		}
+		if resource.Object["kind"] == "StatefulSet" {
+			var statefulSet appsv1.StatefulSet
+			err := runtime.DefaultUnstructuredConverter.FromUnstructured(resource.UnstructuredContent(), &statefulSet)
+			if err != nil {
+				log.Fatalf("FromUnstructured: %v", err)
+			}
+			statefulSet.Spec.VolumeClaimTemplates[0].Spec.StorageClassName = infrahelpers.Ptr("") // fix issue
+			statefulSet.Spec.VolumeClaimTemplates[0].Spec.VolumeName = *props.Local.PVName
+			unstructuredObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&statefulSet)
+			if err != nil {
+				log.Fatalf("ToUnstructured: %v", err)
+			}
+			resource.Object = unstructuredObj
+		}
+	}
+
 	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
-		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: "loki",
-		Namespace:   chart.Namespace(),
+		ChartInfo:     props.HelmChartInfo,
+		ReleaseName:   "loki",
+		Namespace:     chart.Namespace(),
+		PatchResource: patchResource,
 		Values: map[string]any{
 			"singleBinary": map[string]any{
 				"replicas": 1,

@@ -14,8 +14,9 @@ type VictoriaMetricsProps struct {
 		Enabled   bool   `json:"enabled"`
 		SubDomain string `json:"subDomain"`
 	} `json:"ingress"`
-	RetentionPeriod  string         `json:"retentionPeriod"`
-	PersistentVolume map[string]any `json:"persistentVolume"`
+	RetentionPeriod      string         `json:"retentionPeriod"`
+	PersistentVolume     map[string]any `json:"persistentVolume"`
+	PersistentVolumeName string         `json:"persistentVolumeName"`
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single
@@ -27,6 +28,15 @@ func (props *VictoriaMetricsProps) Chart(scope kubegogen.Construct) kubegogen.Co
 
 	if props.PersistentVolume == nil {
 		props.PersistentVolume = map[string]any{}
+	}
+	if props.PersistentVolumeName != "" {
+		k8sapp.NewPersistentVolumeClaim(chart, "victoriametrics", &k8sapp.PersistentVolumeClaim{
+			Name:            "victoriametrics",
+			StorageClass:    "",
+			RequestsStorage: "1Gi",
+			VolumeName:      props.PersistentVolumeName,
+		})
+		props.PersistentVolume["existingClaim"] = "victoriametrics"
 	}
 	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

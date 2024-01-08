@@ -125,6 +125,7 @@ func (props *VectorProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 							`)),
 						},
 					}, nil),
+					// https://playground.vrl.dev/
 					map[string]interface{}{
 						"kubernetes_parse_and_merge_log_message": map[string]interface{}{
 							"type":   "remap",
@@ -137,6 +138,9 @@ func (props *VectorProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 								  if err != null {
 								    log("Failed to merge message into log: " + err, level: "error")
 								  }
+								  .level = .level || .severity || "unknown"
+								} else {
+									.level = "unknown"
 								}
 							`)),
 						},

@@ -62,6 +62,7 @@ type ApplicationProps struct {
 type ApplicationPersistentVolume struct {
 	Name            string
 	StorageClass    string
+	VolumeName      string
 	RequestsStorage string
 
 	MountToContainers []string
@@ -251,6 +252,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 		NewPersistentVolumeClaim(scope, "pvc-"+pv.Name, &PersistentVolumeClaim{
 			Name:            pv.Name,
 			StorageClass:    pv.StorageClass,
+			VolumeName:      pv.VolumeName,
 			RequestsStorage: pv.RequestsStorage,
 		})
 	}
@@ -262,6 +264,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 		statefulSetVolumeClaimTemplates = append(statefulSetVolumeClaimTemplates, NewPersistentVolumeClaimProps(&PersistentVolumeClaim{
 			Name:            pv.Name,
 			StorageClass:    pv.StorageClass,
+			VolumeName:      pv.VolumeName,
 			RequestsStorage: pv.RequestsStorage,
 		}))
 	}

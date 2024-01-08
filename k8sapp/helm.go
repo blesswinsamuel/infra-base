@@ -77,6 +77,7 @@ func NewHelm(scope kubegogen.Construct, id string, props *HelmProps) kubegogen.C
 		chartPath,
 		"--namespace",
 		namespace,
+		"--kube-version=v1.27.4",
 		"--include-crds",
 		"--skip-tests",
 		"--no-hooks",

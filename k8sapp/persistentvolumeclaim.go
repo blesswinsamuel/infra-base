@@ -12,6 +12,7 @@ type PersistentVolumeClaim struct {
 	Name            string
 	StorageClass    string
 	RequestsStorage string
+	VolumeName      string
 }
 
 func NewPersistentVolumeClaim(scope kubegogen.Construct, id string, props *PersistentVolumeClaim) kubegogen.ApiObject {
@@ -19,18 +20,27 @@ func NewPersistentVolumeClaim(scope kubegogen.Construct, id string, props *Persi
 }
 
 func NewPersistentVolumeClaimProps(props *PersistentVolumeClaim) corev1.PersistentVolumeClaim {
+	var storageClassName *string
+	if props.StorageClass == "-" || props.StorageClass == "__none__" {
+		storageClassName = infrahelpers.Ptr("")
+	} else if props.StorageClass == "" {
+		storageClassName = nil
+	} else {
+		storageClassName = infrahelpers.Ptr(props.StorageClass)
+	}
 	return corev1.PersistentVolumeClaim{
 		ObjectMeta: v1.ObjectMeta{
 			Name: props.Name,
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
 			AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
-			Resources: corev1.ResourceRequirements{
+			Resources: corev1.VolumeResourceRequirements{
 				Requests: corev1.ResourceList{
 					"storage": resource.MustParse(props.RequestsStorage),
 				},
 			},
-			StorageClassName: infrahelpers.PtrIfNonEmpty(props.StorageClass),
+			VolumeName:       props.VolumeName,
+			StorageClassName: storageClassName,
 		},
 	}
 }

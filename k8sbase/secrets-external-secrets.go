@@ -22,17 +22,17 @@ func (props *ExternalSecretsProps) Chart(scope kubegogen.Construct) kubegogen.Co
 		Namespace:   chart.Namespace(),
 		Values: map[string]interface{}{
 			"installCRDs": "true",
-			"prometheus": map[string]interface{}{
-				"enabled": "true",
+			"metrics": map[string]interface{}{
+				"service": map[string]any{"enabled": true},
 			},
 			"webhook": map[string]interface{}{
-				"prometheus": map[string]interface{}{
-					"enabled": "true",
+				"metrics": map[string]interface{}{
+					"service": map[string]any{"enabled": true},
 				},
 			},
 			"certController": map[string]interface{}{
-				"prometheus": map[string]interface{}{
-					"enabled": "true",
+				"metrics": map[string]interface{}{
+					"service": map[string]any{"enabled": true},
 				},
 			},
 		},
