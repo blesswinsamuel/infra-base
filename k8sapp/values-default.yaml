@@ -139,7 +139,7 @@ vector:
   helm:
     repo: https://helm.vector.dev
     chart: vector
-    version: "0.29.0"
+    version: "0.30.0"
   syslogServer:
     enabled: false
   ingress:
@@ -191,12 +191,12 @@ kube-state-metrics:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: kube-state-metrics
-    version: "5.15.2"
+    version: "5.16.0"
 grafana:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: grafana
-    version: "7.0.19"
+    version: "7.1.0"
   namespaced: false
   authProxyEnabled: true
   anonymousAuthEnabled: false
@@ -346,7 +346,7 @@ node-exporter:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: prometheus-node-exporter
-    version: "4.24.0"
+    version: "4.25.0"
   _dashboards:
     - url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
       gnet_id: 1860
