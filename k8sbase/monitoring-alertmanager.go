@@ -22,6 +22,10 @@ type AlertmanagerProps struct {
 		Enabled   bool   `json:"enabled"`
 		SubDomain string `json:"subDomain"`
 	} `json:"ingress"`
+	Persistence struct {
+		StorageClass string `json:"storageClass"`
+		VolumeName   string `json:"volumeName"`
+	} `json:"persistence"`
 	Config struct {
 		Slack struct {
 			Channel string `json:"channel"`
@@ -144,9 +148,11 @@ func (props *AlertmanagerProps) Chart(scope kubegogen.Construct) kubegogen.Const
 		}},
 		StatefulSetVolumeClaimTemplates: []k8sapp.ApplicationPersistentVolume{{
 			Name:            "storage",
-			RequestsStorage: "50Mi",
+			RequestsStorage: "40Mi",
 			MountPath:       "/alertmanager",
 			MountName:       "storage",
+			StorageClass:    props.Persistence.StorageClass,
+			VolumeName:      props.Persistence.VolumeName,
 		}},
 	})
 

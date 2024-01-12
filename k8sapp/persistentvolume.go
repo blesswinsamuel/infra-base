@@ -34,7 +34,7 @@ func NewPersistentVolumeProps(props *PersistentVolume) corev1.PersistentVolume {
 			StorageClassName:              props.StorageClassName,
 			VolumeMode:                    infrahelpers.Ptr(corev1.PersistentVolumeFilesystem),
 			AccessModes:                   props.AccessModes,
-			PersistentVolumeReclaimPolicy: corev1.PersistentVolumeReclaimRecycle,
+			PersistentVolumeReclaimPolicy: corev1.PersistentVolumeReclaimRetain,
 			PersistentVolumeSource:        props.PersistentVolumeSource,
 			MountOptions:                  props.MountOptions,
 			ClaimRef:                      props.ClaimRef,

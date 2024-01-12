@@ -32,7 +32,7 @@ func (props *VictoriaMetricsProps) Chart(scope kubegogen.Construct) kubegogen.Co
 	if props.PersistentVolumeName != "" {
 		k8sapp.NewPersistentVolumeClaim(chart, "victoriametrics", &k8sapp.PersistentVolumeClaim{
 			Name:            "victoriametrics",
-			StorageClass:    "",
+			StorageClass:    infrahelpers.Ternary(props.PersistentVolumeName != "", "-", ""),
 			RequestsStorage: "1Gi",
 			VolumeName:      props.PersistentVolumeName,
 		})

@@ -24,4 +24,4 @@ jobs:
           CGO_ENABLED=0 go build ./...
       # - name: run stack commands
       #   run: |
-      #     /tmp/bless-stack xxx
+      #     /tmp/lab-k8s xxx
