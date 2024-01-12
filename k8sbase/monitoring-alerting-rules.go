@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
 	"golang.org/x/exp/slices"
@@ -24,11 +25,10 @@ type AlertingRulesProps struct {
 type AlertingRuleConfigProps struct {
 	Type string `json:"type"` // local or remote
 	// URLs *string              `json:"globPath"`
-	URLs *[]RuleURLProps `json:"urls"`
+	URLs map[string]RuleURLProps `json:"urls"`
 }
 
 type RuleURLProps struct {
-	ID           string            `json:"id"`
 	URL          string            `json:"url"`
 	SkipGroups   []string          `json:"skipGroups"`
 	SkipAlerts   []string          `json:"skipAlerts"`
@@ -89,7 +89,8 @@ func (props *AlertingRulesProps) Chart(scope kubegogen.Construct) kubegogen.Cons
 
 	for _, rulesConfig := range props.Rules {
 		if rulesConfig.URLs != nil {
-			for _, urlConfig := range *rulesConfig.URLs {
+			for _, rulesID := range infrahelpers.MapKeys(rulesConfig.URLs) {
+				urlConfig := rulesConfig.URLs[rulesID]
 				groups := []interface{}{}
 				data := GetCachedAlertingRule(urlConfig.URL, cacheDir)
 				for k, v := range urlConfig.Replacements {
@@ -136,7 +137,7 @@ func (props *AlertingRulesProps) Chart(scope kubegogen.Construct) kubegogen.Cons
 				if err != nil {
 					panic(err)
 				}
-				rules[urlConfig.ID+".yaml"] = string(outBytes)
+				rules[rulesID+".yaml"] = string(outBytes)
 			}
 		}
 	}

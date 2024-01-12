@@ -93,7 +93,7 @@ type Module interface {
 type ModuleWithMeta interface {
 	Module
 	GetModuleName() string
-	GetDashboards() []GrafanaDashboardProps
+	GetDashboards() map[string]GrafanaDashboardProps
 }
 
 type OrderedMap[K comparable, V any] struct {
@@ -141,8 +141,8 @@ type ValuesProps struct {
 }
 
 type ModuleCommons[T Module] struct {
-	Module     string                  `json:"_module"`
-	Dashboards []GrafanaDashboardProps `json:"_dashboards"`
+	Module     string                                                   `json:"_module"`
+	Dashboards infrahelpers.MergeableMap[string, GrafanaDashboardProps] `json:"_dashboards"`
 
 	Rest T `json:",inline"`
 }
@@ -155,7 +155,7 @@ func (m ModuleCommons[T]) GetModuleName() string {
 	return m.Module
 }
 
-func (m ModuleCommons[T]) GetDashboards() []GrafanaDashboardProps {
+func (m ModuleCommons[T]) GetDashboards() map[string]GrafanaDashboardProps {
 	return m.Dashboards
 }
 

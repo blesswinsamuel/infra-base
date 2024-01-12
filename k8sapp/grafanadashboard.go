@@ -22,7 +22,6 @@ import (
 type GrafanaDashboardProps struct {
 	URL          string            `json:"url"`
 	GnetID       *int              `json:"gnet_id"`
-	ID           string            `json:"id"`
 	Title        *string           `json:"title"`
 	Replacements map[string]string `json:"replacements"`
 	Folder       string            `json:"folder"`
@@ -72,14 +71,15 @@ func GetCachedDashboard(url string, cacheDir string) []byte {
 	return []byte(infrahelpers.GetFileContents(dashboardsCacheDir + "/" + fileName))
 }
 
-func NewGrafanaDashboards(scope kubegogen.Construct, props []GrafanaDashboardProps) kubegogen.Construct {
-	for _, prop := range props {
-		NewGrafanaDashboard(scope, prop)
+func NewGrafanaDashboards(scope kubegogen.Construct, props map[string]GrafanaDashboardProps) kubegogen.Construct {
+	for _, dashboardID := range infrahelpers.MapKeys(props) {
+		dashboardProps := props[dashboardID]
+		NewGrafanaDashboard(scope, dashboardID, dashboardProps)
 	}
 	return scope
 }
 
-func NewGrafanaDashboard(scope kubegogen.Construct, props GrafanaDashboardProps) kubegogen.Construct {
+func NewGrafanaDashboard(scope kubegogen.Construct, dashboardID string, props GrafanaDashboardProps) kubegogen.Construct {
 	cacheDir := GetGlobalContext(scope).CacheDir
 	dashboardContents := GetCachedDashboard(props.URL, cacheDir)
 	dashboard := map[string]interface{}{}
@@ -92,10 +92,10 @@ func NewGrafanaDashboard(scope kubegogen.Construct, props GrafanaDashboardProps)
 	if props.Title != nil {
 		dashboard["title"] = *props.Title
 	}
-	if props.ID == "" {
-		props.ID = dashboard["uid"].(string)
+	if dashboardID == "" {
+		dashboardID = dashboard["uid"].(string)
 	} else {
-		dashboard["uid"] = props.ID
+		dashboard["uid"] = dashboardID
 	}
 	if dashboard["__inputs"] != nil {
 		inputs := dashboard["__inputs"].([]any)
@@ -142,8 +142,8 @@ func NewGrafanaDashboard(scope kubegogen.Construct, props GrafanaDashboardProps)
 		outStr = strings.ReplaceAll(outStr, k, v)
 	}
 
-	return NewConfigMap(scope, props.ID, &ConfigmapProps{
-		Name: "grafana-dashboard-" + props.ID + "-json",
+	return NewConfigMap(scope, dashboardID, &ConfigmapProps{
+		Name: "grafana-dashboard-" + dashboardID + "-json",
 		// Name: ("grafana-dashboards-" + id + "-" + baseName),
 		Labels: map[string]string{
 			"grafana_dashboard": "1",
@@ -152,7 +152,7 @@ func NewGrafanaDashboard(scope kubegogen.Construct, props GrafanaDashboardProps)
 			"grafana_folder": props.Folder,
 		},
 		Data: map[string]string{
-			props.ID + ".json": outStr,
+			dashboardID + ".json": outStr,
 		},
 	})
 }

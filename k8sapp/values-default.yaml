@@ -22,9 +22,8 @@ cert-manager:
     chart: cert-manager
     version: "v1.13.3"
   _dashboards:
-    - url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/cert-manager.json
-      id: cert-manager
-      title: Cert Manager
+    cert-manager:
+      url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/cert-manager.json
       folder: Ingress
 cert-issuer:
   # namespace: ""
@@ -48,12 +47,12 @@ traefik:
     stripPrefix:
       enabled: false
   _dashboards:
-    - url: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
-      id: traefik-kubernetes
+    traefik-kubernetes:
+      url: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
       title: Traefik Kubernetes (official)
       folder: Ingress
-    - url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/traefik.json
-      id: traefik
+    traefik:
+      url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/traefik.json
       title: Traefik
       folder: Ingress
   # - url: https://grafana.com/api/dashboards/17501/revisions/1/download
@@ -76,12 +75,12 @@ postgres:
   database: null
   username: null
   _dashboards:
-    - url: https://github.com/prometheus-community/postgres_exporter/raw/master/postgres_mixin/dashboards/postgres-overview.json
-      id: postgres-exporter
+    postgres-exporter:
+      url: https://github.com/prometheus-community/postgres_exporter/raw/master/postgres_mixin/dashboards/postgres-overview.json
       title: Postgres (official)
       folder: Databases
-    - url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/postgres.json
-      id: postgres
+    postgres:
+      url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/postgres.json
       title: Postgres
       folder: Databases
 
@@ -91,8 +90,8 @@ redis:
     chart: redis
     version: "18.6.3"
   _dashboards:
-    - url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
-      id: redis
+    redis:
+      url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
       title: Redis
       folder: Databases
 
@@ -147,8 +146,8 @@ vector:
     subDomain: vector
   _dashboards:
     # https://github.com/vectordotdev/vector/pull/14369#issuecomment-1292635356
-    - url: https://github.com/zamazan4ik/vector-community/raw/main/grafana_dashboards/full-dashboard.json
-      id: vector
+    vector:
+      url: https://github.com/zamazan4ik/vector-community/raw/main/grafana_dashboards/full-dashboard.json
       title: Vector
       folder: Monitoring
 
@@ -158,26 +157,26 @@ crowdsec:
     chart: crowdsec
     version: "0.9.11"
   _dashboards:
-    - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Details%20per%20Machine.json
-      id: crowdsec-details-per-machine
+    crowdsec-details-per-machine:
+      url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Details%20per%20Machine.json
       folder: CrowdSec
       title: Crowdsec Details per Machine
       replacements:
         machine: job
-    - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Insight.json
-      id: crowdsec-insight
+    crowdsec-insight:
+      url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Insight.json
       folder: CrowdSec
       title: Crowdsec Insight
       replacements:
         machine: job
-    - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Overview.json
-      id: crowdsec-overview
+    crowdsec-overview:
+      url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Overview.json
       folder: CrowdSec
       title: Crowdsec Overview
       replacements:
         machine: job
-    - url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/LAPI%20Metrics.json
-      id: lapi-metrics
+    lapi-metrics:
+      url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/LAPI%20Metrics.json
       folder: CrowdSec
       title: LAPI Metrics
       replacements:
@@ -207,8 +206,8 @@ grafana:
   ingress:
     subDomain: "grafana"
   _dashboards:
-    - url: https://grafana.com/api/dashboards/3590/revisions/3/download # 3590
-      id: grafana-internals
+    grafana-internals:
+      url: https://grafana.com/api/dashboards/3590/revisions/3/download # 3590
       title: Grafana Internals
       replacements:
         kubernetes_pod_name: pod
@@ -216,49 +215,48 @@ grafana:
       folder: Monitoring
 grafana-dashboards:
   dashboards:
-    # Kubernetes
-    community-kubernetes:
-      - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-system-api-server.json
-        gnet_id: 15761
-        folder: Kubernetes
-        id: k8s-system-api-server
-        title: Kubernetes / System / API Server
-        replacements:
-          'sum(rate(apiserver_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (verb)': 'sum(rate(apiserver_request_duration_seconds_sum{job=\"apiserver\"}[$__rate_interval])) by (verb) / sum(rate(apiserver_request_duration_seconds_count{job=\"apiserver\"}[$__rate_interval])) by (verb)'
-          'sum(rate(apiserver_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (instance)': 'sum(rate(apiserver_request_duration_seconds_sum{job=\"apiserver\"}[$__rate_interval])) by (instance) / sum(rate(apiserver_request_duration_seconds_count{job=\"apiserver\"}[$__rate_interval])) by (instance)'
-      - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-system-coredns.json
-        gnet_id: 15762
-        folder: Kubernetes
-        id: k8s-system-coredns
-        title: Kubernetes / System / CoreDNS
-        replacements:
-          'job=\"coredns\"': 'job=\"kube-dns\"'
-      - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-global.json
-        gnet_id: 15757
-        folder: Kubernetes
-        id: k8s-views-global
-        title: Kubernetes / Views / Global
-      - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-namespaces.json
-        gnet_id: 15758
-        folder: Kubernetes
-        id: k8s-views-namespaces
-        title: Kubernetes / Views / Namespaces
-      - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-nodes.json
-        gnet_id: 15759
-        folder: Kubernetes
-        id: k8s-views-nodes
-        title: Kubernetes / Views / Nodes
-        replacements:
-          /d/k8s_views_pods: /d/k8s-views-pods
-      - url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-pods.json
-        gnet_id: 15760
-        folder: Kubernetes
-        id: k8s-views-pods
-        title: Kubernetes / Views / Pods
-      - url: https://grafana.com/api/dashboards/13646/revisions/2/download # 13646
-        id: k8s-persistent-volumes
-        folder: Kubernetes
-        title: Kubernetes / Persistent Volumes
+    # Kubernetes Community Dashboards
+    k8s-system-api-server:
+      url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-system-api-server.json
+      gnet_id: 15761
+      folder: Kubernetes
+      title: Kubernetes / System / API Server
+      replacements:
+        'sum(rate(apiserver_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (verb)': 'sum(rate(apiserver_request_duration_seconds_sum{job=\"apiserver\"}[$__rate_interval])) by (verb) / sum(rate(apiserver_request_duration_seconds_count{job=\"apiserver\"}[$__rate_interval])) by (verb)'
+        'sum(rate(apiserver_request_duration_seconds_bucket{job=\"apiserver\"}[$__rate_interval])) by (instance)': 'sum(rate(apiserver_request_duration_seconds_sum{job=\"apiserver\"}[$__rate_interval])) by (instance) / sum(rate(apiserver_request_duration_seconds_count{job=\"apiserver\"}[$__rate_interval])) by (instance)'
+    k8s-system-coredns:
+      url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-system-coredns.json
+      gnet_id: 15762
+      folder: Kubernetes
+      title: Kubernetes / System / CoreDNS
+      replacements:
+        'job=\"coredns\"': 'job=\"kube-dns\"'
+    k8s-views-global:
+      url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-global.json
+      gnet_id: 15757
+      folder: Kubernetes
+      title: Kubernetes / Views / Global
+    k8s-views-namespaces:
+      url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-namespaces.json
+      gnet_id: 15758
+      folder: Kubernetes
+      title: Kubernetes / Views / Namespaces
+    k8s-views-nodes:
+      url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-nodes.json
+      gnet_id: 15759
+      folder: Kubernetes
+      title: Kubernetes / Views / Nodes
+      replacements:
+        /d/k8s_views_pods: /d/k8s-views-pods
+    k8s-views-pods:
+      url: https://github.com/dotdc/grafana-dashboards-kubernetes/raw/master/dashboards/k8s-views-pods.json
+      gnet_id: 15760
+      folder: Kubernetes
+      title: Kubernetes / Views / Pods
+    k8s-persistent-volumes:
+      url: https://grafana.com/api/dashboards/13646/revisions/2/download # 13646
+      folder: Kubernetes
+      title: Kubernetes / Persistent Volumes
 
 alerting-rules:
   rules:
@@ -266,12 +264,12 @@ alerting-rules:
       # files:
       #   - glob: ./alerts/postgres.yaml
       urls:
-        - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/alertmanager-prometheusRule.yaml
-          id: alertmanager
+        alertmanager:
+          url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/alertmanager-prometheusRule.yaml
           replacements:
             'job="alertmanager-main"': 'job="alertmanager"'
-        - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubernetesControlPlane-prometheusRule.yaml
-          id: kubernetes-control-plane
+        kubernetes-control-plane:
+          url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubernetesControlPlane-prometheusRule.yaml
           # skipGroups:
           #   - kubernetes-system-controller-manager
           #   - kubernetes-system-scheduler
@@ -281,16 +279,16 @@ alerting-rules:
             # - KubeletDown
           replacements:
             'up{job="kubelet", metrics_path="/metrics"}': 'up{job="apiserver", metrics_path="/metrics"}'
-        - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubePrometheus-prometheusRule.yaml
-          id: kube-prometheus
-        - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubeStateMetrics-prometheusRule.yaml
-          id: kube-state-metrics
-        - url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/nodeExporter-prometheusRule.yaml
-          id: node-exporter
-        - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/deployment/docker/alerts.yml
-          id: victoriametrics
-        - url: https://etcd.io/docs/v3.4/op-guide/etcd3_alert.rules.yml
-          id: etcd
+        kube-prometheus:
+          url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubePrometheus-prometheusRule.yaml
+        kube-state-metrics:
+          url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubeStateMetrics-prometheusRule.yaml
+        node-exporter:
+          url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/nodeExporter-prometheusRule.yaml
+        victoriametrics:
+          url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/deployment/docker/alerts.yml
+        etcd:
+          url: https://etcd.io/docs/v3.4/op-guide/etcd3_alert.rules.yml
 vmagent:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
@@ -306,9 +304,9 @@ vmagent:
       memory: "512Mi"
       cpu: "300m"
   _dashboards:
-    - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmagent.json
+    victoriametrics-vmagent:
+      url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmagent.json
       gnet_id: 12683
-      id: victoriametrics-vmagent
       title: VictoriaMetrics / vmagent
       folder: Monitoring
 vmalert:
@@ -319,9 +317,9 @@ vmalert:
     enabled: true
     subDomain: "vmalert"
   _dashboards:
-    - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmalert.json
+    victoriametrics-vmalert:
+      url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmalert.json
       gnet_id: 14950
-      id: victoriametrics-vmalert
       title: VictoriaMetrics / vmalert
       folder: Monitoring
 alertmanager:
@@ -337,9 +335,9 @@ alertmanager:
     telegram:
       parseMode: HTML
   _dashboards:
-    - url: https://github.com/FUSAKLA/alertmanager-grafana-dashboard/raw/master/dashboard/alertmanager-dashboard.json
+    alertmanager-overview:
+      url: https://github.com/FUSAKLA/alertmanager-grafana-dashboard/raw/master/dashboard/alertmanager-dashboard.json
       gnet_id: 9578
-      id: alertmanager-overview
       title: Alertmanager / Overview
       folder: Monitoring
 node-exporter:
@@ -348,16 +346,16 @@ node-exporter:
     chart: prometheus-node-exporter
     version: "4.25.0"
   _dashboards:
-    - url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
+    node-exporter:
+      url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
       gnet_id: 1860
-      id: node-exporter
       title: Node Exporter
       folder: Monitoring
       replacements:
         '"000000001"': '"${DS_PROMETHEUS}"'
-    - url: https://github.com/starsliao/Prometheus/raw/master/node_exporter/node-exporter-for-prometheus-dashboard-en.json
+    node-exporter-2:
+      url: https://github.com/starsliao/Prometheus/raw/master/node_exporter/node-exporter-for-prometheus-dashboard-en.json
       gnet_id: 11074
-      id: node-exporter-2
       title: Node Exporter 2
       folder: Monitoring
 victoria-metrics:
@@ -377,9 +375,9 @@ victoria-metrics:
       memory: "768Mi"
       cpu: "400m"
   _dashboards:
-    - url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/victoriametrics.json
+    victoriametrics-single:
+      url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/victoriametrics.json
       gnet_id: 10229
-      id: victoriametrics-single
       title: VictoriaMetrics / single
       folder: Monitoring
 loki:
