@@ -3,12 +3,13 @@ package k8sbase
 import (
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
@@ -34,14 +35,21 @@ type RuleURLProps struct {
 	Replacements map[string]string `json:"replacements"`
 }
 
+func hash(s string) string {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return fmt.Sprintf("%v", h.Sum32())
+}
+
 func GetCachedAlertingRule(url string, cacheDir string) []byte {
 	alertsCacheDir := fmt.Sprintf("%s/%s", cacheDir, "alerts")
 	if err := os.MkdirAll(alertsCacheDir, os.ModePerm); err != nil {
 		log.Fatalln("GetCachedAlertingRule MkdirAll failed", err)
 	}
 
-	baseName := filepath.Base(url)
-	if _, err := os.Stat(alertsCacheDir + "/" + baseName); err != nil {
+	date := time.Now().Format("2006-01-02")
+	fileName := hash(date+url) + ".json"
+	if _, err := os.Stat(alertsCacheDir + "/" + fileName); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			log.Println("GetCachedAlertingRule downloading", url)
 			resp, err := http.Get(url)
@@ -56,14 +64,14 @@ func GetCachedAlertingRule(url string, cacheDir string) []byte {
 			if err != nil {
 				panic(err)
 			}
-			if err := os.WriteFile(alertsCacheDir+"/"+baseName, data, 0644); err != nil {
+			if err := os.WriteFile(alertsCacheDir+"/"+fileName, data, 0644); err != nil {
 				panic(err)
 			}
 		} else {
 			log.Fatalln("GetCachedAlertingRule Stat failed", err)
 		}
 	}
-	data, err := os.ReadFile(alertsCacheDir + "/" + baseName)
+	data, err := os.ReadFile(alertsCacheDir + "/" + fileName)
 	if err != nil {
 		panic(err)
 	}

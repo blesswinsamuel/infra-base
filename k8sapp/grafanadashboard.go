@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
@@ -39,12 +40,13 @@ func GetCachedDashboard(url string, cacheDir string) []byte {
 		return []byte(infrahelpers.GetFileContents(filePath))
 	}
 
-	fileName := hash(url) + ".json"
 	dashboardsCacheDir := fmt.Sprintf("%s/%s", cacheDir, "dashboards")
 	if err := os.MkdirAll(dashboardsCacheDir, os.ModePerm); err != nil {
 		log.Fatalln("GetCachedDashboard MkdirAll failed", err)
 	}
 
+	date := time.Now().Format("2006-01-02")
+	fileName := hash(date+url) + ".json"
 	if _, err := os.Stat(dashboardsCacheDir + "/" + fileName); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			log.Println("GetCachedDashboard downloading", url)
