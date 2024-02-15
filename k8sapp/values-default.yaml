@@ -20,7 +20,7 @@ cert-manager:
   helm:
     repo: https://charts.jetstack.io
     chart: cert-manager
-    version: "v1.13.3"
+    version: "v1.14.2"
   _dashboards:
     cert-manager:
       url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/cert-manager.json
@@ -65,13 +65,13 @@ postgres:
   helm:
     repo: https://charts.bitnami.com/bitnami
     chart: postgresql
-    version: "13.2.29"
+    version: "13.4.4"
   image:
     # not straightforward to upgrade to postgres 15
     # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
     # 2023-03-18 16:30:09.021 GMT [1] DETAIL:  The data directory was initialized by PostgreSQL version 14, which is not compatible with this version 15.2.
     repository: bitnami/postgresql
-    tag: 14.10.0
+    tag: 14.11.0
   database: null
   username: null
   _dashboards:
@@ -88,7 +88,7 @@ redis:
   helm:
     repo: https://charts.bitnami.com/bitnami
     chart: redis
-    version: "18.6.3"
+    version: "18.13.0"
   _dashboards:
     redis:
       url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
@@ -138,7 +138,7 @@ vector:
   helm:
     repo: https://helm.vector.dev
     chart: vector
-    version: "0.30.0"
+    version: "0.31.0"
   syslogServer:
     enabled: false
   ingress:
@@ -195,7 +195,7 @@ grafana:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: grafana
-    version: "7.1.0"
+    version: "7.3.0"
   namespaced: false
   authProxyEnabled: true
   anonymousAuthEnabled: false
@@ -313,7 +313,7 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.96.0
+    tag: v1.98.0
   ingress:
     enabled: true
     subDomain: "vmalert"
@@ -345,7 +345,7 @@ node-exporter:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: prometheus-node-exporter
-    version: "4.25.0"
+    version: "4.30.1"
   _dashboards:
     node-exporter:
       url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
@@ -385,7 +385,7 @@ loki:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: loki
-    version: "5.41.5"
+    version: "5.43.1"
   storage: local
 
 ### system ###
@@ -431,7 +431,7 @@ backup-job:
   postgres:
     image:
       repository: postgres
-      tag: "14.10"
+      tag: "14.11"
     host: "postgres.database.svc.cluster.local"
 
 ### utils ###
