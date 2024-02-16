@@ -54,7 +54,7 @@ func (props *VmagentProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 				"annotations": GetCertIssuerAnnotation(scope),
 				"hosts": []map[string]any{
 					{
-						"host": props.Ingress.SubDomain + "." + GetDomain(scope),
+						"name": props.Ingress.SubDomain + "." + GetDomain(scope),
 						"path": "/",
 						"port": "http",
 					},
@@ -65,9 +65,9 @@ func (props *VmagentProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 						"hosts": []string{
 							props.Ingress.SubDomain + "." + GetDomain(scope),
 						},
-						"pathType": "Prefix",
 					},
 				},
+				"pathType": "Prefix",
 			},
 			"config": vmagentConfig,
 		},

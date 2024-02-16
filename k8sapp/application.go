@@ -93,6 +93,8 @@ type ApplicationExternalSecret struct {
 	MountPath         string
 	SubPath           string
 	ReadOnly          bool
+
+	VolumeItems []corev1.KeyToPath
 }
 
 type ApplicationSecret struct {
@@ -104,6 +106,8 @@ type ApplicationSecret struct {
 	MountPath         string
 	SubPath           string
 	ReadOnly          bool
+
+	VolumeItems []corev1.KeyToPath
 }
 
 type ApplicationContainer struct {
@@ -211,7 +215,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 		if secret.MountName != "" {
 			volumes = append(volumes, corev1.Volume{
 				Name:         secret.MountName,
-				VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: secret.Name}},
+				VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: secret.Name, Items: secret.VolumeItems}},
 			})
 			addVolumeMount(secret.MountToContainers, secret.MountName, secret.MountPath, secret.SubPath, secret.ReadOnly)
 			if secret.MountPath != "" {
@@ -227,7 +231,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 		if externalSecret.MountName != "" {
 			volumes = append(volumes, corev1.Volume{
 				Name:         externalSecret.MountName,
-				VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: externalSecret.Name}},
+				VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: externalSecret.Name, Items: externalSecret.VolumeItems}},
 			})
 			addVolumeMount(externalSecret.MountToContainers, externalSecret.MountName, externalSecret.MountPath, externalSecret.SubPath, externalSecret.ReadOnly)
 			if externalSecret.MountPath != "" {

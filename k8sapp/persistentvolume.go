@@ -16,6 +16,7 @@ type PersistentVolume struct {
 	ClaimRef               *corev1.ObjectReference
 	AccessModes            []corev1.PersistentVolumeAccessMode
 	StorageClassName       string
+	NodeAffinity           *corev1.VolumeNodeAffinity
 }
 
 func NewPersistentVolume(scope kubegogen.Construct, id string, props *PersistentVolume) kubegogen.ApiObject {
@@ -38,6 +39,7 @@ func NewPersistentVolumeProps(props *PersistentVolume) corev1.PersistentVolume {
 			PersistentVolumeSource:        props.PersistentVolumeSource,
 			MountOptions:                  props.MountOptions,
 			ClaimRef:                      props.ClaimRef,
+			NodeAffinity:                  props.NodeAffinity,
 		},
 	}
 }

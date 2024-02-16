@@ -23,16 +23,37 @@ func (props *ExternalSecretsProps) Chart(scope kubegogen.Construct) kubegogen.Co
 		Values: map[string]interface{}{
 			"installCRDs": "true",
 			"metrics": map[string]interface{}{
-				"service": map[string]any{"enabled": true},
+				"service": map[string]any{
+					"enabled": true,
+					"annotations": map[string]any{
+						"prometheus.io/path":   "/metrics",
+						"prometheus.io/port":   "8080",
+						"prometheus.io/scrape": "true",
+					},
+				},
 			},
 			"webhook": map[string]interface{}{
 				"metrics": map[string]interface{}{
-					"service": map[string]any{"enabled": true},
+					"service": map[string]any{
+						"enabled": true,
+						"annotations": map[string]any{
+							"prometheus.io/path":   "/metrics",
+							"prometheus.io/port":   "8080",
+							"prometheus.io/scrape": "true",
+						},
+					},
 				},
 			},
 			"certController": map[string]interface{}{
 				"metrics": map[string]interface{}{
-					"service": map[string]any{"enabled": true},
+					"service": map[string]any{
+						"enabled": true,
+						"annotations": map[string]any{
+							"prometheus.io/path":   "/metrics",
+							"prometheus.io/port":   "8080",
+							"prometheus.io/scrape": "true",
+						},
+					},
 				},
 			},
 		},

@@ -295,6 +295,7 @@ vmagent:
     chart: victoria-metrics-agent
     version: "0.9.16"
   ingress:
+    enabled: true
     subDomain: "vmagent"
   resources:
     requests:

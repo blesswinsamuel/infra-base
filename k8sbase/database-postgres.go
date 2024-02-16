@@ -12,6 +12,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+// https://github.com/bitnami/charts/tree/main/bitnami/postgresql
+
 type PostgresGrafanaDatasourceProps struct {
 	Database string `json:"database"`
 }
@@ -28,7 +30,8 @@ type PostgresProps struct {
 		Enabled bool `json:"enabled"`
 		Port    int  `json:"port"`
 	} `json:"loadBalancer"`
-	GrafanaDatasources []PostgresGrafanaDatasourceProps `json:"grafana_datasources"`
+	PersistentVolumeName string                           `json:"persistentVolumeName"`
+	GrafanaDatasources   []PostgresGrafanaDatasourceProps `json:"grafana_datasources"`
 }
 
 func (props *PostgresProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
@@ -55,8 +58,22 @@ func (props *PostgresProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 				"existingSecret": "postgres-passwords",
 			},
 			"metrics": map[string]interface{}{"enabled": true},
+			"primary": map[string]interface{}{
+				"persistence": map[string]interface{}{
+					"existingClaim": infrahelpers.Ternary(props.PersistentVolumeName != "", "postgres", ""),
+					"storageClass":  infrahelpers.Ternary(props.PersistentVolumeName != "", "-", ""),
+				},
+			},
 		},
 	})
+	if props.PersistentVolumeName != "" {
+		k8sapp.NewPersistentVolumeClaim(chart, "postgres", &k8sapp.PersistentVolumeClaim{
+			Name:            "postgres",
+			StorageClass:    infrahelpers.Ternary(props.PersistentVolumeName != "", "-", ""),
+			RequestsStorage: "8Gi",
+			VolumeName:      props.PersistentVolumeName,
+		})
+	}
 
 	k8sapp.NewExternalSecret(chart, "external-secret", &k8sapp.ExternalSecretProps{
 		Name: "postgres-passwords",

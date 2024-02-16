@@ -77,12 +77,17 @@ func (props *VectorProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 				},
 				"sources": infrahelpers.MergeMaps(
 					infrahelpers.Ternary(props.SyslogServer.Enabled, map[string]interface{}{
-						"syslog_server": map[string]interface{}{
+						"syslog_server_tcp": map[string]interface{}{
 							"type":       "syslog",
 							"address":    "0.0.0.0:514",
 							"max_length": 102400,
 							"mode":       "tcp",
-							"path":       "/syslog-socket",
+						},
+						"syslog_server_udp": map[string]interface{}{
+							"type":       "syslog",
+							"address":    "0.0.0.0:513",
+							"max_length": 102400,
+							"mode":       "udp",
 						},
 					}, nil),
 					map[string]interface{}{
@@ -114,7 +119,7 @@ func (props *VectorProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 					infrahelpers.Ternary(props.SyslogServer.Enabled, map[string]interface{}{
 						"syslog_transform": map[string]interface{}{
 							"type":   "remap",
-							"inputs": []string{"syslog_server"},
+							"inputs": []string{"syslog_server_tcp", "syslog_server_udp"},
 							"source": strings.TrimSpace(dedent.String(`
 								.kubernetes = {}
 								.kubernetes.container_name = .appname
@@ -214,11 +219,18 @@ func (props *VectorProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 				Type: corev1.ServiceType("NodePort"),
 				Ports: []corev1.ServicePort{
 					{
-						Name:       "syslog-server",
+						Name:       "syslog-tcp",
 						Port:       int32(514),
 						Protocol:   "TCP",
 						TargetPort: intstr.FromInt(514),
 						NodePort:   int32(30514),
+					},
+					{
+						Name:       "syslog-udp",
+						Port:       int32(513),
+						Protocol:   "UDP",
+						TargetPort: intstr.FromInt(513),
+						NodePort:   int32(30513),
 					},
 				},
 				Selector: map[string]string{
