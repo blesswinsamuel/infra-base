@@ -2,12 +2,12 @@ module github.com/blesswinsamuel/infra-base
 
 go 1.22
 
-toolchain go1.22.0
+toolchain go1.22.1
 
 require (
-	github.com/cert-manager/cert-manager v1.14.2
-	github.com/external-secrets/external-secrets v0.9.12
-	github.com/goccy/go-yaml v1.11.3
+	github.com/cert-manager/cert-manager v1.14.4
+	github.com/external-secrets/external-secrets v0.9.11
+	github.com/goccy/go-yaml v1.11.2
 	github.com/muesli/reflow v0.3.0
 	github.com/traefik/traefik/v2 v2.11.0
 	golang.org/x/exp v0.0.0-20240110193028-0dcbfd608b1e
@@ -74,7 +74,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/protobuf v1.32.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/apiextensions-apiserver v0.29.0 // indirec0

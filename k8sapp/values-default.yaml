@@ -19,7 +19,7 @@ cert-manager:
   helm:
     repo: https://charts.jetstack.io
     chart: cert-manager
-    version: "v1.14.2"
+    version: "v1.14.4"
   _dashboards:
     cert-manager:
       url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/cert-manager.json
@@ -35,7 +35,7 @@ traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "26.0.0"
+    version: "26.1.0"
   dashboardIngress:
     enabled: false
     subDomain: traefik
@@ -87,7 +87,7 @@ redis:
   helm:
     repo: https://charts.bitnami.com/bitnami
     chart: redis
-    version: "18.13.0"
+    version: "18.19.4"
   _dashboards:
     redis:
       url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
@@ -137,7 +137,7 @@ vector:
   helm:
     repo: https://helm.vector.dev
     chart: vector
-    version: "0.31.0"
+    version: "0.32.0"
   syslogServer:
     enabled: false
   ingress:
@@ -189,12 +189,12 @@ kube-state-metrics:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: kube-state-metrics
-    version: "5.16.0"
+    version: "5.18.0"
 grafana:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: grafana
-    version: "7.3.0"
+    version: "7.3.7"
   namespaced: false
   authProxyEnabled: true
   anonymousAuthEnabled: false
@@ -292,7 +292,7 @@ vmagent:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
     chart: victoria-metrics-agent
-    version: "0.9.16"
+    version: "0.10.3"
   ingress:
     enabled: true
     subDomain: "vmagent"
@@ -312,7 +312,7 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.98.0
+    tag: v1.99.0
   ingress:
     enabled: true
     subDomain: "vmalert"
@@ -325,7 +325,7 @@ vmalert:
 alertmanager:
   image:
     repository: quay.io/prometheus/alertmanager
-    tag: "v0.26.0"
+    tag: "v0.27.0"
   ingress:
     enabled: true
     subDomain: "alertmanager"
@@ -344,7 +344,7 @@ node-exporter:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: prometheus-node-exporter
-    version: "4.30.1"
+    version: "4.32.0"
   _dashboards:
     node-exporter:
       url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
@@ -384,7 +384,7 @@ loki:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: loki
-    version: "5.43.1"
+    version: "5.47.1"
   storage: local
 
 ### system ###
@@ -421,12 +421,12 @@ kubernetes-dashboard:
 kopia:
   image:
     repository: kopia/kopia
-    tag: "0.15.0"
+    tag: "0.16.1"
 backup-job:
   kopia:
     image:
       repository: kopia/kopia
-      tag: "0.15.0"
+      tag: "0.16.1"
   postgres:
     image:
       repository: postgres
