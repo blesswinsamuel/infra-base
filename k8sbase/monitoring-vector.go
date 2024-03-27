@@ -16,7 +16,8 @@ import (
 type VectorProps struct {
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 	SyslogServer  struct {
-		Enabled bool `json:"enabled"`
+		Enabled          bool   `json:"enabled"`
+		VrlDecoderSource string `json:"vrlDecoderSource"`
 	} `json:"syslogServer"`
 	Ingress struct {
 		Enabled   bool   `json:"enabled"`
@@ -32,6 +33,16 @@ func (props *VectorProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
 	chart := scope.Chart("vector", cprops)
+
+	syslogOpts := map[string]any{
+		"decoding": map[string]any{
+			"codec": "vrl",
+			"vrl": map[string]any{
+				"source":   strings.TrimSpace(props.SyslogServer.VrlDecoderSource),
+				"timezone": "local",
+			},
+		},
+	}
 
 	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
@@ -77,18 +88,17 @@ func (props *VectorProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 				},
 				"sources": infrahelpers.MergeMaps(
 					infrahelpers.Ternary(props.SyslogServer.Enabled, map[string]interface{}{
-						"syslog_server_tcp": map[string]interface{}{
-							"type":       "syslog",
-							"address":    "0.0.0.0:514",
-							"max_length": 102400,
-							"mode":       "tcp",
-						},
-						"syslog_server_udp": map[string]interface{}{
-							"type":       "syslog",
+						"syslog_server_tcp": infrahelpers.MergeMaps(map[string]interface{}{
+							"type":    "socket",
+							"address": "0.0.0.0:514",
+							"mode":    "tcp",
+						}, syslogOpts),
+						"syslog_server_udp": infrahelpers.MergeMaps(map[string]interface{}{
+							"type":       "socket",
 							"address":    "0.0.0.0:513",
 							"max_length": 102400,
 							"mode":       "udp",
-						},
+						}, syslogOpts),
 					}, nil),
 					map[string]interface{}{
 						"kubernetes_logs": map[string]interface{}{
