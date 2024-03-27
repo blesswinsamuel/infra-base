@@ -10,7 +10,6 @@ import (
 )
 
 type ClusterSecretStoreProps struct {
-	DopplerServiceToken string `json:"dopplerServiceToken"`
 }
 
 // https://external-secrets.io/v0.5.8/provider-kubernetes/
@@ -19,13 +18,6 @@ type ClusterSecretStoreProps struct {
 func (props *ClusterSecretStoreProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	cprops := kubegogen.ChartProps{}
 	chart := scope.Chart("cluster-secret-store", cprops)
-	k8sapp.NewSecret(chart, "secret", &k8sapp.SecretProps{
-		Name:      "doppler-token-auth-api",
-		Namespace: "default",
-		Data: map[string][]byte{
-			"dopplerToken": []byte(props.DopplerServiceToken),
-		},
-	})
 	k8sapp.NewK8sObject(chart, "cluster-secret-store", &externalsecretsv1beta1.ClusterSecretStore{
 		ObjectMeta: metav1.ObjectMeta{Name: GetGlobal(scope).ClusterExternalSecretStoreName},
 		Spec: externalsecretsv1beta1.SecretStoreSpec{

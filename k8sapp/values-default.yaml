@@ -11,8 +11,7 @@ external-secrets:
     chart: external-secrets
     version: "0.9.11"
 
-cluster-secret-store:
-  dopplerServiceToken: ""
+cluster-secret-store: {}
 
 ### cert-manager ###
 
