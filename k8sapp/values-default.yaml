@@ -9,7 +9,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.9.11"
+    version: "0.9.13"
 
 cluster-secret-store: {}
 
@@ -154,7 +154,7 @@ crowdsec:
   helm:
     repo: https://crowdsecurity.github.io/helm-charts
     chart: crowdsec
-    version: "0.9.11"
+    version: "0.9.12"
   _dashboards:
     crowdsec-details-per-machine:
       url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Details%20per%20Machine.json
@@ -184,7 +184,7 @@ crowdsec-traefik-bouncer:
   helm:
     repo: https://crowdsecurity.github.io/helm-charts
     chart: crowdsec-traefik-bouncer
-    version: "0.1.2"
+    version: "0.1.3"
 kube-state-metrics:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
@@ -362,7 +362,7 @@ victoria-metrics:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
     chart: victoria-metrics-single
-    version: "0.9.14"
+    version: "0.9.16"
   ingress:
     enabled: true
     subDomain: "victoriametrics"
@@ -409,7 +409,7 @@ reloader:
   helm:
     repo: https://stakater.github.io/stakater-charts
     chart: reloader
-    version: "1.0.62"
+    version: "1.0.72"
 kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
