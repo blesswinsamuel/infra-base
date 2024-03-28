@@ -125,6 +125,7 @@ func (props *TraefikProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 				"ipFamilyPolicy": "PreferDualStack",
 				"spec": map[string]any{
 					"externalTrafficPolicy": "Local", // So that traefik gets the real IP - https://github.com/k3s-io/k3s/discussions/2997#discussioncomment-413904
+					// also see https://www.authelia.com/integration/kubernetes/introduction/#external-traffic-policy
 				},
 			},
 			"extraObjects": []map[string]any{

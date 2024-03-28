@@ -99,7 +99,7 @@ redis:
 authelia:
   image:
     repository: ghcr.io/authelia/authelia
-    tag: "4.37.5"
+    tag: "4.38.6"
   ingress:
     subDomain: authelia
   ldap:
