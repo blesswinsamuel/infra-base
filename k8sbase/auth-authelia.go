@@ -1,12 +1,15 @@
 package k8sbase
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
 	"github.com/traefik/traefik/v2/pkg/config/dynamic"
 	traefikv1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
+	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -35,7 +38,12 @@ func (c *AutheliaClient) FillDefaults() {
 		c.ConsentMode = "auto"
 	}
 	if c.GrantTypes == nil {
-		c.GrantTypes = []string{"refresh_token", "authorization_code"}
+		if slices.Contains(c.Scopes, "offline_access") {
+			c.GrantTypes = []string{"refresh_token", "authorization_code"}
+		} else {
+			// option 'grant_types' should only have the 'refresh_token' value if the client is also configured with the 'offline_access' scope
+			c.GrantTypes = []string{"authorization_code"}
+		}
 	}
 	if c.ResponseTypes == nil {
 		c.ResponseTypes = []string{"code"}
@@ -116,36 +124,13 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 			},
 			Command: []string{"authelia"},
 			Env: map[string]string{
-				"AUTHELIA_SERVER_DISABLE_HEALTHCHECK":                         "true",
-				"AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE": "/secrets/JWT_TOKEN",
-				"AUTHELIA_SESSION_SECRET_FILE":                                "/secrets/SESSION_ENCRYPTION_KEY",
-				"AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE":          "/secrets/LDAP_PASSWORD",
-				"AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE":                        "/secrets/SMTP_PASSWORD",
-				"AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE":                        "/secrets/STORAGE_ENCRYPTION_KEY",
-				"AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE":                     "/secrets/STORAGE_PASSWORD",
-				"AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE":           "/secrets/OIDC_HMAC_SECRET",
-				"AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE":    "/secrets/OIDC_PRIVATE_KEY",
-				"TZ": "UTC",
-			},
-			ExtraVolumeMounts: []corev1.VolumeMount{
-				{Name: "secrets", MountPath: "/secrets", ReadOnly: true},
+				"AUTHELIA_SERVER_DISABLE_HEALTHCHECK": "true",
+				"TZ":                                  "UTC",
 			},
 			LivenessProbe:  &corev1.Probe{FailureThreshold: 5, PeriodSeconds: 30, SuccessThreshold: 1, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/api/health", Port: intstr.FromString("http"), Scheme: "HTTP"}}},
 			ReadinessProbe: &corev1.Probe{FailureThreshold: 5, PeriodSeconds: 5, SuccessThreshold: 1, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/api/health", Port: intstr.FromString("http"), Scheme: "HTTP"}}},
 			StartupProbe:   &corev1.Probe{FailureThreshold: 6, InitialDelaySeconds: 10, PeriodSeconds: 5, SuccessThreshold: 1, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/api/health", Port: intstr.FromString("http"), Scheme: "HTTP"}}},
 		}},
-		ExtraVolumes: []corev1.Volume{
-			{Name: "secrets", VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: "authelia", Items: []corev1.KeyToPath{
-				{Key: "JWT_TOKEN", Path: "JWT_TOKEN"},
-				{Key: "SESSION_ENCRYPTION_KEY", Path: "SESSION_ENCRYPTION_KEY"},
-				{Key: "STORAGE_ENCRYPTION_KEY", Path: "STORAGE_ENCRYPTION_KEY"},
-				{Key: "STORAGE_PASSWORD", Path: "STORAGE_PASSWORD"},
-				{Key: "LDAP_PASSWORD", Path: "LDAP_PASSWORD"},
-				{Key: "SMTP_PASSWORD", Path: "SMTP_PASSWORD"},
-				{Key: "OIDC_PRIVATE_KEY", Path: "OIDC_PRIVATE_KEY"},
-				{Key: "OIDC_HMAC_SECRET", Path: "OIDC_HMAC_SECRET"},
-			}}}},
-		},
 		ExternalSecrets:    []k8sapp.ApplicationExternalSecret{},
 		EnableServiceLinks: infrahelpers.Ptr(false),
 	}
@@ -178,7 +163,7 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 		},
 		"totp": map[string]any{
 			"disable":     false,
-			"issuer":      "home.bless.win",
+			"issuer":      GetDomain(scope),
 			"algorithm":   "sha1",
 			"digits":      6,
 			"period":      30,
@@ -204,18 +189,22 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 			"find_time":   "2m",
 			"ban_time":    "5m",
 		},
-		"default_redirection_url": "https://" +
-			infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") +
-			GetDomain(scope),
 		"default_2fa_method": "",
 		"access_control":     props.AccessControl,
 		"session": map[string]any{
 			"name":        "authelia_session",
-			"domain":      GetDomain(scope),
+			"secret":      "{{ .SESSION_ENCRYPTION_KEY }}",
 			"same_site":   "lax",
 			"expiration":  "1h",
 			"inactivity":  "5m",
 			"remember_me": "1M",
+			"cookies": []map[string]any{
+				{
+					"domain":                  GetDomain(scope),
+					"authelia_url":            "https://" + props.Ingress.SubDomain + "." + GetDomain(scope),
+					"default_redirection_url": "https://" + infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") + GetDomain(scope),
+				},
+			},
 			"redis": map[string]any{
 				"host":                       props.Database.Redis.Host,
 				"port":                       6379,
@@ -231,12 +220,15 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 				"schema":   props.Database.Postgres.Schema,
 				"username": props.Database.Postgres.Username,
 				"timeout":  "5s",
+				"password": "{{ .STORAGE_PASSWORD }}",
 			},
+			"encryption_key": "{{ .STORAGE_ENCRYPTION_KEY }}",
 		},
 		"notifier": map[string]any{
 			"disable_startup_check": false,
 			"smtp": map[string]any{
 				"address":  "smtp://" + props.SMTP.Host + ":" + fmt.Sprintf("%d", props.SMTP.Port),
+				"password": "{{ .SMTP_PASSWORD }}",
 				"timeout":  "5s",
 				"username": props.SMTP.Username,
 				"sender": infrahelpers.UseOrDefault(
@@ -283,17 +275,32 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 			},
 		},
 		"identity_providers": map[string]any{},
+		"identity_validation": map[string]any{
+			"reset_password": map[string]any{
+				"jwt_secret": "{{ .JWT_TOKEN }}",
+			},
+		},
+	}
+	secrets := map[string]string{
+		"SMTP_PASSWORD":          "SMTP_PASSWORD",
+		"JWT_TOKEN":              "AUTHELIA_JWT_TOKEN",
+		"SESSION_ENCRYPTION_KEY": "AUTHELIA_SESSION_ENCRYPTION_KEY",
+		"STORAGE_ENCRYPTION_KEY": "AUTHELIA_STORAGE_ENCRYPTION_KEY",
+		"STORAGE_PASSWORD":       "POSTGRES_USER_PASSWORD",
 	}
 	if props.OIDC.Enabled {
 		for i, client := range props.OIDC.Clients {
 			client.FillDefaults()
 			props.OIDC.Clients[i] = client
 		}
+		secrets["OIDC_PRIVATE_KEY"] = "AUTHELIA_OIDC_PRIVATE_KEY"
+		secrets["OIDC_HMAC_SECRET"] = "AUTHELIA_OIDC_HMAC_SECRET"
 		configMap["identity_providers"].(map[string]any)["oidc"] = map[string]any{
 			"enforce_pkce":                 "public_clients_only",
 			"enable_pkce_plain_challenge":  false,
 			"enable_client_debug_messages": false,
 			"minimum_parameter_entropy":    8,
+			"hmac_secret":                  "{{ .OIDC_HMAC_SECRET }}",
 			"lifespans": map[string]string{
 				"access_token":   "1h",
 				"id_token":       "1h",
@@ -313,10 +320,8 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 			},
 			"clients": props.OIDC.Clients,
 		}
-		if props.OIDC.IssuerCertificateChain != "" {
-			configMap["identity_providers"].(map[string]any)["oidc"].(map[string]any)["jwks"] = []map[string]any{
-				{"certificate_chain": props.OIDC.IssuerCertificateChain},
-			}
+		configMap["identity_providers"].(map[string]any)["oidc"].(map[string]any)["jwks"] = []map[string]any{
+			{"key": "{{ .OIDC_PRIVATE_KEY }}", "certificate_chain": props.OIDC.IssuerCertificateChain},
 		}
 	}
 	if props.Assets != nil {
@@ -350,6 +355,7 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 		configMap["authentication_backend"].(map[string]any)["ldap"] = map[string]any{
 			"implementation":      "custom",
 			"address":             props.LDAP.URL,
+			"password":            "{{ .LDAP_PASSWORD }}",
 			"timeout":             "5s",
 			"start_tls":           false,
 			"base_dn":             props.LDAP.BaseDN,
@@ -375,35 +381,22 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 				"maximum_version": "TLS1.3",
 			},
 		}
+		secrets["LDAP_PASSWORD"] = props.LDAP.PasswordSecretKey
 	}
 
-	appProps.ConfigMaps = append(appProps.ConfigMaps, k8sapp.ApplicationConfigMap{
-		Name:              "authelia",
-		Data:              map[string]string{"configuration.yaml": infrahelpers.ToYamlString(configMap)},
+	configMapString := infrahelpers.ToYamlString(configMap)
+	configMapString = strings.Replace(configMapString, `"{{ .OIDC_PRIVATE_KEY }}"`, "|\n{{ .OIDC_PRIVATE_KEY | nindent 8 }}", 1)
+	appProps.ExternalSecrets = append(appProps.ExternalSecrets, k8sapp.ApplicationExternalSecret{
+		Name:       "authelia",
+		RemoteRefs: secrets,
+		Template: map[string]string{
+			"configuration.yaml": configMapString,
+		},
 		MountToContainers: []string{"authelia"},
 		MountName:         "config",
 		MountPath:         "/configuration.yaml",
 		SubPath:           "configuration.yaml",
 		ReadOnly:          true,
-	})
-
-	secrets := map[string]string{
-		"SMTP_PASSWORD":          "SMTP_PASSWORD",
-		"JWT_TOKEN":              "AUTHELIA_JWT_TOKEN",
-		"SESSION_ENCRYPTION_KEY": "AUTHELIA_SESSION_ENCRYPTION_KEY",
-		"STORAGE_ENCRYPTION_KEY": "AUTHELIA_STORAGE_ENCRYPTION_KEY",
-		"STORAGE_PASSWORD":       "POSTGRES_USER_PASSWORD",
-	}
-	if props.AuthMode == "ldap" {
-		secrets["LDAP_PASSWORD"] = props.LDAP.PasswordSecretKey
-	}
-	if props.OIDC.Enabled {
-		secrets["OIDC_PRIVATE_KEY"] = "AUTHELIA_OIDC_PRIVATE_KEY"
-		secrets["OIDC_HMAC_SECRET"] = "AUTHELIA_OIDC_HMAC_SECRET"
-	}
-	appProps.ExternalSecrets = append(appProps.ExternalSecrets, k8sapp.ApplicationExternalSecret{
-		Name:       "authelia",
-		RemoteRefs: secrets,
 	})
 
 	app := k8sapp.NewApplicationChart(scope, "authelia", appProps)
@@ -508,3 +501,26 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 //     maxSurge: 25%
 //     maxUnavailable: 25%
 //   type: RollingUpdate
+
+// https://github.com/goccy/go-yaml/issues/425
+type YAMLRawMessage []byte
+
+func (m YAMLRawMessage) MarshalJSON() ([]byte, error) { return m.marshal() }
+func (m YAMLRawMessage) MarshalYAML() ([]byte, error) { return m.marshal() }
+
+func (m YAMLRawMessage) marshal() ([]byte, error) {
+	if m == nil {
+		return []byte("null"), nil
+	}
+	return m, nil
+}
+func (m *YAMLRawMessage) UnmarshalJSON(data []byte) error { return m.unmarshal(data) }
+func (m *YAMLRawMessage) UnmarshalYAML(data []byte) error { return m.unmarshal(data) }
+
+func (m *YAMLRawMessage) unmarshal(data []byte) error {
+	if m == nil {
+		return errors.New("RawMessage: unmarshal on nil pointer")
+	}
+	*m = append((*m)[0:0], data...)
+	return nil
+}
