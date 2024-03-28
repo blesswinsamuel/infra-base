@@ -38,7 +38,7 @@ type ApplicationProps struct {
 	Hostname                        string
 	CreateHeadlessService           bool
 	StatefulSetServiceName          string
-	EnableServiceLinks              bool
+	EnableServiceLinks              *bool
 	AutomountServiceAccountToken    bool
 	DeploymentUpdateStrategy        v1.DeploymentStrategy
 	AppAnnotations                  map[string]string
@@ -130,10 +130,18 @@ type ApplicationContainer struct {
 type ContainerPort struct {
 	Name             string
 	Port             int
+	ServicePort      int
 	Protocol         corev1.Protocol
 	Ingress          *ApplicationIngress
 	Ingresses        []ApplicationIngress
 	PrometheusScrape *ApplicationPrometheusScrape
+}
+
+func (p ContainerPort) GetServicePort() int32 {
+	if p.ServicePort != 0 {
+		return int32(p.ServicePort)
+	}
+	return int32(p.Port)
 }
 
 type ApplicationIngress struct {
@@ -341,7 +349,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 		for _, port := range container.Ports {
 			servicePorts = append(servicePorts, corev1.ServicePort{
 				Name:       port.Name,
-				Port:       int32(port.Port),
+				Port:       port.GetServicePort(),
 				TargetPort: intstr.FromString(port.Name),
 				Protocol:   port.Protocol,
 			})
@@ -360,7 +368,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 			}
 			if prometheusScrape := port.PrometheusScrape; prometheusScrape != nil {
 				serviceAnnotations["prometheus.io/scrape"] = "true"
-				serviceAnnotations["prometheus.io/port"] = fmt.Sprint(port.Port)
+				serviceAnnotations["prometheus.io/port"] = fmt.Sprint(port.GetServicePort())
 				if prometheusScrape.Path != "" {
 					serviceAnnotations["prometheus.io/path"] = prometheusScrape.Path
 				}
@@ -404,7 +412,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 			ServiceAccountName:           props.ServiceAccountName,
 			AutomountServiceAccountToken: infrahelpers.PtrIfNonEmpty(props.AutomountServiceAccountToken),
 			Hostname:                     props.Hostname,
-			EnableServiceLinks:           infrahelpers.PtrIfNonEmpty(props.EnableServiceLinks),
+			EnableServiceLinks:           props.EnableServiceLinks,
 			SecurityContext:              props.PodSecurityContext,
 			ImagePullSecrets: infrahelpers.If(props.ImagePullSecrets != "", []corev1.LocalObjectReference{
 				{Name: props.ImagePullSecrets},

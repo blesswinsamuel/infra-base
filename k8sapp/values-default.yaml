@@ -97,10 +97,9 @@ redis:
 ### auth ###
 
 authelia:
-  helm:
-    repo: https://charts.authelia.com
-    chart: authelia
-    version: "0.8.58"
+  image:
+    repository: ghcr.io/authelia/authelia
+    tag: "4.37.5"
   ingress:
     subDomain: authelia
   ldap:
@@ -111,6 +110,9 @@ authelia:
   database:
     postgres:
       host: "postgres.database.svc.cluster.local"
+      database: authelia
+      port: 5432
+      schema: public
     redis:
       host: "redis-master.database.svc.cluster.local"
 
