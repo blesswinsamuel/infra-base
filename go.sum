@@ -20,6 +20,8 @@ github.com/evanphx/json-patch/v5 v5.9.0 h1:kcBlZQbplgElYIlo/n1hJbls2z/1awpXxpRi0
 github.com/evanphx/json-patch/v5 v5.9.0/go.mod h1:VNkHZ/282BpEyt/tObQO8s5CMPmYYq14uClGH4abBuQ=
 github.com/external-secrets/external-secrets v0.9.13 h1:hM4Jn/cNTaXRaUXkNfpEBsSfyFrbfdc88PCWgGxFhD8=
 github.com/external-secrets/external-secrets v0.9.13/go.mod h1:024gw2VX+jl9jR9yXurY4tYQ0tEGzQhV9ujKFyxBcj4=
+github.com/external-secrets/external-secrets v0.9.14 h1:jeYpQoGTf/7jTx9R6ENasbav8ZSwxpj8vWt3ZbbGUv0=
+github.com/external-secrets/external-secrets v0.9.14/go.mod h1:SrjusNL8vkdVSxuKNGGEuCdH1NeGh4Bwmlz4wOLf230=
 github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=
 github.com/fatih/color v1.16.0/go.mod h1:fL2Sau1YI5c0pdGEVCbKQbLXB6edEj1ZgiY4NijnWvE=
 github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nosvA=

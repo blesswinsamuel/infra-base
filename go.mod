@@ -6,7 +6,7 @@ toolchain go1.22.1
 
 require (
 	github.com/cert-manager/cert-manager v1.14.4
-	github.com/external-secrets/external-secrets v0.9.13
+	github.com/external-secrets/external-secrets v0.9.14
 	github.com/goccy/go-yaml v1.11.3
 	github.com/muesli/reflow v0.3.0
 	github.com/traefik/traefik/v2 v2.11.0

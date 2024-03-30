@@ -9,7 +9,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.9.13"
+    version: "0.9.14"
 
 cluster-secret-store: {}
 
@@ -294,7 +294,7 @@ vmagent:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
     chart: victoria-metrics-agent
-    version: "0.10.3"
+    version: "0.10.4"
   ingress:
     enabled: true
     subDomain: "vmagent"
@@ -364,7 +364,7 @@ victoria-metrics:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
     chart: victoria-metrics-single
-    version: "0.9.16"
+    version: "0.9.17"
   ingress:
     enabled: true
     subDomain: "victoriametrics"
@@ -386,7 +386,7 @@ loki:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: loki
-    version: "5.47.1"
+    version: "5.47.2"
   storage: local
 
 ### system ###
