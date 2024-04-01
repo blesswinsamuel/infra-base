@@ -103,7 +103,8 @@ type AutheliaProps struct {
 		LogoURL    string `json:"logoURL"`
 		FaviconURL string `json:"faviconURL"`
 	} `json:"assets"`
-	RedirectionSubDomain string `json:"redirectionSubDomain"`
+	RedirectionSubDomain string           `json:"redirectionSubDomain"`
+	CookieDomains        []map[string]any `json:"cookieDomains"`
 }
 
 // https://github.com/authelia/chartrepo/tree/master/charts/authelia
@@ -116,7 +117,7 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 			Name:  "authelia",
 			Image: props.ImageInfo,
 			Ports: []k8sapp.ContainerPort{
-				{Name: "http", Port: 9091, ServicePort: 80, Ingress: &k8sapp.ApplicationIngress{Host: "authelia." + GetDomain(scope)}},
+				{Name: "http", Port: 9091, ServicePort: 80, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}},
 				{Name: "metrics", Port: 9959, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{Path: "/metrics"}},
 			},
 			Args: []string{
@@ -133,6 +134,20 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 		}},
 		ExternalSecrets:    []k8sapp.ApplicationExternalSecret{},
 		EnableServiceLinks: infrahelpers.Ptr(false),
+	}
+	redirectionURL := "https://" + infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") + GetDomain(scope)
+	if len(props.CookieDomains) == 0 {
+		props.CookieDomains = append(props.CookieDomains, map[string]any{
+			"domain": GetDomain(scope),
+		})
+	}
+	for i := range props.CookieDomains {
+		if props.CookieDomains[i]["default_redirection_url"] == nil {
+			props.CookieDomains[i]["default_redirection_url"] = redirectionURL
+		}
+		if props.CookieDomains[i]["authelia_url"] == nil {
+			props.CookieDomains[i]["authelia_url"] = "https://" + props.Ingress.SubDomain + "." + GetDomain(scope)
+		}
 	}
 	// https://github.com/authelia/chartrepo/blob/master/charts/authelia/templates/configMap.yaml
 	configMap := map[string]any{
@@ -198,13 +213,7 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 			"expiration":  "1h",
 			"inactivity":  "5m",
 			"remember_me": "1M",
-			"cookies": []map[string]any{
-				{
-					"domain":                  GetDomain(scope),
-					"authelia_url":            "https://" + props.Ingress.SubDomain + "." + GetDomain(scope),
-					"default_redirection_url": "https://" + infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") + GetDomain(scope),
-				},
-			},
+			"cookies":     props.CookieDomains,
 			"redis": map[string]any{
 				"host":                       props.Database.Redis.Host,
 				"port":                       6379,
@@ -274,7 +283,6 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 				"min_score": 0,
 			},
 		},
-		"identity_providers": map[string]any{},
 		"identity_validation": map[string]any{
 			"reset_password": map[string]any{
 				"jwt_secret": "{{ .JWT_TOKEN }}",
@@ -295,6 +303,9 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 		}
 		secrets["OIDC_PRIVATE_KEY"] = "AUTHELIA_OIDC_PRIVATE_KEY"
 		secrets["OIDC_HMAC_SECRET"] = "AUTHELIA_OIDC_HMAC_SECRET"
+		if configMap["identity_providers"] == nil {
+			configMap["identity_providers"] = map[string]any{}
+		}
 		configMap["identity_providers"].(map[string]any)["oidc"] = map[string]any{
 			"enforce_pkce":                 "public_clients_only",
 			"enable_pkce_plain_challenge":  false,
@@ -325,6 +336,7 @@ func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 		}
 	}
 	if props.Assets != nil {
+		appProps.Containers[0].ExtraVolumeMounts = append(appProps.Containers[0].ExtraVolumeMounts, corev1.VolumeMount{Name: "assets", MountPath: "/assets"})
 		appProps.ExtraVolumes = append(appProps.ExtraVolumes, corev1.Volume{Name: "assets", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}})
 		appProps.InitContainers = []k8sapp.ApplicationContainer{{
 			Name:  "init",
