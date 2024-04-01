@@ -99,7 +99,7 @@ func (props *TraefikProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 				"plugins": map[string]any{
 					"htransformation": map[string]any{
 						"moduleName": "github.com/tomMoulard/htransformation",
-						"version":    "v0.2.7",
+						"version":    "v0.2.8",
 					},
 				},
 			},

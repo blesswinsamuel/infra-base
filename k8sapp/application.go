@@ -50,7 +50,7 @@ type ApplicationProps struct {
 	ConfigMaps                      []ApplicationConfigMap
 	ExternalSecrets                 []ApplicationExternalSecret
 	Secrets                         []ApplicationSecret
-	PersistentVolumes               []ApplicationPersistentVolume
+	PersistentVolumes               []ApplicationPersistentVolume // TODO: change to PersistentVolumeClaims
 	StatefulSetVolumeClaimTemplates []ApplicationPersistentVolume
 	ExtraVolumes                    []corev1.Volume
 	HostNetwork                     bool

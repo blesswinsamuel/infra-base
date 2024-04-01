@@ -13,6 +13,7 @@ type PersistentVolumeClaim struct {
 	StorageClass    string
 	RequestsStorage string
 	VolumeName      string
+	AccessModes     []corev1.PersistentVolumeAccessMode
 }
 
 func NewPersistentVolumeClaim(scope kubegogen.Construct, id string, props *PersistentVolumeClaim) kubegogen.ApiObject {
@@ -28,17 +29,21 @@ func NewPersistentVolumeClaimProps(props *PersistentVolumeClaim) corev1.Persiste
 	} else {
 		storageClassName = infrahelpers.Ptr(props.StorageClass)
 	}
+	var resources corev1.VolumeResourceRequirements
+	if props.RequestsStorage != "" {
+		resources.Requests = make(corev1.ResourceList)
+		resources.Requests["storage"] = resource.MustParse(props.RequestsStorage)
+	}
+	if props.AccessModes == nil {
+		props.AccessModes = []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce}
+	}
 	return corev1.PersistentVolumeClaim{
 		ObjectMeta: v1.ObjectMeta{
 			Name: props.Name,
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
-			AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
-			Resources: corev1.VolumeResourceRequirements{
-				Requests: corev1.ResourceList{
-					"storage": resource.MustParse(props.RequestsStorage),
-				},
-			},
+			AccessModes:      props.AccessModes,
+			Resources:        resources,
 			VolumeName:       props.VolumeName,
 			StorageClassName: storageClassName,
 		},
