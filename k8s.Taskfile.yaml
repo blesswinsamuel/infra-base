@@ -1,0 +1,39 @@
+version: 3
+
+tasks:
+  backup-cluster-yaml:
+    # https://gist.github.com/negz/c3ee465b48306593f16c523a22015bec
+    cmds:
+      - |
+        mkdir -p k8s-backup
+        cd k8s-backup
+        NAMESPACES=$(kubectl get -o json namespaces|jq '.items[].metadata.name'|sed "s/\"//g")
+        RESOURCES="configmap secret daemonset deployment service hpa"
+
+        for ns in ${NAMESPACES};do
+          for resource in ${RESOURCES};do
+            rsrcs=$(kubectl -n ${ns} get -o json ${resource}|jq '.items[].metadata.name'|sed "s/\"//g")
+            for r in ${rsrcs};do
+              dir="${ns}/${resource}"
+              mkdir -p "${dir}"
+              kubectl -n ${ns} get -o yaml ${resource} ${r} > "${dir}/${r}.yaml"
+            done
+          done
+        done
+
+  cert-manager-backup:
+    # https://cert-manager.io/docs/tutorials/backup/
+    cmds:
+      - |
+        kubectl get clusterissuer -A -o yaml | \
+          yq -r '.items[].spec.acme.privateKeySecretRef.name' | \
+          xargs -I '{}' -L1 sh -c 'echo ---; kubectl get secret -n cert-manager -o yaml "{}" | yq "del(.metadata.resourceVersion) | del(.metadata.creationTimestamp) | del(.metadata.uid)"' | tee cert-manager-clusterissuer-secrets.yaml
+      - |
+        kubectl get cert -A -o yaml | \
+          yq '.items[] | ("-n" + " " + .metadata.namespace + " " + .spec.secretName)' | \
+          xargs -I '{}' -L1 sh -c 'echo ---; kubectl get secret -o yaml {}' | yq "del(.metadata.resourceVersion) | del(.metadata.creationTimestamp) | del(.metadata.uid)" | tee -a cert-manager-cert-secrets.yaml
+
+  cert-manager-restore:
+    cmds:
+      - kubectl apply -f cert-manager-clusterissuer-secrets.yaml
+      - kubectl apply -f cert-manager-cert-secrets.yaml
