@@ -36,6 +36,11 @@ type BackupJobProps struct {
 			} `json:"policy"`
 		} `json:"jobs"`
 	} `json:"filesystem"`
+	PersistentVolumeClaims []struct {
+		Name         string `json:"name"`
+		StorageClass string `json:"storageClass"`
+		VolumeName   string `json:"volumeName"`
+	} `json:"persistentVolumeClaims"`
 }
 
 type cronJobProps struct {
@@ -176,6 +181,21 @@ func (props *BackupJobProps) Chart(scope kubegogen.Construct) kubegogen.Construc
 			"KOPIA_PASSWORD": "BACKUP_ENCRYPTION_PASSWORD",
 		},
 	})
+
+	if props.PersistentVolumeClaims != nil {
+		for _, pvc := range props.PersistentVolumeClaims {
+			if pvc.StorageClass == "__none__" {
+				pvc.StorageClass = "-"
+			}
+			k8sapp.NewPersistentVolumeClaim(chart, pvc.Name, &k8sapp.PersistentVolumeClaim{
+				Name:            pvc.Name,
+				RequestsStorage: "1Gi",
+				StorageClass:    pvc.StorageClass,
+				VolumeName:      pvc.VolumeName,
+				AccessModes:     []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany},
+			})
+		}
+	}
 
 	NewBackupPostgresJob(chart, props)
 	NewRestorePostgresJob(chart, props)

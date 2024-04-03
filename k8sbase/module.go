@@ -39,6 +39,7 @@ func RegisterModules() {
 		"kube-gitops":          &k8sapp.ModuleCommons[*KubeGitOpsProps]{},
 		"kubernetes-dashboard": &k8sapp.ModuleCommons[*KubernetesDashboardProps]{},
 		"reloader":             &k8sapp.ModuleCommons[*ReloaderProps]{},
+		"pg-backuper":          &k8sapp.ModuleCommons[*PgBackuper]{},
 
 		"docker-creds": &k8sapp.ModuleCommons[*UtilsDockerCreds]{},
 	}

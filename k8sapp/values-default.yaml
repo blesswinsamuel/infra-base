@@ -434,6 +434,11 @@ backup-job:
       repository: postgres
       tag: "14.11"
     host: "postgres.database.svc.cluster.local"
+pg-backuper:
+  image:
+    repository: ghcr.io/blesswinsamuel/infra-base/pg-backuper
+    tag: latest
+  host: "postgres.database.svc.cluster.local"
 
 ### utils ###
 
