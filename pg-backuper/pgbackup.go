@@ -38,20 +38,19 @@ type Database struct {
 
 type Notify struct {
 	URL string `json:"url"`
+	// OnlyOn string `json:"onlyOn"`
 }
 
 type BackupDestinationFileSystem struct {
-	PathTemplate       string `json:"pathTemplate"`
-	pathTemplateParsed *template.Template
+	PathTemplate PathTemplate `json:"pathTemplate"`
 }
 
 type BackupDestinationS3 struct {
-	Bucket             string `json:"bucket"`
-	Endpoint           string `json:"endpoint"`
-	AccessKey          string `json:"accessKey"`
-	SecretKey          string `json:"secretKey"`
-	PathTemplate       string `json:"pathTemplate"`
-	pathTemplateParsed *template.Template
+	Bucket       string       `json:"bucket"`
+	Endpoint     string       `json:"endpoint"`
+	AccessKey    string       `json:"accessKey"`
+	SecretKey    string       `json:"secretKey"`
+	PathTemplate PathTemplate `json:"pathTemplate"`
 }
 
 type BackupDestination struct {
@@ -108,23 +107,16 @@ func (m *SchedulerMonitor) RecordJobTiming(startTime, endTime time.Time, id uuid
 
 func (m *SchedulerMonitor) StartNotifyJob() {
 	jobStatus := map[string]gocron.JobStatus{}
-	// lastSuccessfulTime := map[string]time.Time{}
 	for update := range m.jobStatusUpdatesCh {
 		log.Info().Str("name", update.name).Str("status", string(update.status)).Msg("Job status update")
-		// if update.status == gocron.Success {
-		// 	lastSuccessfulTime[update.name] = time.Now()
-		// }
-		// jobStatus[update.name] = update.status
 		isAllSuccessful := true
 		for _, status := range jobStatus {
-			// lastTime := lastSuccessfulTime[name]
-			// if time.Since(lastTime) > 12*time.Hour {
 			if status == gocron.Fail {
 				isAllSuccessful = false
 			}
 		}
-		if isAllSuccessful {
-			for _, notify := range m.Notify {
+		for _, notify := range m.Notify {
+			if isAllSuccessful {
 				log.Info().Str("url", notify.URL).Msg("Sending notification")
 				if err := m.SendNotification(notify.URL); err != nil {
 					log.Error().Err(err).Msg("Failed to send notification")
@@ -340,23 +332,25 @@ func parseConfig(configFilePath string) (Config, error) {
 		}
 		cfg.Databases[name] = db
 	}
-	for _, dest := range cfg.BackupDestinations {
-		if dest.FileSystem != nil {
-			tmpl, err := template.New("pathTemplate").Parse(dest.FileSystem.PathTemplate)
-			if err != nil {
-				return Config{}, err
-			}
-			dest.FileSystem.pathTemplateParsed = tmpl
-		}
-		if dest.S3 != nil {
-			tmpl, err := template.New("pathTemplate").Parse(dest.S3.PathTemplate)
-			if err != nil {
-				return Config{}, err
-			}
-			dest.S3.pathTemplateParsed = tmpl
-		}
-	}
 	return cfg, nil
+}
+
+type PathTemplate string
+
+func (t PathTemplate) TemplatedString(db Database) (string, error) {
+	tmpl, err := template.New("pathTemplate").Parse(string(t))
+	if err != nil {
+		return "", err
+	}
+	buf := &bytes.Buffer{}
+	err = tmpl.Execute(buf, map[string]string{
+		"Database":  db.Database,
+		"Timestamp": time.Now().Format("2006-01-02T15:04:05Z07:00"),
+	})
+	if err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 func createDbDump(db Database, backupDestinations []BackupDestination) error {
@@ -401,15 +395,10 @@ func createDbDump(db Database, backupDestinations []BackupDestination) error {
 }
 
 func writeToFilesystemBackupDestination(sourceFilePath string, db Database, dest BackupDestinationFileSystem) error {
-	templatePathBuf := &bytes.Buffer{}
-	err := dest.pathTemplateParsed.Execute(templatePathBuf, map[string]string{
-		"Database":  db.Database,
-		"Timestamp": time.Now().Format("2006-01-02T15:04:05"),
-	})
+	dumpFilePath, err := dest.PathTemplate.TemplatedString(db)
 	if err != nil {
 		return fmt.Errorf("failed to execute dump path template: %v", err)
 	}
-	dumpFilePath := templatePathBuf.String()
 	log.Info().Str("database", db.Database).Str("path", dumpFilePath).Msg("Copying dump to filesystem")
 
 	// check if directory exists
@@ -433,15 +422,10 @@ func writeToFilesystemBackupDestination(sourceFilePath string, db Database, dest
 }
 
 func writeToS3BackupDestination(sourceFilePath string, db Database, dest BackupDestinationS3) error {
-	templatePathBuf := &bytes.Buffer{}
-	err := dest.pathTemplateParsed.Execute(templatePathBuf, map[string]string{
-		"Database":  db.Database,
-		"Timestamp": time.Now().Format("2006-01-02T15:04:05"),
-	})
+	dumpFilePath, err := dest.PathTemplate.TemplatedString(db)
 	if err != nil {
 		return fmt.Errorf("failed to execute dump path template: %v", err)
 	}
-	dumpFilePath := templatePathBuf.String()
 	log.Info().Str("database", db.Database).Str("path", dumpFilePath).Msg("Copying dump to S3")
 	// copy file to destination
 
@@ -489,6 +473,7 @@ func copyFile(src, dst string) (int64, error) {
 	return n, nil
 }
 
+// https://gist.github.com/josephspurrier/12cc5ed76d2228a41ceb
 func encryptFile(src, dst, key string) error {
 	cmd := exec.Command("openssl", "enc", "-aes-256-cbc", "-salt", "-in", src, "-out", dst, "-k", key)
 	if out, err := cmd.CombinedOutput(); err != nil {

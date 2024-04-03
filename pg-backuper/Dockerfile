@@ -13,7 +13,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /pg-backuper
 
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates postgresql-client
+RUN apk --no-cache add ca-certificates postgresql-client openssl
 
 COPY --from=builder /pg-backuper /pg-backuper
 
