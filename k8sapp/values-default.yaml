@@ -35,7 +35,7 @@ traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "26.1.0"
+    version: "27.0.2"
   dashboardIngress:
     enabled: false
     subDomain: traefik
@@ -399,7 +399,7 @@ loki:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: loki
-    version: "5.47.2"
+    version: "6.2.0"
   storage: local
 
 ### system ###
