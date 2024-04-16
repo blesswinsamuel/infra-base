@@ -305,10 +305,9 @@ alerting-rules:
         etcd:
           url: https://etcd.io/docs/v3.4/op-guide/etcd3_alert.rules.yml
 vmagent:
-  helm:
-    repo: https://victoriametrics.github.io/helm-charts
-    chart: victoria-metrics-agent
-    version: "0.10.4"
+  image:
+    repository: victoriametrics/vmagent
+    tag: "v1.99.0"
   ingress:
     enabled: true
     subDomain: "vmagent"
