@@ -32,6 +32,7 @@ type PostgresProps struct {
 	} `json:"loadBalancer"`
 	PersistentVolumeName string                           `json:"persistentVolumeName"`
 	GrafanaDatasources   []PostgresGrafanaDatasourceProps `json:"grafana_datasources"`
+	Resources            *corev1.ResourceRequirements     `json:"resources"`
 }
 
 func (props *PostgresProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
@@ -63,6 +64,7 @@ func (props *PostgresProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 					"existingClaim": infrahelpers.Ternary(props.PersistentVolumeName != "", "postgres", ""),
 					"storageClass":  infrahelpers.Ternary(props.PersistentVolumeName != "", "-", ""),
 				},
+				"resources": props.Resources,
 			},
 		},
 	})

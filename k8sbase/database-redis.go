@@ -3,11 +3,15 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
+	corev1 "k8s.io/api/core/v1"
 )
 
 type RedisProps struct {
-	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
+	HelmChartInfo k8sapp.ChartInfo             `json:"helm"`
+	Resources     *corev1.ResourceRequirements `json:"resources"`
 }
+
+// https://github.com/bitnami/charts/tree/main/bitnami/redis
 
 func (props *RedisProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	cprops := kubegogen.ChartProps{
@@ -25,7 +29,11 @@ func (props *RedisProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 				"enabled": false,
 			},
 			"metrics": map[string]interface{}{
-				"enabled": true,
+				"enabled":   true,
+				"resources": props.Resources,
+			},
+			"master": map[string]interface{}{
+				"resources": props.Resources,
 			},
 		},
 	})

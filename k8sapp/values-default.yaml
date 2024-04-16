@@ -73,6 +73,13 @@ postgres:
     tag: 16.2.0
   database: null
   username: null
+  resources:
+    limits:
+      cpu: 500m
+      memory: 500Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi
   _dashboards:
     postgres-exporter:
       url: https://github.com/prometheus-community/postgres_exporter/raw/master/postgres_mixin/dashboards/postgres-overview.json
@@ -88,6 +95,13 @@ redis:
     repo: https://charts.bitnami.com/bitnami
     chart: redis
     version: "19.0.2"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 500Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi
   _dashboards:
     redis:
       url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
