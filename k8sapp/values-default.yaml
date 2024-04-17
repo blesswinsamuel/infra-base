@@ -94,7 +94,7 @@ redis:
   helm:
     repo: https://charts.bitnami.com/bitnami
     chart: redis
-    version: "19.0.2"
+    version: "19.1.1"
   resources:
     limits:
       cpu: 500m
@@ -327,7 +327,7 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.99.0
+    tag: v1.100.1
   ingress:
     enabled: true
     subDomain: "vmalert"
@@ -429,19 +429,19 @@ kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
     chart: kubernetes-dashboard
-    version: "7.1.3"
+    version: "7.3.2"
   ingress:
     enabled: true
     subDomain: kubernetes-dashboard
 kopia:
   image:
     repository: kopia/kopia
-    tag: "0.16.1"
+    tag: "0.17.0"
 backup-job:
   kopia:
     image:
       repository: kopia/kopia
-      tag: "0.16.1"
+      tag: "0.17.0"
   postgres:
     image:
       repository: postgres
