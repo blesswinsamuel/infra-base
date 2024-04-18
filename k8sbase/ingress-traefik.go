@@ -1,6 +1,7 @@
 package k8sbase
 
 import (
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
 	"github.com/traefik/traefik/v2/pkg/config/dynamic"
@@ -11,6 +12,7 @@ import (
 type TraefikProps struct {
 	ChartInfo        k8sapp.ChartInfo `json:"helm"`
 	TrustedIPs       []string         `json:"trustedIPs"`
+	ServiceType      string           `json:"serviceType"`
 	DashboardIngress struct {
 		Enabled   bool   `json:"enabled"`
 		SubDomain string `json:"subDomain"`
@@ -29,6 +31,10 @@ func (props *TraefikProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
 	chart := scope.Chart("traefik", cprops)
+
+	if props.ServiceType == "" {
+		props.ServiceType = "LoadBalancer"
+	}
 
 	k8sapp.NewHelm(chart, "traefik", &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,
@@ -108,11 +114,15 @@ func (props *TraefikProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 				// 	"expose": true,
 				// },
 				"web": map[string]any{
+					// "expose":           map[string]any{"default": true},
+					// "exposedPort":      80,
 					"redirectTo":       map[string]any{"port": "websecure"},
 					"forwardedHeaders": map[string]any{"trustedIPs": props.TrustedIPs},
 					"proxyProtocol":    map[string]any{"trustedIPs": props.TrustedIPs},
 				},
 				"websecure": map[string]any{
+					// "expose":           map[string]any{"default": true},
+					// "exposedPort":      443,
 					"forwardedHeaders": map[string]any{"trustedIPs": props.TrustedIPs},
 					"proxyProtocol":    map[string]any{"trustedIPs": props.TrustedIPs},
 					// ## Enable this entrypoint as a default entrypoint. When a service doesn't explicity set an entrypoint it will only use this entrypoint.
@@ -122,9 +132,10 @@ func (props *TraefikProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 				},
 			},
 			"service": map[string]any{
+				"type":           props.ServiceType,
 				"ipFamilyPolicy": "PreferDualStack",
 				"spec": map[string]any{
-					"externalTrafficPolicy": "Local", // So that traefik gets the real IP - https://github.com/k3s-io/k3s/discussions/2997#discussioncomment-413904
+					"externalTrafficPolicy": infrahelpers.If(props.ServiceType == "LoadBalancer", "Local", ""), // So that traefik gets the real IP - https://github.com/k3s-io/k3s/discussions/2997#discussioncomment-413904
 					// also see https://www.authelia.com/integration/kubernetes/introduction/#external-traffic-policy
 				},
 			},

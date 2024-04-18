@@ -55,6 +55,7 @@ type ApplicationProps struct {
 	ExtraVolumes                    []corev1.Volume
 	HostNetwork                     bool
 	DnsPolicy                       string
+	DNSConfig                       *corev1.PodDNSConfig
 	IngressMiddlewares              []NameNamespace
 	// IngressAnnotations              map[string]string
 }
@@ -422,6 +423,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 			Volumes:        volumes,
 			HostNetwork:    props.HostNetwork,
 			DNSPolicy:      corev1.DNSPolicy(props.DnsPolicy),
+			DNSConfig:      props.DNSConfig,
 		},
 	}
 	switch props.Kind {
