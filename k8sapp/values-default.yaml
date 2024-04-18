@@ -399,7 +399,7 @@ loki:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: loki
-    version: "6.2.0"
+    version: "5.47.2"
   storage: local
 
 ### system ###
