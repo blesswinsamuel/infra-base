@@ -7,7 +7,7 @@ import (
 )
 
 type GrafanaDashboardsProps struct {
-	Dashboards infrahelpers.MergeableMap[string, k8sapp.GrafanaDashboardProps] `json:"dashboards"`
+	Dashboards infrahelpers.MergeableMap[string, k8sapp.GrafanaDashboard] `json:"dashboards"`
 }
 
 func (props *GrafanaDashboardsProps) Chart(scope kubegogen.Construct) kubegogen.Construct {

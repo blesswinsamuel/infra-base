@@ -14,7 +14,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type GrafanaDashboardProps struct {
+type GrafanaDashboard struct {
 	URL          string            `json:"url"`
 	GnetID       *int              `json:"gnet_id"`
 	Title        *string           `json:"title"`
@@ -28,15 +28,14 @@ func hash(s string) string {
 	return fmt.Sprintf("%v", h.Sum32())
 }
 
-func NewGrafanaDashboards(scope kubegogen.Construct, props map[string]GrafanaDashboardProps) kubegogen.Construct {
+func NewGrafanaDashboards(scope kubegogen.Construct, props map[string]GrafanaDashboard) kubegogen.Construct {
 	for _, dashboardID := range infrahelpers.MapKeys(props) {
-		dashboardProps := props[dashboardID]
-		NewGrafanaDashboard(scope, dashboardID, dashboardProps)
+		NewGrafanaDashboard(scope, dashboardID, props[dashboardID])
 	}
 	return scope
 }
 
-func NewGrafanaDashboard(scope kubegogen.Construct, dashboardID string, props GrafanaDashboardProps) kubegogen.Construct {
+func NewGrafanaDashboard(scope kubegogen.Construct, dashboardID string, props GrafanaDashboard) kubegogen.Construct {
 	cacheDir := GetGlobalContext(scope).CacheDir
 	dashboardContents := GetCachedFile(props.URL, path.Join(cacheDir, "dashboards"))
 	dashboard := infrahelpers.FromJSONString[map[string]any](string(dashboardContents))

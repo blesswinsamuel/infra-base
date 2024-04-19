@@ -9,19 +9,14 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type AlertingRuleProps struct {
-	// 	// URLs *string              `json:"globPath"`
-	// 	URLs map[string]RuleURLProps `json:"urls"`
-	// }
-
-	// type RuleURLProps struct {
+type AlertingRule struct {
 	URL          string            `json:"url"`
 	SkipGroups   []string          `json:"skipGroups"`
 	SkipAlerts   []string          `json:"skipAlerts"`
 	Replacements map[string]string `json:"replacements"`
 }
 
-func NewAlertingRules(scope kubegogen.Construct, props map[string]AlertingRuleProps) kubegogen.Construct {
+func NewAlertingRules(scope kubegogen.Construct, props map[string]AlertingRule) kubegogen.Construct {
 	for _, alertingRuleID := range infrahelpers.MapKeys(props) {
 		dashboardProps := props[alertingRuleID]
 		NewAlertingRule(scope, alertingRuleID, dashboardProps)
@@ -29,7 +24,7 @@ func NewAlertingRules(scope kubegogen.Construct, props map[string]AlertingRulePr
 	return scope
 }
 
-func NewAlertingRule(scope kubegogen.Construct, alertingRuleID string, props AlertingRuleProps) kubegogen.Construct {
+func NewAlertingRule(scope kubegogen.Construct, alertingRuleID string, props AlertingRule) kubegogen.Construct {
 	cacheDir := GetGlobalContext(scope).CacheDir
 	groups := []any{}
 	data := GetCachedFile(props.URL, path.Join(cacheDir, "alerting-rules"))

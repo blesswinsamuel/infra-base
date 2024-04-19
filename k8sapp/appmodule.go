@@ -92,7 +92,8 @@ type Module interface {
 type ModuleWithMeta interface {
 	Module
 	GetModuleName() string
-	GetDashboards() map[string]GrafanaDashboardProps
+	GetGrafanaDashboards() map[string]GrafanaDashboard
+	GetAlertingRules() map[string]AlertingRule
 }
 
 type OrderedMap[K comparable, V any] struct {
@@ -140,9 +141,9 @@ type ValuesProps struct {
 }
 
 type ModuleCommons[T Module] struct {
-	Module     string                                                   `json:"_module"`
-	Dashboards infrahelpers.MergeableMap[string, GrafanaDashboardProps] `json:"_dashboards"`
-	Alerts     infrahelpers.MergeableMap[string, AlertingRuleProps]     `json:"_alerts"`
+	Module            string                                              `json:"_module"`
+	GrafanaDashboards infrahelpers.MergeableMap[string, GrafanaDashboard] `json:"_dashboards"` // TODO: rename to _grafana_dashboards
+	AlertingRules     infrahelpers.MergeableMap[string, AlertingRule]     `json:"_alerting_rules"`
 
 	Rest T `json:",inline"`
 }
@@ -155,8 +156,12 @@ func (m ModuleCommons[T]) GetModuleName() string {
 	return m.Module
 }
 
-func (m ModuleCommons[T]) GetDashboards() map[string]GrafanaDashboardProps {
-	return m.Dashboards
+func (m ModuleCommons[T]) GetGrafanaDashboards() map[string]GrafanaDashboard {
+	return m.GrafanaDashboards
+}
+
+func (m ModuleCommons[T]) GetAlertingRules() map[string]AlertingRule {
+	return m.AlertingRules
 }
 
 var registeredModules map[string]ModuleWithMeta = map[string]ModuleWithMeta{}
@@ -226,7 +231,8 @@ func Render(scope kubegogen.Construct, values ValuesProps) {
 			// unmarshal(module, service)
 			namespaceChart.SetContext("name", serviceName)
 			chart := module.Chart(namespaceChart)
-			NewGrafanaDashboards(chart, module.GetDashboards())
+			NewGrafanaDashboards(chart, module.GetGrafanaDashboards())
+			NewAlertingRules(chart, module.GetAlertingRules())
 			t()
 		}
 		t()
