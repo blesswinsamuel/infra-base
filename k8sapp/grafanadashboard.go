@@ -39,10 +39,7 @@ func NewGrafanaDashboards(scope kubegogen.Construct, props map[string]GrafanaDas
 func NewGrafanaDashboard(scope kubegogen.Construct, dashboardID string, props GrafanaDashboardProps) kubegogen.Construct {
 	cacheDir := GetGlobalContext(scope).CacheDir
 	dashboardContents := GetCachedFile(props.URL, path.Join(cacheDir, "dashboards"))
-	dashboard := map[string]interface{}{}
-	if err := json.Unmarshal(dashboardContents, &dashboard); err != nil {
-		panic(err)
-	}
+	dashboard := infrahelpers.FromJSONString[map[string]any](string(dashboardContents))
 	if props.GnetID != nil {
 		dashboard["gnet_id"] = *props.GnetID
 	}

@@ -35,6 +35,7 @@ type ApplicationProps struct {
 	Kind                            string
 	Name                            string
 	ServiceAccountName              string
+	CreateServiceAccount            bool
 	Hostname                        string
 	CreateHeadlessService           bool
 	StatefulSetServiceName          string
@@ -490,6 +491,13 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 				// Annotations:            props.IngressAnnotations,
 			})
 		}
+	}
+	if props.CreateServiceAccount {
+		NewK8sObject(scope, "serviceaccount", &corev1.ServiceAccount{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: props.ServiceAccountName,
+			},
+		})
 	}
 	return scope
 }

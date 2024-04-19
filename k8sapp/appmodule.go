@@ -142,6 +142,7 @@ type ValuesProps struct {
 type ModuleCommons[T Module] struct {
 	Module     string                                                   `json:"_module"`
 	Dashboards infrahelpers.MergeableMap[string, GrafanaDashboardProps] `json:"_dashboards"`
+	Alerts     infrahelpers.MergeableMap[string, AlertingRuleProps]     `json:"_alerts"`
 
 	Rest T `json:",inline"`
 }

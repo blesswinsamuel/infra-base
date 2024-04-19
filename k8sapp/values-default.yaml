@@ -275,35 +275,31 @@ grafana-dashboards:
 
 alerting-rules:
   rules:
-    community-rules:
-      # files:
-      #   - glob: ./alerts/postgres.yaml
-      urls:
-        alertmanager:
-          url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/alertmanager-prometheusRule.yaml
-          replacements:
-            'job="alertmanager-main"': 'job="alertmanager"'
-        kubernetes-control-plane:
-          url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubernetesControlPlane-prometheusRule.yaml
-          # skipGroups:
-          #   - kubernetes-system-controller-manager
-          #   - kubernetes-system-scheduler
-          skipAlerts:
-            - KubeControllerManagerDown
-            - KubeSchedulerDown
-            # - KubeletDown
-          replacements:
-            'up{job="kubelet", metrics_path="/metrics"}': 'up{job="apiserver", metrics_path="/metrics"}'
-        kube-prometheus:
-          url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubePrometheus-prometheusRule.yaml
-        kube-state-metrics:
-          url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubeStateMetrics-prometheusRule.yaml
-        node-exporter:
-          url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/nodeExporter-prometheusRule.yaml
-        victoriametrics:
-          url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/deployment/docker/alerts.yml
-        etcd:
-          url: https://etcd.io/docs/v3.4/op-guide/etcd3_alert.rules.yml
+    alertmanager:
+      url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/alertmanager-prometheusRule.yaml
+      replacements:
+        'job="alertmanager-main"': 'job="alertmanager"'
+    kubernetes-control-plane:
+      url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubernetesControlPlane-prometheusRule.yaml
+      # skipGroups:
+      #   - kubernetes-system-controller-manager
+      #   - kubernetes-system-scheduler
+      skipAlerts:
+        - KubeControllerManagerDown
+        - KubeSchedulerDown
+        # - KubeletDown
+      replacements:
+        'up{job="kubelet", metrics_path="/metrics"}': 'up{job="apiserver", metrics_path="/metrics"}'
+    kube-prometheus:
+      url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubePrometheus-prometheusRule.yaml
+    kube-state-metrics:
+      url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubeStateMetrics-prometheusRule.yaml
+    node-exporter:
+      url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/nodeExporter-prometheusRule.yaml
+    victoriametrics:
+      url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/deployment/docker/alerts.yml
+    etcd:
+      url: https://etcd.io/docs/v3.4/op-guide/etcd3_alert.rules.yml
 vmagent:
   image:
     repository: victoriametrics/vmagent
@@ -328,6 +324,10 @@ vmalert:
   image:
     repository: victoriametrics/vmalert
     tag: v1.100.1
+  sidecar:
+    image:
+      repository: kiwigrid/k8s-sidecar
+      tag: 1.26.1
   ingress:
     enabled: true
     subDomain: "vmalert"
