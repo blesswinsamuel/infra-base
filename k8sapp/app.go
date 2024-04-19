@@ -1,14 +1,19 @@
 package k8sapp
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"text/template"
 	"time"
 
 	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
+
+func init() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+}
 
 func NewApp(props kubegogen.AppProps) kubegogen.App {
 	app := kubegogen.NewApp(props)
@@ -110,34 +115,34 @@ func NewKappConfig(scope kubegogen.Construct) kubegogen.Construct {
 }
 
 func Synth(app kubegogen.App) {
-	log.Println("Starting synth...")
+	log.Info().Msg("Starting synth...")
 	startTime := time.Now()
 	NewKappConfig(app)
 
 	app.Synth()
 
-	log.Printf("Synth done in %s.", time.Since(startTime))
+	log.Info().Msgf("Synth done in %s.", time.Since(startTime))
 }
 
 func TemplateOutputFiles(app kubegogen.App, vars any) {
 	files, err := filepath.Glob(filepath.Join(app.OutDir(), "*.yaml"))
 	if err != nil {
-		log.Fatalf("Glob: %v", err)
+		log.Panic().Err(err).Msg("Glob")
 	}
 	for _, file := range files {
 		bytes, err := os.ReadFile(file)
 		if err != nil {
-			log.Fatalf("ReadFile: %v", err)
+			log.Panic().Err(err).Msg("ReadFile")
 		}
 		tpl := template.New("tpl")
 		tpl.Delims("[{@", "@}]")
 		out, err := tpl.Parse(string(bytes))
 		if err != nil {
-			log.Fatalf("Parse: %v", err)
+			log.Panic().Err(err).Msg("Parse")
 		}
 		f, err := os.OpenFile(file, os.O_WRONLY|os.O_TRUNC, 0644)
 		if err != nil {
-			log.Fatalf("OpenFile: %v", err)
+			log.Panic().Err(err).Msg("OpenFile")
 		}
 		out.Execute(f, vars)
 		f.Close()

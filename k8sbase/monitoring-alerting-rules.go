@@ -1,15 +1,8 @@
 package k8sbase
 
 import (
-	"errors"
-	"fmt"
-	"hash/fnv"
-	"io"
-	"log"
-	"net/http"
-	"os"
+	"path"
 	"strings"
-	"time"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
@@ -35,49 +28,6 @@ type RuleURLProps struct {
 	Replacements map[string]string `json:"replacements"`
 }
 
-func hash(s string) string {
-	h := fnv.New32a()
-	h.Write([]byte(s))
-	return fmt.Sprintf("%v", h.Sum32())
-}
-
-func GetCachedAlertingRule(url string, cacheDir string) []byte {
-	alertsCacheDir := fmt.Sprintf("%s/%s", cacheDir, "alerts")
-	if err := os.MkdirAll(alertsCacheDir, os.ModePerm); err != nil {
-		log.Fatalln("GetCachedAlertingRule MkdirAll failed", err)
-	}
-
-	date := time.Now().Format("2006-01-02")
-	fileName := hash(date+url) + ".json"
-	if _, err := os.Stat(alertsCacheDir + "/" + fileName); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			log.Println("GetCachedAlertingRule downloading", url)
-			resp, err := http.Get(url)
-			if err != nil {
-				panic(err)
-			}
-			defer resp.Body.Close()
-			if resp.StatusCode != 200 {
-				panic(resp.Status)
-			}
-			data, err := io.ReadAll(resp.Body)
-			if err != nil {
-				panic(err)
-			}
-			if err := os.WriteFile(alertsCacheDir+"/"+fileName, data, 0644); err != nil {
-				panic(err)
-			}
-		} else {
-			log.Fatalln("GetCachedAlertingRule Stat failed", err)
-		}
-	}
-	data, err := os.ReadFile(alertsCacheDir + "/" + fileName)
-	if err != nil {
-		panic(err)
-	}
-	return data
-}
-
 func (props *AlertingRulesProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
@@ -92,7 +42,7 @@ func (props *AlertingRulesProps) Chart(scope kubegogen.Construct) kubegogen.Cons
 			for _, rulesID := range infrahelpers.MapKeys(rulesConfig.URLs) {
 				urlConfig := rulesConfig.URLs[rulesID]
 				groups := []interface{}{}
-				data := GetCachedAlertingRule(urlConfig.URL, cacheDir)
+				data := k8sapp.GetCachedFile(urlConfig.URL, path.Join(cacheDir, "alerts"))
 				for k, v := range urlConfig.Replacements {
 					data = []byte(strings.ReplaceAll(string(data), k, v))
 				}

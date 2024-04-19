@@ -6,6 +6,8 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/goccy/go-yaml"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
@@ -15,7 +17,7 @@ func FromYamlString[T any](s string) T {
 	var v T
 	err := yaml.Unmarshal([]byte(s), &v)
 	if err != nil {
-		panic(err)
+		log.Panic().Err(err).Msg("Failed to unmarshal yaml")
 	}
 	return v
 }
@@ -25,7 +27,7 @@ func ToYamlString(v any) string {
 	enc := yaml.NewEncoder(buf)
 	err := enc.Encode(v)
 	if err != nil {
-		panic(err)
+		log.Panic().Err(err).Msg("Failed to convert to yaml")
 	}
 	return buf.String()
 }
@@ -73,7 +75,7 @@ func MapKeys[K constraints.Ordered, V any](m map[K]V) []K {
 func ToJSONString(v any) string {
 	out, err := json.Marshal(v)
 	if err != nil {
-		panic(err)
+		log.Panic().Err(err).Msg("Failed to convert to JSON")
 	}
 	return string(out)
 }

@@ -3,14 +3,13 @@ package k8sapp
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"html/template"
-	"log"
 	"os"
 	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
+	"github.com/rs/zerolog/log"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
@@ -51,21 +50,21 @@ func mergeMaps(a, b map[string]interface{}) map[string]interface{} {
 func LoadValues(values *ValuesProps, valuesFiles []string, templateMap map[string]any) {
 	err := yaml.NodeToValue(DefaultValues["global"], &values.Global, yaml.Strict(), yaml.UseJSONUnmarshaler())
 	if err != nil {
-		log.Fatalf("NodeToValue: %v", err)
+		log.Panic().Err(err).Msg("NodeToValue")
 	}
 	valuesMerged := map[string]interface{}{}
 	for _, valuesFile := range valuesFiles {
-		fmt.Println("Loading values from", valuesFile)
+		log.Info().Msgf("Loading values from %s", valuesFile)
 		valuesFileBytes, err := os.ReadFile(valuesFile)
 		if err != nil {
-			log.Fatalf("ReadFile: %v", err)
+			log.Panic().Err(err).Msg("ReadFile")
 		}
 		if templateMap != nil {
 			tpl := template.New("tpl")
 			tpl.Delims("[{@", "@}]")
 			out, err := tpl.Parse(string(valuesFileBytes))
 			if err != nil {
-				log.Fatalf("Parse: %v", err)
+				log.Panic().Err(err).Msg("Parse")
 			}
 			w := bytes.NewBuffer([]byte{})
 			out.Execute(w, templateMap)
@@ -73,16 +72,16 @@ func LoadValues(values *ValuesProps, valuesFiles []string, templateMap map[strin
 		}
 		fileValues := map[string]interface{}{}
 		if err := yaml.UnmarshalWithOptions(valuesFileBytes, &fileValues, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-			log.Fatalf("Unmarshal: %v", err)
+			log.Panic().Err(err).Msg("Unmarshal")
 		}
 		valuesMerged = mergeMaps(valuesMerged, fileValues)
 	}
 	valuesNode, err := yaml.ValueToNode(valuesMerged)
 	if err != nil {
-		log.Fatalf("ValueToNode: %v", err)
+		log.Panic().Err(err).Msg("ValueToNode")
 	}
 	if err := yaml.NodeToValue(valuesNode, values, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-		log.Fatalf("Unmarshal: %v", err)
+		log.Panic().Err(err).Msg("Unmarshal")
 	}
 }
 
@@ -178,9 +177,9 @@ func logModuleTiming(moduleName string, level int) func() {
 	}
 
 	startTime := time.Now()
-	log.Printf("%sStarting %q...", prefix, moduleName)
+	log.Debug().Msgf("%sStarting %q...", prefix, moduleName)
 	return func() {
-		log.Printf("%s └── Done %q in %s", prefix, moduleName, time.Since(startTime))
+		log.Debug().Msgf("%s └── Done %q in %s", prefix, moduleName, time.Since(startTime))
 	}
 }
 
@@ -198,7 +197,7 @@ func Render(scope kubegogen.Construct, values ValuesProps) {
 					Module string `json:"_module"`
 				}{}
 				if err := yaml.NodeToValue(serviceProps, &serviceCommons, yaml.UseJSONUnmarshaler()); err != nil {
-					log.Fatalf("NodeToValue (module): %v", err)
+					log.Panic().Err(err).Msg("NodeToValue (module)")
 				}
 				if serviceCommons.Module != "" {
 					moduleName = serviceCommons.Module
@@ -207,20 +206,20 @@ func Render(scope kubegogen.Construct, values ValuesProps) {
 			t := logModuleTiming(serviceName, 1)
 			module := registeredModules[moduleName]
 			if module == nil {
-				log.Fatalf("module %q is not registered.", moduleName)
+				log.Panic().Msgf("module %q is not registered.", moduleName)
 			}
 			// fmt.Println(namespace, serviceName, service, reflect.TypeOf(module))
 			if defaultValues, ok := DefaultValues[moduleName]; ok {
 				if defaultValues == nil {
-					log.Fatalf("defaultValues for %q is nil.", moduleName)
+					log.Panic().Msgf("defaultValues for %q is nil.", moduleName)
 				}
 				if err := yaml.NodeToValue(defaultValues, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-					log.Fatalf("NodeToValue(defaults): %v", err)
+					log.Panic().Err(err).Msg("NodeToValue(defaults)")
 				}
 			}
 			if serviceProps != nil {
 				if err := yaml.NodeToValue(serviceProps, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-					log.Fatalf("NodeToValue(Module): %v", err)
+					log.Panic().Err(err).Msg("NodeToValue(Module)")
 				}
 			}
 			// unmarshal(module, service)
@@ -241,7 +240,7 @@ func Render(scope kubegogen.Construct, values ValuesProps) {
 // 	if val != nil {
 // 		err := yaml.NodeToValue(val, moduleWithMeta, yaml.Strict(), yaml.UseJSONUnmarshaler())
 // 		if err != nil {
-// 			log.Fatalf("NodeToValue: %v", err)
+// 			log.Panic().Err(err).Msg("NodeToValue")
 // 		}
 // 	}
 // }

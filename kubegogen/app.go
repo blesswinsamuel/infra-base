@@ -42,68 +42,43 @@ func NewApp(props AppProps) App {
 }
 
 func patchObject(apiObject ApiObject) {
+	dnsConfig := &corev1.PodDNSConfig{
+		Options: []corev1.PodDNSConfigOption{
+			{
+				Name:  "ndots",
+				Value: infrahelpers.Ptr("1"),
+			},
+		},
+	}
 	switch apiObject.GetKind() {
 	case "Deployment":
-		deploymentUnstructured := apiObject.GetObject().(*unstructured.Unstructured)
-		var deployment appsv1.Deployment
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(deploymentUnstructured.UnstructuredContent(), &deployment)
-		if err != nil {
-			log.Fatalf("FromUnstructured: %v", err)
-		}
-		deployment.Spec.Template.Spec.DNSConfig = &corev1.PodDNSConfig{
-			Options: []corev1.PodDNSConfigOption{
-				{
-					Name:  "ndots",
-					Value: infrahelpers.Ptr("1"),
-				},
-			},
-		}
-		unstructuredObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&deployment)
-		if err != nil {
-			log.Fatalf("ToUnstructured: %v", err)
-		}
-		apiObject.SetObject(unstructured.Unstructured{Object: unstructuredObj})
+		modifyObj(apiObject, func(deployment *appsv1.Deployment) {
+			deployment.Spec.Template.Spec.DNSConfig = dnsConfig
+		})
 	case "StatefulSet":
-		statefulsetUnstructured := apiObject.GetObject().(*unstructured.Unstructured)
-		var statefulset appsv1.StatefulSet
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(statefulsetUnstructured.UnstructuredContent(), &statefulset)
-		if err != nil {
-			log.Fatalf("FromUnstructured: %v", err)
-		}
-		statefulset.Spec.Template.Spec.DNSConfig = &corev1.PodDNSConfig{
-			Options: []corev1.PodDNSConfigOption{
-				{
-					Name:  "ndots",
-					Value: infrahelpers.Ptr("1"),
-				},
-			},
-		}
-		unstructuredObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&statefulset)
-		if err != nil {
-			log.Fatalf("ToUnstructured: %v", err)
-		}
-		apiObject.SetObject(unstructured.Unstructured{Object: unstructuredObj})
+		modifyObj(apiObject, func(statefulset *appsv1.StatefulSet) {
+			statefulset.Spec.Template.Spec.DNSConfig = dnsConfig
+		})
 	case "CronJob":
-		cronjobUnstructured := apiObject.GetObject().(*unstructured.Unstructured)
-		var cronjob batchv1.CronJob
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(cronjobUnstructured.UnstructuredContent(), &cronjob)
-		if err != nil {
-			log.Fatalf("FromUnstructured: %v", err)
-		}
-		cronjob.Spec.JobTemplate.Spec.Template.Spec.DNSConfig = &corev1.PodDNSConfig{
-			Options: []corev1.PodDNSConfigOption{
-				{
-					Name:  "ndots",
-					Value: infrahelpers.Ptr("1"),
-				},
-			},
-		}
-		unstructuredObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&cronjob)
-		if err != nil {
-			log.Fatalf("ToUnstructured: %v", err)
-		}
-		apiObject.SetObject(unstructured.Unstructured{Object: unstructuredObj})
+		modifyObj(apiObject, func(cronjob *batchv1.CronJob) {
+			cronjob.Spec.JobTemplate.Spec.Template.Spec.DNSConfig = dnsConfig
+		})
 	}
+}
+
+func modifyObj[T any](apiObject ApiObject, f func(*T)) {
+	var res T
+	statefulsetUnstructured := apiObject.GetObject().(*unstructured.Unstructured)
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(statefulsetUnstructured.UnstructuredContent(), &res)
+	if err != nil {
+		log.Fatalf("FromUnstructured: %v", err)
+	}
+	f(&res)
+	unstructuredObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&res)
+	if err != nil {
+		log.Fatalf("ToUnstructured: %v", err)
+	}
+	apiObject.SetObject(unstructured.Unstructured{Object: unstructuredObj})
 }
 
 func (a *app) Synth() {

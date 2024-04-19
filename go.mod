@@ -7,6 +7,7 @@ require (
 	github.com/external-secrets/external-secrets v0.9.15
 	github.com/goccy/go-yaml v1.11.3
 	github.com/muesli/reflow v0.3.0
+	github.com/rs/zerolog v1.32.0
 	github.com/traefik/traefik/v2 v2.11.2
 	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f
 	gopkg.in/yaml.v3 v3.0.1

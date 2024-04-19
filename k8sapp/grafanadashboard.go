@@ -3,16 +3,11 @@ package k8sapp
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"hash/fnv"
-	"io"
-	"log"
-	"net/http"
-	"os"
+	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
@@ -33,44 +28,6 @@ func hash(s string) string {
 	return fmt.Sprintf("%v", h.Sum32())
 }
 
-func GetCachedDashboard(url string, cacheDir string) []byte {
-	if strings.HasPrefix(url, "file://") {
-		filePath := strings.TrimPrefix(url, "file://")
-		return []byte(infrahelpers.GetFileContents(filePath))
-	}
-
-	dashboardsCacheDir := fmt.Sprintf("%s/%s", cacheDir, "dashboards")
-	if err := os.MkdirAll(dashboardsCacheDir, os.ModePerm); err != nil {
-		log.Fatalln("GetCachedDashboard MkdirAll failed", err)
-	}
-
-	date := time.Now().Format("2006-01-02")
-	fileName := hash(date+url) + ".json"
-	if _, err := os.Stat(dashboardsCacheDir + "/" + fileName); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			log.Println("GetCachedDashboard downloading", url)
-			resp, err := http.Get(url)
-			if err != nil {
-				panic(err)
-			}
-			defer resp.Body.Close()
-			if resp.StatusCode != 200 {
-				panic(resp.Status)
-			}
-			data, err := io.ReadAll(resp.Body)
-			if err != nil {
-				panic(err)
-			}
-			if err := os.WriteFile(dashboardsCacheDir+"/"+fileName, data, 0644); err != nil {
-				panic(err)
-			}
-		} else {
-			log.Fatalln("GetCachedDashboard Stat failed", err)
-		}
-	}
-	return []byte(infrahelpers.GetFileContents(dashboardsCacheDir + "/" + fileName))
-}
-
 func NewGrafanaDashboards(scope kubegogen.Construct, props map[string]GrafanaDashboardProps) kubegogen.Construct {
 	for _, dashboardID := range infrahelpers.MapKeys(props) {
 		dashboardProps := props[dashboardID]
@@ -81,7 +38,7 @@ func NewGrafanaDashboards(scope kubegogen.Construct, props map[string]GrafanaDas
 
 func NewGrafanaDashboard(scope kubegogen.Construct, dashboardID string, props GrafanaDashboardProps) kubegogen.Construct {
 	cacheDir := GetGlobalContext(scope).CacheDir
-	dashboardContents := GetCachedDashboard(props.URL, cacheDir)
+	dashboardContents := GetCachedFile(props.URL, path.Join(cacheDir, "dashboards"))
 	dashboard := map[string]interface{}{}
 	if err := json.Unmarshal(dashboardContents, &dashboard); err != nil {
 		panic(err)
