@@ -18,7 +18,7 @@ type PostgresGrafanaDatasourceProps struct {
 	Database string `json:"database"`
 }
 
-type PostgresProps struct {
+type Postgres struct {
 	HelmChartInfo          k8sapp.ChartInfo  `json:"helm"`
 	ImagePullSecrets       []string          `json:"imagePullSecrets"`
 	ImageInfo              k8sapp.ImageInfo  `json:"image"`
@@ -35,7 +35,7 @@ type PostgresProps struct {
 	Resources            *corev1.ResourceRequirements     `json:"resources"`
 }
 
-func (props *PostgresProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *Postgres) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

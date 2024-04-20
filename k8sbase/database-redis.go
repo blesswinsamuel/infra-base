@@ -6,14 +6,14 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-type RedisProps struct {
+type Redis struct {
 	HelmChartInfo k8sapp.ChartInfo             `json:"helm"`
 	Resources     *corev1.ResourceRequirements `json:"resources"`
 }
 
 // https://github.com/bitnami/charts/tree/main/bitnami/redis
 
-func (props *RedisProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *Redis) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

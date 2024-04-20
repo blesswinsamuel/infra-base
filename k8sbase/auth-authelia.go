@@ -56,7 +56,7 @@ func (c *AutheliaClient) FillDefaults() {
 	}
 }
 
-type AutheliaProps struct {
+type Authelia struct {
 	ChartInfo k8sapp.ChartInfo `json:"helm"`
 	ImageInfo k8sapp.ImageInfo `json:"image"`
 	Ingress   struct {
@@ -109,7 +109,7 @@ type AutheliaProps struct {
 
 // https://github.com/authelia/chartrepo/tree/master/charts/authelia
 
-func (props *AutheliaProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *Authelia) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	appProps := &k8sapp.ApplicationProps{
 		Name:               "authelia",
 		IngressMiddlewares: []k8sapp.NameNamespace{{Name: "chain-authelia", Namespace: k8sapp.GetNamespaceContext(scope)}},

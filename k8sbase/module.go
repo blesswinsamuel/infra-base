@@ -4,13 +4,13 @@ import "github.com/blesswinsamuel/infra-base/k8sapp"
 
 func RegisterModules() {
 	newModules := map[string]k8sapp.ModuleWithMeta{
-		"postgres": &k8sapp.ModuleCommons[*PostgresProps]{},
-		"mariadb":  &k8sapp.ModuleCommons[*MariaDBProps]{},
-		"redis":    &k8sapp.ModuleCommons[*RedisProps]{},
+		"postgres": &k8sapp.ModuleCommons[*Postgres]{},
+		"mariadb":  &k8sapp.ModuleCommons[*MariaDB]{},
+		"redis":    &k8sapp.ModuleCommons[*Redis]{},
 
-		"traefik-forward-auth": &k8sapp.ModuleCommons[*TraefikForwardAuthProps]{},
-		"lldap":                &k8sapp.ModuleCommons[*LLDAPProps]{},
-		"authelia":             &k8sapp.ModuleCommons[*AutheliaProps]{},
+		"traefik-forward-auth": &k8sapp.ModuleCommons[*TraefikForwardAuth]{},
+		"lldap":                &k8sapp.ModuleCommons[*LLDAP]{},
+		"authelia":             &k8sapp.ModuleCommons[*Authelia]{},
 
 		"cert-issuer":  &k8sapp.ModuleCommons[*CertIssuerProps]{},
 		"cert-manager": &k8sapp.ModuleCommons[*CertManagerProps]{},
@@ -22,7 +22,7 @@ func RegisterModules() {
 		"crowdsec-traefik-bouncer": &k8sapp.ModuleCommons[*CrowdsecTraefikBouncerProps]{},
 		"crowdsec":                 &k8sapp.ModuleCommons[*CrowdsecProps]{},
 		"grafana-dashboards":       &k8sapp.ModuleCommons[*GrafanaDashboardsProps]{},
-		"grafana":                  &k8sapp.ModuleCommons[*GrafanaProps]{},
+		"grafana":                  &k8sapp.ModuleCommons[*Grafana]{},
 		"kube-state-metrics":       &k8sapp.ModuleCommons[*KubeStateMetricsProps]{},
 		"loki":                     &k8sapp.ModuleCommons[*LokiProps]{},
 		"node-exporter":            &k8sapp.ModuleCommons[*NodeExporterProps]{},

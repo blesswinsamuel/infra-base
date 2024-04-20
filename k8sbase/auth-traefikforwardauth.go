@@ -9,7 +9,7 @@ import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 )
 
-type TraefikForwardAuthProps struct {
+type TraefikForwardAuth struct {
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 	ImageInfo     k8sapp.ImageInfo `json:"image"`
 	Ingress       struct {
@@ -23,7 +23,7 @@ type TraefikForwardAuthProps struct {
 // https://github.com/k8s-at-home/charts/tree/master/charts/stable/traefik-forward-auth
 // https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common
 // https://github.com/thomseddon/traefik-forward-auth
-func (props *TraefikForwardAuthProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *TraefikForwardAuth) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

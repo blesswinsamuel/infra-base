@@ -5,13 +5,13 @@ import (
 	"github.com/blesswinsamuel/infra-base/kubegogen"
 )
 
-type MariaDBProps struct {
+type MariaDB struct {
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 	Database      string           `json:"database"`
 	Username      string           `json:"username"`
 }
 
-func (props *MariaDBProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *MariaDB) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	cprops := kubegogen.ChartProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}

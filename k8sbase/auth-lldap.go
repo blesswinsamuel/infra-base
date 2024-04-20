@@ -9,13 +9,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-type LLDAPProps struct {
+type LLDAP struct {
 	ImageInfo   k8sapp.ImageInfo `json:"image"`
 	BaseDN      string           `json:"base_dn"`
 	EmailDomain string           `json:"email_domain"`
 }
 
-func (props *LLDAPProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *LLDAP) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	return k8sapp.NewApplicationChart(scope, "lldap", &k8sapp.ApplicationProps{
 		Name: "lldap",
 		Containers: []k8sapp.ApplicationContainer{{

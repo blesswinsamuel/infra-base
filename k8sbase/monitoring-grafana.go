@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-type GrafanaProps struct {
+type Grafana struct {
 	ImageInfo k8sapp.ImageInfo `json:"image"`
 	Sidecar   struct {
 		ImageInfo k8sapp.ImageInfo `json:"image"`
@@ -24,7 +24,7 @@ type GrafanaProps struct {
 }
 
 // https://github.com/grafana/helm-charts/tree/main/charts/grafana
-func (props *GrafanaProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *Grafana) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	app := k8sapp.NewApplicationChart(scope, "grafana", &k8sapp.ApplicationProps{
 		Name: "grafana",
 		// AutomountServiceAccountToken: true,
@@ -34,8 +34,6 @@ func (props *GrafanaProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 				Image: props.ImageInfo,
 				Env: infrahelpers.MergeMaps(
 					map[string]string{
-						"GF_SECURITY_ADMIN_USER":     "admin",
-						"GF_SECURITY_ADMIN_PASSWORD": "c297f7d8254d6ca2249",
 						// "GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION": "true",
 
 						"GF_PATHS_DATA":         "/var/lib/grafana/",
@@ -71,6 +69,10 @@ func (props *GrafanaProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 						"GF_USERS_AUTO_ASSIGN_ORG_ROLE": "Admin",
 					}, nil),
 				),
+				ExtraEnvs: []corev1.EnvVar{
+					{Name: "GF_SECURITY_ADMIN_USER", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "username", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
+					{Name: "GF_SECURITY_ADMIN_PASSWORD", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "password", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
+				},
 				SecurityContext: &corev1.SecurityContext{
 					AllowPrivilegeEscalation: infrahelpers.Ptr(false), Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}}, SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
 				},
@@ -103,9 +105,11 @@ func (props *GrafanaProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 					"RESOURCE":          "configmap",
 					"REQ_URL":           "http://localhost:3000/api/admin/provisioning/dashboards/reload",
 					"REQ_METHOD":        "POST",
-					"REQ_USERNAME":      "admin",
-					"REQ_PASSWORD":      "c297f7d8254d6ca2249",
 					"LOG_LEVEL":         "DEBUG",
+				},
+				ExtraEnvs: []corev1.EnvVar{
+					{Name: "REQ_USERNAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "username", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
+					{Name: "REQ_PASSWORD", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "password", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
 				},
 				SecurityContext: &corev1.SecurityContext{
 					AllowPrivilegeEscalation: infrahelpers.Ptr(false), Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}}, SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
@@ -118,17 +122,19 @@ func (props *GrafanaProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 				Name:  "grafana-sc-datasource",
 				Image: props.Sidecar.ImageInfo,
 				Env: map[string]string{
-					"METHOD":       "WATCH",
-					"LABEL":        "grafana_datasource",
-					"LABEL_VALUE":  "1",
-					"FOLDER":       "/etc/grafana/provisioning/datasources",
-					"NAMESPACE":    "ALL",
-					"RESOURCE":     "configmap",
-					"REQ_URL":      "http://localhost:3000/api/admin/provisioning/datasources/reload",
-					"REQ_METHOD":   "POST",
-					"REQ_USERNAME": "admin",
-					"REQ_PASSWORD": "c297f7d8254d6ca2249",
-					"LOG_LEVEL":    "DEBUG",
+					"METHOD":      "WATCH",
+					"LABEL":       "grafana_datasource",
+					"LABEL_VALUE": "1",
+					"FOLDER":      "/etc/grafana/provisioning/datasources",
+					"NAMESPACE":   "ALL",
+					"RESOURCE":    "configmap",
+					"REQ_URL":     "http://localhost:3000/api/admin/provisioning/datasources/reload",
+					"REQ_METHOD":  "POST",
+					"LOG_LEVEL":   "DEBUG",
+				},
+				ExtraEnvs: []corev1.EnvVar{
+					{Name: "REQ_USERNAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "username", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
+					{Name: "REQ_PASSWORD", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "password", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
 				},
 				SecurityContext: &corev1.SecurityContext{
 					AllowPrivilegeEscalation: infrahelpers.Ptr(false), Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}}, SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
@@ -145,6 +151,18 @@ func (props *GrafanaProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 		},
 		ServiceAccountName:   "grafana",
 		CreateServiceAccount: true,
+		ExternalSecrets: []k8sapp.ApplicationExternalSecret{
+			{
+				Name: "grafana-admin-credentials",
+				Template: map[string]string{
+					"username": "admin",
+					"password": "{{ .GRAFANA_ADMIN_PASSWORD }}",
+				},
+				RemoteRefs: map[string]string{
+					"GRAFANA_ADMIN_PASSWORD": "GRAFANA_ADMIN_PASSWORD",
+				},
+			},
+		},
 		ConfigMaps: []k8sapp.ApplicationConfigMap{
 			{
 				Name: "grafana-config-dashboards",
