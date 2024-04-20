@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.TimeOnly})
 }
 
 func NewApp(props kubegogen.AppProps) kubegogen.App {

@@ -44,10 +44,7 @@ func NewApp(props AppProps) App {
 func patchObject(apiObject ApiObject) {
 	dnsConfig := &corev1.PodDNSConfig{
 		Options: []corev1.PodDNSConfigOption{
-			{
-				Name:  "ndots",
-				Value: infrahelpers.Ptr("1"),
-			},
+			{Name: "ndots", Value: infrahelpers.Ptr("1")},
 		},
 	}
 	switch apiObject.GetKind() {

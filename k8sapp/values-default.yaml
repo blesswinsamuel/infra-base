@@ -207,17 +207,15 @@ kube-state-metrics:
     chart: kube-state-metrics
     version: "5.18.1"
 grafana:
-  helm:
-    repo: https://grafana.github.io/helm-charts
-    chart: grafana
-    version: "7.3.8"
-  namespaced: false
+  image:
+    repository: grafana/grafana
+    tag: 10.4.2
+  sidecar:
+    image:
+      repository: kiwigrid/k8s-sidecar
+      tag: 1.26.1
   authProxyEnabled: true
   anonymousAuthEnabled: false
-  datasourceLabel: grafana_datasource
-  datasourceLabelValue: null
-  dashboardLabel: grafana_dashboard
-  dashboardLabelValue: null
   ingress:
     subDomain: "grafana"
   _dashboards:
