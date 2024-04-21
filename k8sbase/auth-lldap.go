@@ -15,8 +15,8 @@ type LLDAP struct {
 	EmailDomain string           `json:"email_domain"`
 }
 
-func (props *LLDAP) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	return k8sapp.NewApplicationChart(scope, "lldap", &k8sapp.ApplicationProps{
+func (props *LLDAP) Render(scope kubegogen.Scope) {
+	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Name: "lldap",
 		Containers: []k8sapp.ApplicationContainer{{
 			Name:  "lldap",

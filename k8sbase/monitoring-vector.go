@@ -28,12 +28,7 @@ type VectorProps struct {
 // https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector
 // https://helm.vector.dev/index.yaml
 
-func (props *VectorProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	cprops := kubegogen.ScopeProps{
-		Namespace: k8sapp.GetNamespaceContext(scope),
-	}
-	chart := scope.CreateScope("vector", cprops)
-
+func (props *VectorProps) Render(scope kubegogen.Scope) {
 	syslogOpts := map[string]any{
 		"decoding": map[string]any{
 			"codec": "vrl",
@@ -44,10 +39,10 @@ func (props *VectorProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 		},
 	}
 
-	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
+	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "vector",
-		Namespace:   chart.Namespace(),
+		Namespace:   scope.Namespace(),
 		Values: map[string]interface{}{
 			"role": "Agent",
 			// Prometheus scrape is disabled because it's creating duplicate metrics. Also, there is a peer_addr which blows up the cardinality
@@ -221,7 +216,7 @@ func (props *VectorProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	})
 
 	if props.SyslogServer.Enabled {
-		chart.AddApiObject(&corev1.Service{
+		scope.AddApiObject(&corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "vector-syslog-server",
 			},
@@ -251,6 +246,4 @@ func (props *VectorProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 			},
 		})
 	}
-
-	return chart
 }

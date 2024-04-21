@@ -26,12 +26,7 @@ type LokiProps struct {
 }
 
 // https://github.com/grafana/loki/tree/main/production/helm/loki
-func (props *LokiProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	cprops := kubegogen.ScopeProps{
-		Namespace: k8sapp.GetNamespaceContext(scope),
-	}
-	chart := scope.CreateScope("loki", cprops)
-
+func (props *LokiProps) Render(scope kubegogen.Scope) {
 	patchResource := func(resource *unstructured.Unstructured) {
 		if props.Local.PVName == nil {
 			return
@@ -52,10 +47,10 @@ func (props *LokiProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 		}
 	}
 
-	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
+	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:     props.HelmChartInfo,
 		ReleaseName:   "loki",
-		Namespace:     chart.Namespace(),
+		Namespace:     scope.Namespace(),
 		PatchResource: patchResource,
 		Values: map[string]any{
 			"singleBinary": map[string]any{
@@ -149,7 +144,7 @@ func (props *LokiProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 		},
 	})
 
-	k8sapp.NewConfigMap(chart, &k8sapp.ConfigmapProps{
+	k8sapp.NewConfigMap(scope, &k8sapp.ConfigmapProps{
 		Name: "grafana-datasource-loki",
 		Labels: map[string]string{
 			"grafana_datasource": "1",
@@ -180,6 +175,4 @@ func (props *LokiProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 			}),
 		},
 	})
-
-	return chart
 }

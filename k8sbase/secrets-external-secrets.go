@@ -10,16 +10,11 @@ type ExternalSecretsProps struct {
 }
 
 // https://github.com/external-secrets/external-secrets/tree/main/deploy/charts/external-secrets
-func (props *ExternalSecretsProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	cprops := kubegogen.ScopeProps{
-		Namespace: k8sapp.GetNamespaceContext(scope),
-	}
-	chart := scope.CreateScope("external-secrets", cprops)
-
-	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
+func (props *ExternalSecretsProps) Render(scope kubegogen.Scope) {
+	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "external-secrets",
-		Namespace:   chart.Namespace(),
+		Namespace:   scope.Namespace(),
 		Values: map[string]interface{}{
 			"installCRDs": "true",
 			"metrics": map[string]interface{}{
@@ -58,6 +53,4 @@ func (props *ExternalSecretsProps) Chart(scope kubegogen.Scope) kubegogen.Scope 
 			},
 		},
 	})
-
-	return chart
 }

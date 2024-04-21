@@ -22,8 +22,8 @@ type VmalertProps struct {
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-agent
-func (props *VmalertProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	app := k8sapp.NewApplicationChart(scope, "vmalert", &k8sapp.ApplicationProps{
+func (props *VmalertProps) Render(scope kubegogen.Scope) {
+	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Name: "vmalert",
 		Containers: []k8sapp.ApplicationContainer{
 			{
@@ -97,7 +97,6 @@ func (props *VmalertProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	scope.AddApiObject(&rbacv1.ClusterRoleBinding{
 		ObjectMeta: v1.ObjectMeta{Name: "vmalert"},
 		RoleRef:    rbacv1.RoleRef{Kind: "ClusterRole", Name: "vmalert", APIGroup: "rbac.authorization.k8s.io"},
-		Subjects:   []rbacv1.Subject{{Kind: "ServiceAccount", Name: "vmalert", Namespace: app.Namespace()}},
+		Subjects:   []rbacv1.Subject{{Kind: "ServiceAccount", Name: "vmalert", Namespace: scope.Namespace()}},
 	})
-	return app
 }

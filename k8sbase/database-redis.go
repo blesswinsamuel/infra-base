@@ -13,16 +13,11 @@ type Redis struct {
 
 // https://github.com/bitnami/charts/tree/main/bitnami/redis
 
-func (props *Redis) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	cprops := kubegogen.ScopeProps{
-		Namespace: k8sapp.GetNamespaceContext(scope),
-	}
-	chart := scope.CreateScope("redis", cprops)
-
-	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
+func (props *Redis) Render(scope kubegogen.Scope) {
+	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "redis",
-		Namespace:   chart.Namespace(),
+		Namespace:   scope.Namespace(),
 		Values: map[string]interface{}{
 			"architecture": "standalone",
 			"auth": map[string]interface{}{
@@ -37,6 +32,4 @@ func (props *Redis) Chart(scope kubegogen.Scope) kubegogen.Scope {
 			},
 		},
 	})
-
-	return chart
 }

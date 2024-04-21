@@ -9,16 +9,11 @@ type NodeExporterProps struct {
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
-func (props *NodeExporterProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	cprops := kubegogen.ScopeProps{
-		Namespace: k8sapp.GetNamespaceContext(scope),
-	}
-	chart := scope.CreateScope("node-exporter", cprops)
-
-	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
+func (props *NodeExporterProps) Render(scope kubegogen.Scope) {
+	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "node-exporter",
-		Namespace:   chart.Namespace(),
+		Namespace:   scope.Namespace(),
 		Values: map[string]interface{}{
 			"fullnameOverride": "node-exporter",
 			"service": map[string]interface{}{
@@ -29,6 +24,4 @@ func (props *NodeExporterProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 			},
 		},
 	})
-
-	return chart
 }

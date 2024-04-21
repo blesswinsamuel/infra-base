@@ -24,8 +24,8 @@ type Grafana struct {
 }
 
 // https://github.com/grafana/helm-charts/tree/main/charts/grafana
-func (props *Grafana) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	app := k8sapp.NewApplicationChart(scope, "grafana", &k8sapp.ApplicationProps{
+func (props *Grafana) Render(scope kubegogen.Scope) {
+	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Name: "grafana",
 		// AutomountServiceAccountToken: true,
 		Containers: []k8sapp.ApplicationContainer{
@@ -206,16 +206,15 @@ mode = console
 			},
 		},
 	})
-	app.AddApiObject(&rbacv1.ClusterRole{
+	scope.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: v1.ObjectMeta{Name: "grafana"},
 		Rules: []rbacv1.PolicyRule{
 			{APIGroups: []string{""}, Resources: []string{"configmaps", "secrets"}, Verbs: []string{"get", "list", "watch"}},
 		},
 	})
-	app.AddApiObject(&rbacv1.ClusterRoleBinding{
+	scope.AddApiObject(&rbacv1.ClusterRoleBinding{
 		ObjectMeta: v1.ObjectMeta{Name: "grafana"},
 		RoleRef:    rbacv1.RoleRef{Kind: "ClusterRole", Name: "grafana", APIGroup: "rbac.authorization.k8s.io"},
-		Subjects:   []rbacv1.Subject{{Kind: "ServiceAccount", Name: "grafana", Namespace: app.Namespace()}},
+		Subjects:   []rbacv1.Subject{{Kind: "ServiceAccount", Name: "grafana", Namespace: scope.Namespace()}},
 	})
-	return app
 }

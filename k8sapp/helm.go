@@ -66,7 +66,7 @@ func NewHelm(scope kubegogen.Scope, props *HelmProps) {
 	}
 	namespace := props.Namespace
 	if namespace == "" {
-		namespace = GetNamespaceContext(scope)
+		namespace = scope.Namespace()
 	}
 
 	cmd := exec.Command(
@@ -122,13 +122,4 @@ func NewHelm(scope kubegogen.Scope, props *HelmProps) {
 		// 	Unstructured: unstructured.Unstructured{Object: obj},
 		// })
 	}
-}
-
-func NewHelmChart(scope kubegogen.Scope, id string, props *HelmProps) kubegogen.Scope {
-	cprops := kubegogen.ScopeProps{
-		Namespace: GetNamespaceContext(scope),
-	}
-	chart := scope.CreateScope(id, cprops)
-	NewHelm(chart, props)
-	return chart
 }

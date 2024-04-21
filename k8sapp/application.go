@@ -156,15 +156,7 @@ type ApplicationPrometheusScrape struct {
 	Path string // defaults to "/metrics"
 }
 
-func NewApplicationChart(scope kubegogen.Scope, id string, props *ApplicationProps) kubegogen.Scope {
-	chart := scope.CreateScope(id, kubegogen.ScopeProps{
-		Namespace: GetNamespaceContext(scope),
-	})
-	NewApplication(chart, props)
-	return chart
-}
-
-func NewApplication(scope kubegogen.Scope, props *ApplicationProps) kubegogen.Scope {
+func NewApplication(scope kubegogen.Scope, props *ApplicationProps) {
 	if props.Kind == "" {
 		props.Kind = "Deployment"
 	}
@@ -483,7 +475,7 @@ func NewApplication(scope kubegogen.Scope, props *ApplicationProps) kubegogen.Sc
 			})
 		}
 		if len(ingressHosts) > 0 {
-			NewIngress(scope, "ingress", &IngressProps{
+			NewIngress(scope, &IngressProps{
 				Name:                   props.Name,
 				Hosts:                  ingressHosts,
 				TraefikMiddlewareNames: props.IngressMiddlewares,
@@ -498,7 +490,6 @@ func NewApplication(scope kubegogen.Scope, props *ApplicationProps) kubegogen.Sc
 			},
 		})
 	}
-	return scope
 }
 
 func Base64Encode(s string) string {

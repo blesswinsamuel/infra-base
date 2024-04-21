@@ -11,8 +11,8 @@ type ReloaderProps struct {
 
 // https://github.com/stakater/Reloader/blob/master/deployments/kubernetes/chart/reloader
 
-func (props *ReloaderProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	chart := k8sapp.NewHelmChart(scope, "reloader", &k8sapp.HelmProps{
+func (props *ReloaderProps) Render(scope kubegogen.Scope) {
+	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "reloader",
 		Values: map[string]interface{}{
@@ -25,6 +25,4 @@ func (props *ReloaderProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 			},
 		},
 	})
-
-	return chart
 }

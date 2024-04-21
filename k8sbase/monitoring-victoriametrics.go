@@ -7,7 +7,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-type VictoriaMetricsProps struct {
+type VictoriaMetrics struct {
 	HelmChartInfo k8sapp.ChartInfo            `json:"helm"`
 	Resources     corev1.ResourceRequirements `json:"resources"`
 	Ingress       struct {
@@ -20,17 +20,12 @@ type VictoriaMetricsProps struct {
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single
-func (props *VictoriaMetricsProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	cprops := kubegogen.ScopeProps{
-		Namespace: k8sapp.GetNamespaceContext(scope),
-	}
-	chart := scope.CreateScope("victoriametrics", cprops)
-
+func (props *VictoriaMetrics) Render(scope kubegogen.Scope) {
 	if props.PersistentVolume == nil {
 		props.PersistentVolume = map[string]any{}
 	}
 	if props.PersistentVolumeName != "" {
-		k8sapp.NewPersistentVolumeClaim(chart, &k8sapp.PersistentVolumeClaim{
+		k8sapp.NewPersistentVolumeClaim(scope, &k8sapp.PersistentVolumeClaim{
 			Name:            "victoriametrics",
 			StorageClass:    infrahelpers.Ternary(props.PersistentVolumeName != "", "-", ""),
 			RequestsStorage: "1Gi",
@@ -38,10 +33,10 @@ func (props *VictoriaMetricsProps) Chart(scope kubegogen.Scope) kubegogen.Scope 
 		})
 		props.PersistentVolume["existingClaim"] = "victoriametrics"
 	}
-	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
+	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "victoriametrics",
-		Namespace:   chart.Namespace(),
+		Namespace:   scope.Namespace(),
 		Values: map[string]any{
 			"server": map[string]any{
 				"retentionPeriod": props.RetentionPeriod,
@@ -82,7 +77,7 @@ func (props *VictoriaMetricsProps) Chart(scope kubegogen.Scope) kubegogen.Scope 
 		},
 	})
 
-	k8sapp.NewConfigMap(chart, &k8sapp.ConfigmapProps{
+	k8sapp.NewConfigMap(scope, &k8sapp.ConfigmapProps{
 		Name: "grafana-datasource-victoriametrics",
 		Labels: map[string]string{
 			"grafana_datasource": "1",
@@ -117,6 +112,4 @@ func (props *VictoriaMetricsProps) Chart(scope kubegogen.Scope) kubegogen.Scope 
 			}),
 		},
 	})
-
-	return chart
 }

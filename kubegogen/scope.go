@@ -31,11 +31,15 @@ type scope struct {
 }
 
 func newScope(id string, props ScopeProps) Scope {
-	return &scope{
+	scope := &scope{
 		id:      id,
 		props:   props,
 		context: map[string]any{},
 	}
+	if props.Namespace != "" {
+		scope.context["namespace"] = props.Namespace
+	}
+	return scope
 }
 
 func (c *scope) SetContext(key string, value any) {
@@ -56,21 +60,14 @@ func (c *scope) ID() string {
 }
 
 func (c *scope) CreateScope(id string, props ScopeProps) Scope {
-	childScope := &scope{
-		id:      id,
-		props:   props,
-		parent:  c,
-		context: map[string]any{},
-	}
+	childScope := newScope(id, props).(*scope)
+	childScope.parent = c
 	c.children = append(c.children, childScope)
-	if props.Namespace != "" {
-		childScope.context["namespace"] = props.Namespace
-	}
 	return childScope
 }
 
 func (c *scope) Namespace() string {
-	return c.props.Namespace
+	return c.GetContext("namespace").(string)
 }
 
 func (c *scope) AddApiObject(obj runtime.Object) ApiObject {

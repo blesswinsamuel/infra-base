@@ -11,14 +11,12 @@ type CertManagerProps struct {
 
 // https://github.com/cert-manager/cert-manager/tree/master/deploy/charts/cert-manager
 // https://artifacthub.io/packages/helm/cert-manager/cert-manager
-func (props *CertManagerProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	chart := k8sapp.NewHelmChart(scope, "helm", &k8sapp.HelmProps{
+func (props *CertManagerProps) Render(scope kubegogen.Scope) {
+	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "cert-manager",
 		Values: map[string]interface{}{
 			"installCRDs": "true",
 		},
 	})
-
-	return chart
 }

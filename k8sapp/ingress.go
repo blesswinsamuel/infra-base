@@ -42,7 +42,7 @@ type CertIssuerRefProps struct {
 	Kind string
 }
 
-func NewIngress(scope kubegogen.Scope, id string, props *IngressProps) kubegogen.Scope {
+func NewIngress(scope kubegogen.Scope, props *IngressProps) kubegogen.Scope {
 	if props.IngressType == "" {
 		props.IngressType = "kubernetes"
 	}

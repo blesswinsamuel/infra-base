@@ -35,16 +35,11 @@ type Postgres struct {
 	Resources            *corev1.ResourceRequirements     `json:"resources"`
 }
 
-func (props *Postgres) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	cprops := kubegogen.ScopeProps{
-		Namespace: k8sapp.GetNamespaceContext(scope),
-	}
-	chart := scope.CreateScope("postgres", cprops)
-
-	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
+func (props *Postgres) Render(scope kubegogen.Scope) {
+	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "postgres",
-		Namespace:   chart.Namespace(),
+		Namespace:   scope.Namespace(),
 		Values: map[string]interface{}{
 			"postgresqlSharedPreloadLibraries": infrahelpers.If(props.SharedPreloadLibraries != nil, strings.Join(props.SharedPreloadLibraries, ","), ""),
 			"nameOverride":                     "postgres",
@@ -69,7 +64,7 @@ func (props *Postgres) Chart(scope kubegogen.Scope) kubegogen.Scope {
 		},
 	})
 	if props.PersistentVolumeName != "" {
-		k8sapp.NewPersistentVolumeClaim(chart, &k8sapp.PersistentVolumeClaim{
+		k8sapp.NewPersistentVolumeClaim(scope, &k8sapp.PersistentVolumeClaim{
 			Name:            "postgres",
 			StorageClass:    infrahelpers.Ternary(props.PersistentVolumeName != "", "-", ""),
 			RequestsStorage: "8Gi",
@@ -77,7 +72,7 @@ func (props *Postgres) Chart(scope kubegogen.Scope) kubegogen.Scope {
 		})
 	}
 
-	k8sapp.NewExternalSecret(chart, &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(scope, &k8sapp.ExternalSecretProps{
 		Name: "postgres-passwords",
 		RemoteRefs: map[string]string{
 			"postgres-password":    "POSTGRES_ADMIN_PASSWORD",
@@ -106,7 +101,7 @@ func (props *Postgres) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	}
 
 	for _, grafanaDatasource := range props.GrafanaDatasources {
-		k8sapp.NewExternalSecret(chart, &k8sapp.ExternalSecretProps{
+		k8sapp.NewExternalSecret(scope, &k8sapp.ExternalSecretProps{
 			Name: fmt.Sprintf("grafana-datasource-postgres-%s", grafanaDatasource.Database),
 			SecretLabels: map[string]string{
 				"grafana_datasource": "1",
@@ -153,6 +148,4 @@ func (props *Postgres) Chart(scope kubegogen.Scope) kubegogen.Scope {
 			},
 		})
 	}
-
-	return chart
 }

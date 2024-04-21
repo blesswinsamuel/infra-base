@@ -26,20 +26,15 @@ type TraefikProps struct {
 }
 
 // https://github.com/traefik/traefik-helm-chart/tree/master/traefik
-func (props *TraefikProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	cprops := kubegogen.ScopeProps{
-		Namespace: k8sapp.GetNamespaceContext(scope),
-	}
-	chart := scope.CreateScope("traefik", cprops)
-
+func (props *TraefikProps) Render(scope kubegogen.Scope) {
 	if props.ServiceType == "" {
 		props.ServiceType = "LoadBalancer"
 	}
 
-	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
+	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: "traefik",
-		Namespace:   chart.Namespace(),
+		Namespace:   scope.Namespace(),
 		Values: map[string]interface{}{
 			// "deployment": map[string]any{
 			// 	"podAnnotations": map[string]any{
@@ -167,10 +162,10 @@ func (props *TraefikProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	})
 
 	if props.DashboardIngress.Enabled {
-		k8sapp.NewIngress(chart, "traefik-dashboard-external", &k8sapp.IngressProps{
+		k8sapp.NewIngress(scope, &k8sapp.IngressProps{
 			Name: "traefik-dashboard",
 			Hosts: []k8sapp.IngressHost{
-				{Host: props.DashboardIngress.SubDomain + "." + GetDomain(chart), Paths: []k8sapp.IngressHostPath{{Path: "/", ServiceName: "api@internal"}}, Tls: true},
+				{Host: props.DashboardIngress.SubDomain + "." + GetDomain(scope), Paths: []k8sapp.IngressHostPath{{Path: "/", ServiceName: "api@internal"}}, Tls: true},
 			},
 			IngressType: "traefik",
 		})
@@ -186,8 +181,6 @@ func (props *TraefikProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 			},
 		})
 	}
-
-	return chart
 }
 
 // # # https://github.com/traefik/traefik/issues/5571#issuecomment-539393453 - affects wss in goatcounter

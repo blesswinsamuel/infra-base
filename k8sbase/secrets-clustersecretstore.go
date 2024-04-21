@@ -14,9 +14,7 @@ type ClusterSecretStoreProps struct {
 // https://external-secrets.io/v0.5.8/provider-kubernetes/
 // https://external-secrets.io/v0.5.8/spec/
 
-func (props *ClusterSecretStoreProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	cprops := kubegogen.ScopeProps{}
-	scope = scope.CreateScope("cluster-secret-store", cprops)
+func (props *ClusterSecretStoreProps) Render(scope kubegogen.Scope) {
 	scope.AddApiObject(&externalsecretsv1beta1.ClusterSecretStore{
 		ObjectMeta: metav1.ObjectMeta{Name: GetGlobal(scope).ClusterExternalSecretStoreName},
 		Spec: externalsecretsv1beta1.SecretStoreSpec{
@@ -37,5 +35,4 @@ func (props *ClusterSecretStoreProps) Chart(scope kubegogen.Scope) kubegogen.Sco
 			},
 		},
 	})
-	return scope
 }

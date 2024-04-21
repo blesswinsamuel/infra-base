@@ -58,23 +58,17 @@ func letsEncryptIssuer(scope kubegogen.Scope, props CertIssuerProps, name string
 	scope.AddApiObject(issuer)
 }
 
-func (props *CertIssuerProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	cprops := kubegogen.ScopeProps{
-		Namespace: "cert-manager",
-	}
-	chart := scope.CreateScope("cert-issuer", cprops)
-
+func (props *CertIssuerProps) Render(scope kubegogen.Scope) {
 	// NewNamespace(chart, ("namespace"), &NamespaceProps{Name: "cert-manager"})
-	letsEncryptIssuer(chart, *props, "letsencrypt-prod", "https://acme-v02.api.letsencrypt.org/directory")
-	letsEncryptIssuer(chart, *props, "letsencrypt-staging", "https://acme-staging-v02.api.letsencrypt.org/directory")
+	letsEncryptIssuer(scope, *props, "letsencrypt-prod", "https://acme-v02.api.letsencrypt.org/directory")
+	letsEncryptIssuer(scope, *props, "letsencrypt-staging", "https://acme-staging-v02.api.letsencrypt.org/directory")
 
 	if props.Solver == "dns" {
-		k8sapp.NewExternalSecret(chart, &k8sapp.ExternalSecretProps{
+		k8sapp.NewExternalSecret(scope, &k8sapp.ExternalSecretProps{
 			Name: "cloudflare-api-token",
 			RemoteRefs: map[string]string{
 				"api-token": "CLOUDFLARE_API_TOKEN",
 			},
 		})
 	}
-	return chart
 }

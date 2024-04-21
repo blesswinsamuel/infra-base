@@ -34,7 +34,7 @@ func mergeMaps(a, b map[string]interface{}) map[string]interface{} {
 }
 
 type Module interface {
-	Chart(scope kubegogen.Scope) kubegogen.Scope
+	Render(scope kubegogen.Scope)
 }
 
 type ModuleWithMeta interface {
@@ -85,8 +85,8 @@ type ModuleCommons[T Module] struct {
 	Rest T `json:",inline"`
 }
 
-func (m ModuleCommons[T]) Chart(scope kubegogen.Scope) kubegogen.Scope {
-	return m.Rest.Chart(scope)
+func (m ModuleCommons[T]) Render(scope kubegogen.Scope) {
+	m.Rest.Render(scope)
 }
 
 func (m ModuleCommons[T]) GetModuleName() string {
@@ -150,7 +150,12 @@ func Render(scope kubegogen.Scope, values Values) {
 	for _, key := range values.Services.keyOrder {
 		namespace, services := key, values.Services.Map[key]
 		t := logModuleTiming(namespace, 0)
-		namespaceChart := NewNamespaceChart(scope, namespace)
+		namespaceScope := scope.CreateScope(namespace, kubegogen.ScopeProps{})
+		namespaceScope.SetContext("namespace", namespace)
+		if namespace != "default" {
+			NewNamespace(namespaceScope, namespace)
+		}
+
 		for _, key := range services.keyOrder {
 			serviceName, serviceProps := key, services.Map[key]
 			moduleName := getModuleName(serviceProps, serviceName)
@@ -173,10 +178,12 @@ func Render(scope kubegogen.Scope, values Values) {
 				}
 			}
 			// unmarshal(module, service)
-			namespaceChart.SetContext("name", serviceName)
-			chart := module.Chart(namespaceChart)
-			NewGrafanaDashboards(chart, module.GetGrafanaDashboards())
-			NewAlertingRules(chart, module.GetAlertingRules())
+			scopeProps := kubegogen.ScopeProps{}
+			serviceScope := namespaceScope.CreateScope(serviceName, scopeProps)
+			serviceScope.SetContext("name", serviceName)
+			module.Render(serviceScope)
+			NewGrafanaDashboards(serviceScope, module.GetGrafanaDashboards())
+			NewAlertingRules(serviceScope, module.GetAlertingRules())
 			t()
 		}
 		t()

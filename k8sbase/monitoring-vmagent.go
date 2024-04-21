@@ -26,7 +26,7 @@ type VmagentProps struct {
 var vmagentConfig string
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-agent
-func (props *VmagentProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
+func (props *VmagentProps) Render(scope kubegogen.Scope) {
 	vmagentConfig := infrahelpers.FromYamlString[map[string]any](vmagentConfig)
 
 	extraScrapeConfigs := []any{}
@@ -35,7 +35,7 @@ func (props *VmagentProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	}
 	vmagentConfig["scrape_configs"] = append(vmagentConfig["scrape_configs"].([]any), extraScrapeConfigs...)
 
-	app := k8sapp.NewApplicationChart(scope, "vmagent", &k8sapp.ApplicationProps{
+	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Name:               "vmagent",
 		ServiceAccountName: "vmagent",
 		Containers: []k8sapp.ApplicationContainer{{
@@ -67,7 +67,7 @@ func (props *VmagentProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 			{Name: "tmpdata", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 		},
 	})
-	app.AddApiObject(&rbacv1.ClusterRole{
+	scope.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: v1.ObjectMeta{Name: "vmagent"},
 		Rules: []rbacv1.PolicyRule{
 			{APIGroups: []string{"discovery.k8s.io"}, Resources: []string{"endpointslices"}, Verbs: []string{"get", "list", "watch"}},
@@ -76,15 +76,14 @@ func (props *VmagentProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 			{NonResourceURLs: []string{"/metrics"}, Verbs: []string{"get"}},
 		},
 	})
-	app.AddApiObject(&rbacv1.ClusterRoleBinding{
+	scope.AddApiObject(&rbacv1.ClusterRoleBinding{
 		ObjectMeta: v1.ObjectMeta{Name: "vmagent"},
-		Subjects:   []rbacv1.Subject{{Kind: "ServiceAccount", Name: "vmagent", Namespace: app.Namespace()}},
+		Subjects:   []rbacv1.Subject{{Kind: "ServiceAccount", Name: "vmagent", Namespace: scope.Namespace()}},
 		RoleRef:    rbacv1.RoleRef{Kind: "ClusterRole", Name: "vmagent", APIGroup: "rbac.authorization.k8s.io"},
 	})
-	app.AddApiObject(&corev1.ServiceAccount{
+	scope.AddApiObject(&corev1.ServiceAccount{
 		ObjectMeta: v1.ObjectMeta{Name: "vmagent"},
 	})
-	return app
 }
 
 // #     extraArgs:

@@ -109,10 +109,10 @@ type Authelia struct {
 
 // https://github.com/authelia/chartrepo/tree/master/charts/authelia
 
-func (props *Authelia) Chart(scope kubegogen.Scope) kubegogen.Scope {
+func (props *Authelia) Render(scope kubegogen.Scope) {
 	appProps := &k8sapp.ApplicationProps{
 		Name:               "authelia",
-		IngressMiddlewares: []k8sapp.NameNamespace{{Name: "chain-authelia", Namespace: k8sapp.GetNamespaceContext(scope)}},
+		IngressMiddlewares: []k8sapp.NameNamespace{{Name: "chain-authelia", Namespace: scope.Namespace()}},
 		Containers: []k8sapp.ApplicationContainer{{
 			Name:  "authelia",
 			Image: props.ImageInfo,
@@ -411,7 +411,7 @@ func (props *Authelia) Chart(scope kubegogen.Scope) kubegogen.Scope {
 		ReadOnly:          true,
 	})
 
-	app := k8sapp.NewApplicationChart(scope, "authelia", appProps)
+	k8sapp.NewApplication(scope, appProps)
 	// k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 	// 	ChartInfo:     props.ChartInfo,
 	// 	ReleaseName:   "authelia",
@@ -430,7 +430,7 @@ func (props *Authelia) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	// 			"annotations": infrahelpers.MergeAnnotations(
 	// 				GetCertIssuerAnnotation(scope),
 	// 				map[string]string{
-	// 					"traefik.ingress.kubernetes.io/router.middlewares": k8sapp.GetNamespaceContext(scope) + "-chain-authelia@kubernetescrd",
+	// 					"traefik.ingress.kubernetes.io/router.middlewares": scope.Namespace() + "-chain-authelia@kubernetescrd",
 	// 				},
 	// 			),
 	// 		},
@@ -445,7 +445,7 @@ func (props *Authelia) Chart(scope kubegogen.Scope) kubegogen.Scope {
 		ObjectMeta: metav1.ObjectMeta{Name: "forwardauth-authelia"},
 		Spec: traefikv1alpha1.MiddlewareSpec{
 			ForwardAuth: &traefikv1alpha1.ForwardAuth{
-				Address: "http://authelia." + k8sapp.GetNamespaceContext(app) + ".svc.cluster.local/api/verify?rd=https://" + props.Ingress.SubDomain + "." + GetDomain(scope) + "/",
+				Address: "http://authelia." + scope.Namespace() + ".svc.cluster.local/api/verify?rd=https://" + props.Ingress.SubDomain + "." + GetDomain(scope) + "/",
 				AuthResponseHeaders: []string{
 					"Remote-User",
 					"Remote-Name",
@@ -473,7 +473,7 @@ func (props *Authelia) Chart(scope kubegogen.Scope) kubegogen.Scope {
 		ObjectMeta: metav1.ObjectMeta{Name: "chain-authelia-auth"},
 		Spec: traefikv1alpha1.MiddlewareSpec{
 			Chain: &traefikv1alpha1.Chain{
-				Middlewares: []traefikv1alpha1.MiddlewareRef{{Name: "forwardauth-authelia", Namespace: k8sapp.GetNamespaceContext(app)}},
+				Middlewares: []traefikv1alpha1.MiddlewareRef{{Name: "forwardauth-authelia", Namespace: scope.Namespace()}},
 			},
 		},
 	})
@@ -481,7 +481,7 @@ func (props *Authelia) Chart(scope kubegogen.Scope) kubegogen.Scope {
 		ObjectMeta: metav1.ObjectMeta{Name: "chain-authelia"},
 		Spec: traefikv1alpha1.MiddlewareSpec{
 			Chain: &traefikv1alpha1.Chain{
-				Middlewares: []traefikv1alpha1.MiddlewareRef{{Name: "headers-authelia", Namespace: k8sapp.GetNamespaceContext(app)}},
+				Middlewares: []traefikv1alpha1.MiddlewareRef{{Name: "headers-authelia", Namespace: scope.Namespace()}},
 			},
 		},
 	})
@@ -491,7 +491,7 @@ func (props *Authelia) Chart(scope kubegogen.Scope) kubegogen.Scope {
 			Annotations: infrahelpers.MergeAnnotations( // is this needed?
 				GetCertIssuerAnnotation(scope),
 				map[string]string{
-					"traefik.ingress.kubernetes.io/router.middlewares": k8sapp.GetNamespaceContext(scope) + "-chain-authelia@kubernetescrd",
+					"traefik.ingress.kubernetes.io/router.middlewares": scope.Namespace() + "-chain-authelia@kubernetescrd",
 				},
 			),
 		},
@@ -501,7 +501,6 @@ func (props *Authelia) Chart(scope kubegogen.Scope) kubegogen.Scope {
 			MinVersion:   "VersionTLS12",
 		},
 	})
-	return app
 }
 
 // selector:
