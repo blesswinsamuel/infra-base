@@ -9,7 +9,7 @@
   "regexManagers": [
     {
       "fileMatch": [
-        "^k8sapp/values-default\\.yaml$"
+        "^k8sbase/values-default\\.yaml$"
       ],
       "matchStrings": [
         "\n\\s+repo:\\s+['\"]?(?<registryUrl>[^{}\\s]*?)['\"]?\n\\s+chart:\\s+['\"]?(?<depName>[^{}\\s]*?)['\"]?\n\\s+version:\\s+['\"]?(?<currentValue>[^{}\\s]*?)['\"]?\n"
@@ -18,7 +18,7 @@
     },
     {
       "fileMatch": [
-        "^k8sapp/values-default\\.yaml$"
+        "^k8sbase/values-default\\.yaml$"
       ],
       "matchStrings": [
         "\n\\s+repository:\\s+['\"]?(?<depName>[^{}\\s]*?)['\"]?\n\\s+tag:\\s+['\"]?(?<currentValue>[^{}\\s]*?)(?:@(?<currentDigest>sha256:[a-f0-9]+))?['\"]?\n"

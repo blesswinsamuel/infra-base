@@ -35,6 +35,7 @@ func (props *Grafana) Chart(scope kubegogen.Construct) kubegogen.Construct {
 				Env: infrahelpers.MergeMaps(
 					map[string]string{
 						// "GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION": "true",
+						// "GF_AUTH_BASIC_ENABLED":          "true",
 
 						"GF_PATHS_DATA":         "/var/lib/grafana/",
 						"GF_PATHS_LOGS":         "/var/log/grafana",
@@ -54,7 +55,6 @@ func (props *Grafana) Chart(scope kubegogen.Construct) kubegogen.Construct {
 						"GF_AUTH_ANONYMOUS_ORG_NAME":     "Main Org.",
 						"GF_AUTH_ANONYMOUS_ORG_ROLE":     "Admin",
 						"GF_AUTH_DISABLE_LOGIN_FORM":     "true",
-						"GF_AUTH_BASIC_ENABLED":          "true",
 					}, nil),
 					infrahelpers.Ternary(props.AuthProxyEnabled, map[string]string{
 						"GF_AUTH_PROXY_ENABLED":            "true",

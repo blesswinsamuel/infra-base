@@ -6,9 +6,9 @@ import (
 	"github.com/blesswinsamuel/infra-base/kubegogen"
 )
 
-func GetGlobal(scope kubegogen.Construct) k8sapp.GlobalProps {
+func GetGlobal(scope kubegogen.Construct) k8sapp.ValuesGlobal {
 	globalValues := scope.GetContext("global").(string)
-	return infrahelpers.FromYamlString[k8sapp.GlobalProps](globalValues)
+	return infrahelpers.FromYamlString[k8sapp.ValuesGlobal](globalValues)
 }
 
 func GetCertIssuer(scope kubegogen.Construct) string {
@@ -19,7 +19,7 @@ func GetCertIssuerAnnotation(scope kubegogen.Construct) map[string]string {
 	return map[string]string{"cert-manager.io/cluster-issuer": GetCertIssuer(scope)}
 }
 
-func SetGlobalContext(scope kubegogen.Construct, props k8sapp.GlobalProps) {
+func SetGlobalContext(scope kubegogen.Construct, props k8sapp.ValuesGlobal) {
 	scope.SetContext("global", infrahelpers.ToYamlString(props))
 }
 

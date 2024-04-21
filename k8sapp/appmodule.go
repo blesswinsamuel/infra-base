@@ -1,10 +1,7 @@
 package k8sapp
 
 import (
-	"bytes"
 	"context"
-	"html/template"
-	"os"
 	"time"
 
 	"github.com/goccy/go-yaml"
@@ -16,17 +13,6 @@ import (
 
 	_ "embed"
 )
-
-//go:embed values-default.yaml
-var defaultValues []byte
-
-var DefaultValues map[string]ast.Node
-
-func init() {
-	if err := yaml.UnmarshalWithOptions(defaultValues, &DefaultValues, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-		panic(err)
-	}
-}
 
 func mergeMaps(a, b map[string]interface{}) map[string]interface{} {
 	out := make(map[string]interface{}, len(a))
@@ -45,44 +31,6 @@ func mergeMaps(a, b map[string]interface{}) map[string]interface{} {
 		out[k] = v
 	}
 	return out
-}
-
-func LoadValues(values *ValuesProps, valuesFiles []string, templateMap map[string]any) {
-	err := yaml.NodeToValue(DefaultValues["global"], &values.Global, yaml.Strict(), yaml.UseJSONUnmarshaler())
-	if err != nil {
-		log.Panic().Err(err).Msg("NodeToValue")
-	}
-	valuesMerged := map[string]interface{}{}
-	for _, valuesFile := range valuesFiles {
-		log.Info().Msgf("Loading values from %s", valuesFile)
-		valuesFileBytes, err := os.ReadFile(valuesFile)
-		if err != nil {
-			log.Panic().Err(err).Msg("ReadFile")
-		}
-		if templateMap != nil {
-			tpl := template.New("tpl")
-			tpl.Delims("[{@", "@}]")
-			out, err := tpl.Parse(string(valuesFileBytes))
-			if err != nil {
-				log.Panic().Err(err).Msg("Parse")
-			}
-			w := bytes.NewBuffer([]byte{})
-			out.Execute(w, templateMap)
-			valuesFileBytes = w.Bytes()
-		}
-		fileValues := map[string]interface{}{}
-		if err := yaml.UnmarshalWithOptions(valuesFileBytes, &fileValues, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-			log.Panic().Err(err).Msg("Unmarshal")
-		}
-		valuesMerged = mergeMaps(valuesMerged, fileValues)
-	}
-	valuesNode, err := yaml.ValueToNode(valuesMerged)
-	if err != nil {
-		log.Panic().Err(err).Msg("ValueToNode")
-	}
-	if err := yaml.NodeToValue(valuesNode, values, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-		log.Panic().Err(err).Msg("Unmarshal")
-	}
 }
 
 type Module interface {
@@ -129,17 +77,6 @@ func (m *OrderedMap[K, V]) UnmarshalYAML(ctx context.Context, data []byte) error
 	return nil
 }
 
-type GlobalProps struct {
-	Domain                         string `json:"domain"`
-	CertIssuer                     string `json:"clusterCertIssuerName"`
-	ClusterExternalSecretStoreName string `json:"clusterExternalSecretStoreName"`
-}
-
-type ValuesProps struct {
-	Global   GlobalProps                                      `json:"global"`
-	Services OrderedMap[string, OrderedMap[string, ast.Node]] `json:"services"`
-}
-
 type ModuleCommons[T Module] struct {
 	Module            string                                              `json:"_module"`
 	GrafanaDashboards infrahelpers.MergeableMap[string, GrafanaDashboard] `json:"_dashboards"` // TODO: rename to _grafana_dashboards
@@ -165,15 +102,19 @@ func (m ModuleCommons[T]) GetAlertingRules() map[string]AlertingRule {
 }
 
 var registeredModules map[string]ModuleWithMeta = map[string]ModuleWithMeta{}
+var registeredDefaultValues map[string]ast.Node = map[string]ast.Node{}
 
-func RegisterModules(modules map[string]ModuleWithMeta) {
+func RegisterModules(modules map[string]ModuleWithMeta, defaultValues map[string]ast.Node) {
 	for k, v := range modules {
-		RegisterModule(k, v)
+		RegisterModule(k, v, defaultValues[k])
 	}
 }
 
-func RegisterModule(name string, module ModuleWithMeta) {
+func RegisterModule(name string, module ModuleWithMeta, defaultValues ast.Node) {
 	registeredModules[name] = module
+	if defaultValues != nil {
+		registeredDefaultValues[name] = defaultValues
+	}
 }
 
 func logModuleTiming(moduleName string, level int) func() {
@@ -189,42 +130,45 @@ func logModuleTiming(moduleName string, level int) func() {
 	}
 }
 
-func Render(scope kubegogen.Construct, values ValuesProps) {
+func Render(scope kubegogen.Construct, values Values) {
+	getModuleName := func(node ast.Node, defaultValue string) string {
+		if node == nil {
+			return defaultValue
+		}
+		moduleCommons := struct {
+			Module string `json:"_module"`
+		}{}
+		if err := yaml.NodeToValue(node, &moduleCommons, yaml.UseJSONUnmarshaler()); err != nil {
+			printErrIfPretty(err)
+			log.Panic().Err(err).Msg("NodeToValue (module)")
+		}
+		if moduleCommons.Module == "" {
+			return defaultValue
+		}
+		return moduleCommons.Module
+	}
 	for _, key := range values.Services.keyOrder {
 		namespace, services := key, values.Services.Map[key]
 		t := logModuleTiming(namespace, 0)
 		namespaceChart := NewNamespaceChart(scope, namespace)
 		for _, key := range services.keyOrder {
 			serviceName, serviceProps := key, services.Map[key]
-			moduleName := serviceName
-			if serviceProps != nil {
-				// module name is different from service name
-				serviceCommons := struct {
-					Module string `json:"_module"`
-				}{}
-				if err := yaml.NodeToValue(serviceProps, &serviceCommons, yaml.UseJSONUnmarshaler()); err != nil {
-					log.Panic().Err(err).Msg("NodeToValue (module)")
-				}
-				if serviceCommons.Module != "" {
-					moduleName = serviceCommons.Module
-				}
-			}
+			moduleName := getModuleName(serviceProps, serviceName)
 			t := logModuleTiming(serviceName, 1)
 			module := registeredModules[moduleName]
 			if module == nil {
-				log.Panic().Msgf("module %q is not registered.", moduleName)
+				log.Panic().Str("module", moduleName).Msgf("Module is not registered")
 			}
 			// fmt.Println(namespace, serviceName, service, reflect.TypeOf(module))
-			if defaultValues, ok := DefaultValues[moduleName]; ok {
-				if defaultValues == nil {
-					log.Panic().Msgf("defaultValues for %q is nil.", moduleName)
-				}
+			if defaultValues, ok := registeredDefaultValues[moduleName]; ok && defaultValues != nil {
 				if err := yaml.NodeToValue(defaultValues, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
+					printErrIfPretty(err)
 					log.Panic().Err(err).Msg("NodeToValue(defaults)")
 				}
 			}
 			if serviceProps != nil {
 				if err := yaml.NodeToValue(serviceProps, module, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
+					printErrIfPretty(err)
 					log.Panic().Err(err).Msg("NodeToValue(Module)")
 				}
 			}

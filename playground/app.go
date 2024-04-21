@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/k8sbase"
@@ -88,25 +90,46 @@ func (c *Chart) AddObject(obj any) {
 }
 
 func main() {
+
+	// -- break --
+
 	valuesFiles := []string{
 		"values.yaml",
 	}
-	values := k8sapp.ValuesProps{}
-	k8sapp.LoadValues(&values, valuesFiles, nil)
-	// log.Printf("values:\n%v", prettyPrint(values))
-
-	outputDir := "k8s-generated"
+	values := k8sapp.LoadValues(valuesFiles, nil)
 	props := kubegogen.AppProps{
 		Outdir:       outputDir,
 		DeleteOutDir: true,
-		PatchNdots:   true,
+		// https://pracucci.com/kubernetes-dns-resolution-ndots-options-and-why-it-may-affect-application-performances.html
+		// to avoid polluting the dns logs on blocky with search domain home.local. E.g.: postgres.database.svc.cluster.local.home.local
+		PatchNdots: false,
 	}
 	app := k8sapp.NewApp(props)
 	k8sbase.SetGlobalContext(app, values.Global)
+	app.SetContext("environment", environment)
+	app.SetContext("SpecialRootDomainSubdomainSeparator", templateVars["SpecialRootDomainSubdomainSeparator"])
 
 	k8sapp.Render(app, values)
 
 	k8sapp.Synth(app)
+	log.Printf("Done in %s.", time.Since(startTime))
+
+	// log.Printf("values:\n%v", prettyPrint(values))
+
+	// outputDir := "k8s-generated"
+	// props := kubegogen.AppProps{
+	// 	Outdir:       outputDir,
+	// 	DeleteOutDir: true,
+	// 	PatchNdots:   true,
+	// }
+	// app := k8sapp.NewApp(props)
+	// k8sbase.SetGlobalContext(app, values.Global)
+
+	// k8sapp.Render(app, values)
+
+	// k8sapp.Synth(app)
+
+	// -- break --
 
 	// app := NewApp(AppProps{})
 	// chart := NewChart(app, "test", ChartProps{
@@ -152,5 +175,5 @@ func main() {
 	// 	},
 	// })
 
-	app.Synth()
+	// app.Synth()
 }
