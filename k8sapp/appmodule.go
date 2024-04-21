@@ -79,8 +79,8 @@ func (m *OrderedMap[K, V]) UnmarshalYAML(ctx context.Context, data []byte) error
 
 type ModuleCommons[T Module] struct {
 	Module            string                                              `json:"_module"`
-	GrafanaDashboards infrahelpers.MergeableMap[string, GrafanaDashboard] `json:"_dashboards"`
-	AlertingRules     infrahelpers.MergeableMap[string, AlertingRule]     `json:"_alerts"`
+	GrafanaDashboards infrahelpers.MergeableMap[string, GrafanaDashboard] `json:"_grafana_dashboards"`
+	AlertingRules     infrahelpers.MergeableMap[string, AlertingRule]     `json:"_alerting_rules"`
 
 	Rest T `json:",inline"`
 }

@@ -15,7 +15,7 @@ cert-manager:
     repo: https://charts.jetstack.io
     chart: cert-manager
     version: "v1.14.4"
-  _dashboards:
+  _grafana_dashboards:
     cert-manager:
       url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/cert-manager.json
       folder: Ingress
@@ -40,7 +40,7 @@ traefik:
   createMiddlewares:
     stripPrefix:
       enabled: false
-  _dashboards:
+  _grafana_dashboards:
     traefik-kubernetes:
       url: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
       title: Traefik Kubernetes (official)
@@ -52,6 +52,9 @@ traefik:
   # - url: https://grafana.com/api/dashboards/17501/revisions/1/download
   #   id: traefik-logs
   #   title: Traefik Logs
+  _alerting_rules:
+    traefik:
+      url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/traefik/embedded-exporter-v1.yml
 
 ### databases ###
 
@@ -75,7 +78,7 @@ postgres:
     requests:
       cpu: 100m
       memory: 200Mi
-  _dashboards:
+  _grafana_dashboards:
     postgres-exporter:
       url: https://github.com/prometheus-community/postgres_exporter/raw/master/postgres_mixin/dashboards/postgres-overview.json
       title: Postgres (official)
@@ -84,6 +87,13 @@ postgres:
       url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/postgres.json
       title: Postgres
       folder: Databases
+  _alerting_rules:
+    postgres:
+      url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/postgresql/postgres-exporter.yml
+      skipAlerts:
+        - PostgresqlNotEnoughConnections
+        - PostgresqlCommitRateLow
+        - PostgresqlConfigurationChanged # bad query
 
 redis:
   helm:
@@ -97,7 +107,7 @@ redis:
     requests:
       cpu: 100m
       memory: 200Mi
-  _dashboards:
+  _grafana_dashboards:
     redis:
       url: https://github.com/oliver006/redis_exporter/raw/master/contrib/grafana_prometheus_redis_dashboard.json
       title: Redis
@@ -154,7 +164,7 @@ vector:
   ingress:
     enabled: false
     subDomain: vector
-  _dashboards:
+  _grafana_dashboards:
     # https://github.com/vectordotdev/vector/pull/14369#issuecomment-1292635356
     vector:
       url: https://github.com/zamazan4ik/vector-community/raw/main/grafana_dashboards/full-dashboard.json
@@ -166,7 +176,7 @@ crowdsec:
     repo: https://crowdsecurity.github.io/helm-charts
     chart: crowdsec
     version: "0.9.12"
-  _dashboards:
+  _grafana_dashboards:
     crowdsec-details-per-machine:
       url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v4/Crowdsec%20Details%20per%20Machine.json
       folder: CrowdSec
@@ -201,6 +211,9 @@ kube-state-metrics:
     repo: https://prometheus-community.github.io/helm-charts
     chart: kube-state-metrics
     version: "5.18.1"
+  _alerting_rules:
+    kube-state-metrics:
+      url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubeStateMetrics-prometheusRule.yaml
 grafana:
   image:
     repository: grafana/grafana
@@ -213,7 +226,7 @@ grafana:
   anonymousAuthEnabled: false
   ingress:
     subDomain: "grafana"
-  _dashboards:
+  _grafana_dashboards:
     grafana-internals:
       url: https://grafana.com/api/dashboards/3590/revisions/3/download # 3590
       title: Grafana Internals
@@ -268,10 +281,6 @@ grafana-dashboards:
 
 alerting-rules:
   rules:
-    alertmanager:
-      url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/alertmanager-prometheusRule.yaml
-      replacements:
-        'job="alertmanager-main"': 'job="alertmanager"'
     kubernetes-control-plane:
       url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubernetesControlPlane-prometheusRule.yaml
       # skipGroups:
@@ -285,14 +294,14 @@ alerting-rules:
         'up{job="kubelet", metrics_path="/metrics"}': 'up{job="apiserver", metrics_path="/metrics"}'
     kube-prometheus:
       url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubePrometheus-prometheusRule.yaml
-    kube-state-metrics:
-      url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubeStateMetrics-prometheusRule.yaml
-    node-exporter:
-      url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/nodeExporter-prometheusRule.yaml
-    victoriametrics:
-      url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/deployment/docker/alerts.yml
-    etcd:
+    etcd-official:
       url: https://etcd.io/docs/v3.4/op-guide/etcd3_alert.rules.yml
+    kubestate-exporter:
+      url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/kubernetes/kubestate-exporter.yml
+    etcd:
+      url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/etcd/embedded-exporter.yml
+    coredns:
+      url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/coredns/embedded-exporter.yml
 vmagent:
   image:
     repository: victoriametrics/vmagent
@@ -307,7 +316,7 @@ vmagent:
     limits:
       memory: "512Mi"
       cpu: "300m"
-  _dashboards:
+  _grafana_dashboards:
     victoriametrics-vmagent:
       url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmagent.json
       gnet_id: 12683
@@ -324,7 +333,7 @@ vmalert:
   ingress:
     enabled: true
     subDomain: "vmalert"
-  _dashboards:
+  _grafana_dashboards:
     victoriametrics-vmalert:
       url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/vmalert.json
       gnet_id: 14950
@@ -342,18 +351,23 @@ alertmanager:
       channel: "#alertmanager"
     telegram:
       parseMode: HTML
-  _dashboards:
+  _grafana_dashboards:
     alertmanager-overview:
       url: https://github.com/FUSAKLA/alertmanager-grafana-dashboard/raw/master/dashboard/alertmanager-dashboard.json
       gnet_id: 9578
       title: Alertmanager / Overview
       folder: Monitoring
+  _alerting_rules:
+    alertmanager:
+      url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/alertmanager-prometheusRule.yaml
+      replacements:
+        'job="alertmanager-main"': 'job="alertmanager"'
 node-exporter:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: prometheus-node-exporter
     version: "4.32.0"
-  _dashboards:
+  _grafana_dashboards:
     node-exporter:
       url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
       gnet_id: 1860
@@ -366,6 +380,14 @@ node-exporter:
       gnet_id: 11074
       title: Node Exporter 2
       folder: Monitoring
+  _alerting_rules:
+    node-exporter-official:
+      url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/nodeExporter-prometheusRule.yaml
+    node-exporter:
+      url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/host-and-hardware/node-exporter.yml
+      skipAlerts:
+        - HostMemoryIsUnderutilized
+        - HostCpuIsUnderutilized
 victoria-metrics:
   helm:
     repo: https://victoriametrics.github.io/helm-charts
@@ -382,18 +404,24 @@ victoria-metrics:
     limits:
       memory: "768Mi"
       cpu: "400m"
-  _dashboards:
+  _grafana_dashboards:
     victoriametrics-single:
       url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/dashboards/victoriametrics.json
       gnet_id: 10229
       title: VictoriaMetrics / single
       folder: Monitoring
+  _alerting_rules:
+    victoriametrics:
+      url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/deployment/docker/alerts.yml
 loki:
   helm:
     repo: https://grafana.github.io/helm-charts
     chart: loki
     version: "5.47.2"
   storage: local
+  _alerting_rules:
+    loki:
+      url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/loki/embedded-exporter.yml
 
 ### system ###
 kube-git-ops:
@@ -449,3 +477,57 @@ pg-backuper:
 ### utils ###
 
 docker-creds: {}
+# Dashboards:
+# [x] alertmanager-overview.json - "Alertmanager / Overview"
+# [x] apiserver.json - "Kubernetes / API server"
+# [ ] cluster-total.json - "Kubernetes / Networking / Cluster"
+# [ ] controller-manager.json - "Kubernetes / Controller Manager"
+# [x] grafana-overview.json - "Grafana Overview"
+# [ ] k8s-resources-cluster.json - "Kubernetes / Compute Resources / Cluster"
+# [ ] k8s-resources-namespace.json - "Kubernetes / Compute Resources / Namespace (Pods)"
+# [ ] k8s-resources-node.json - "Kubernetes / Compute Resources / Node (Pods)"
+# [ ] k8s-resources-pod.json - "Kubernetes / Compute Resources / Pod"
+# [ ] k8s-resources-workload.json - "Kubernetes / Compute Resources / Workload"
+# [ ] k8s-resources-workloads-namespace.json - "Kubernetes / Compute Resources / Namespace (Workloads)"
+# [ ] kubelet.json - "Kubernetes / Kubelet"
+# [ ] namespace-by-pod.json - "Kubernetes / Networking / Namespace (Pods)"
+# [ ] namespace-by-workload.json - "Kubernetes / Networking / Namespace (Workload)"
+# [ ] node-cluster-rsrc-use.json - "Node Exporter / USE Method / Cluster"
+# [ ] node-rsrc-use.json - "Node Exporter / USE Method / Node"
+# [x] nodes-darwin.json - "Node Exporter / MacOS"
+# [x] nodes.json - "Node Exporter / Nodes"
+# [x] persistentvolumesusage.json - "Kubernetes / Persistent Volumes"
+# [ ] pod-total.json - "Kubernetes / Networking / Pod"
+# [ ] proxy.json - "Kubernetes / Proxy"
+# [ ] scheduler.json - "Kubernetes / Scheduler"
+# [x] victoriametrics.json - "VictoriaMetrics"
+# [x] vmagent.json - "vmagent"
+# [x] vmalert.json - "vmalert"
+# [ ] workload-total.json - "Kubernetes / Networking / Workload"
+
+#     'source': 'https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/main/manifests/grafana-dashboardDefinitions.yaml',
+#         'alertmanager-overview',
+#         'apiserver',
+#         'cluster-total',
+#         'controller-manager',
+#         'grafana-overview',
+#         'k8s-resources-cluster',
+#         'k8s-resources-namespace',
+#         'k8s-resources-node',
+#         'k8s-resources-pod',
+#         'k8s-resources-workload',
+#         'k8s-resources-workloads-namespace',
+#         'kubelet',
+#         'namespace-by-pod',
+#         'namespace-by-workload',
+#         'node-cluster-rsrc-use',
+#         'node-rsrc-use',
+#         'nodes-darwin',
+#         'nodes',
+#         'persistentvolumesusage',
+#         'pod-total',
+#         'prometheus-remote-write',
+#         'prometheus',
+#         'proxy',
+#         'scheduler',
+#         'workload-total',

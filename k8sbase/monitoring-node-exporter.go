@@ -7,9 +7,14 @@ import (
 
 type NodeExporterProps struct {
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
+	Disable       bool             `json:"disable"`
 }
 
+// https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-node-exporter/values.yaml
 func (props *NodeExporterProps) Render(scope kubegogen.Scope) {
+	if props.Disable {
+		return
+	}
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "node-exporter",

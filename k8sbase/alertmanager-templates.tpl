@@ -69,9 +69,6 @@
 {{- if $alert.Annotations.summary }}
 📝 {{ $alert.Annotations.summary }}
 {{- end }}
-{{- if $alert.Annotations.description }}
-📖 {{ $alert.Annotations.description }}
-{{- end }}
 ...
 {{- end }}
 {{- end }}
