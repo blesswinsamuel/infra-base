@@ -46,7 +46,7 @@ func NewIngress(scope kubegogen.Scope, props *IngressProps) kubegogen.Scope {
 	if props.IngressType == "" {
 		props.IngressType = "kubernetes"
 	}
-	globals := GetGlobalContext(scope)
+	globals := GetConfig(scope)
 	if props.IngressType == "traefik" {
 		ingressRules := []traefikv1alpha1.Route{}
 		tlsHosts := map[string]bool{}

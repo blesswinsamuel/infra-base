@@ -38,7 +38,7 @@ func NewExternalSecret(scope kubegogen.Scope, props *ExternalSecretProps) kubego
 	slices.SortFunc(data, func(a externalsecretsv1beta1.ExternalSecretData, b externalsecretsv1beta1.ExternalSecretData) int {
 		return strings.Compare(a.SecretKey, b.SecretKey)
 	})
-	globals := GetGlobalContext(scope)
+	globals := GetConfig(scope)
 	externalsecret := externalsecretsv1beta1.ExternalSecret{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name}, // , Namespace: infrahelpers.StrPtrIfNonEmpty(props.Namespace)
 		Spec: externalsecretsv1beta1.ExternalSecretSpec{

@@ -25,7 +25,7 @@ func NewAlertingRules(scope kubegogen.Scope, props map[string]AlertingRule) kube
 }
 
 func NewAlertingRule(scope kubegogen.Scope, alertingRuleID string, props AlertingRule) {
-	cacheDir := GetGlobalContext(scope).CacheDir
+	cacheDir := GetConfig(scope).CacheDir
 	groups := []any{}
 	data := GetCachedFile(props.URL, path.Join(cacheDir, "alerting-rules"))
 	for k, v := range props.Replacements {

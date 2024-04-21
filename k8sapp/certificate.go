@@ -15,7 +15,7 @@ type CertificateProps struct {
 }
 
 func NewCertificate(scope kubegogen.Scope, props *CertificateProps) {
-	globals := GetGlobalContext(scope)
+	globals := GetConfig(scope)
 	scope.AddApiObject(&certmanagerv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name},
 		Spec: certmanagerv1.CertificateSpec{

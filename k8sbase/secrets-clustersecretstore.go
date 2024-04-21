@@ -16,7 +16,7 @@ type ClusterSecretStoreProps struct {
 
 func (props *ClusterSecretStoreProps) Render(scope kubegogen.Scope) {
 	scope.AddApiObject(&externalsecretsv1beta1.ClusterSecretStore{
-		ObjectMeta: metav1.ObjectMeta{Name: GetGlobal(scope).ClusterExternalSecretStoreName},
+		ObjectMeta: metav1.ObjectMeta{Name: GetGlobals(scope).ClusterExternalSecretStoreName},
 		Spec: externalsecretsv1beta1.SecretStoreSpec{
 			Controller:      "",
 			RefreshInterval: 0,

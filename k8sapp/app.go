@@ -23,7 +23,7 @@ func NewApp(props kubegogen.AppProps) kubegogen.App {
 		cacheDir = "./cache"
 	}
 
-	SetGlobalContext(app, Globals{
+	SetConfig(app, Config{
 		DefaultSecretStoreName:               "secretstore",
 		DefaultSecretStoreKind:               "ClusterSecretStore",
 		DefaultExternalSecretRefreshInterval: "10m",

@@ -32,7 +32,7 @@ type HelmProps struct {
 }
 
 func NewHelm(scope kubegogen.Scope, props *HelmProps) {
-	globals := GetGlobalContext(scope)
+	globals := GetConfig(scope)
 	chartsCacheDir := fmt.Sprintf("%s/%s", globals.CacheDir, "charts")
 	if err := os.MkdirAll(chartsCacheDir, os.ModePerm); err != nil {
 		log.Fatalln("MkdirAll failed", err)
