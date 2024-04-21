@@ -24,7 +24,7 @@ func NewAlertingRules(scope kubegogen.Construct, props map[string]AlertingRule) 
 	return scope
 }
 
-func NewAlertingRule(scope kubegogen.Construct, alertingRuleID string, props AlertingRule) kubegogen.Construct {
+func NewAlertingRule(scope kubegogen.Construct, alertingRuleID string, props AlertingRule) {
 	cacheDir := GetGlobalContext(scope).CacheDir
 	groups := []any{}
 	data := GetCachedFile(props.URL, path.Join(cacheDir, "alerting-rules"))
@@ -67,7 +67,7 @@ func NewAlertingRule(scope kubegogen.Construct, alertingRuleID string, props Ale
 	}
 	outStr := infrahelpers.ToYamlString(map[string]any{"groups": groupsFiltered})
 
-	return NewConfigMap(scope, alertingRuleID, &ConfigmapProps{
+	NewConfigMap(scope, alertingRuleID, &ConfigmapProps{
 		Name: "alerting-rule-" + alertingRuleID,
 		Labels: map[string]string{
 			"alerting_rule": "1",

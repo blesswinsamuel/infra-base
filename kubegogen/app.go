@@ -30,15 +30,15 @@ type AppProps struct {
 }
 
 type app struct {
-	*construct
+	Construct
 	props AppProps
 }
 
 func NewApp(props AppProps) App {
-	app := &app{construct: &construct{}, props: props}
-	// app.construct.node = newNode("root", Construct(app))
-	app.construct.node = (*node[Construct])(nil).AddChildNode("$$root", app)
-	return app
+	return &app{
+		Construct: newScope("$$root", ChartProps{}),
+		props:     props,
+	}
 }
 
 func patchObject(apiObject ApiObject) {
@@ -81,41 +81,39 @@ func modifyObj[T any](apiObject ApiObject, f func(*T)) {
 func (a *app) Synth() {
 	fileNo := 0
 	files := map[string][]ApiObject{}
-	var synth func(node *node[Construct], currentChartID []string, level int)
-	synth = func(node *node[Construct], currentChartID []string, level int) {
-		if node == nil {
+	var synth func(scope *scope, currentChartID []string, level int)
+	synth = func(scope *scope, currentChartID []string, level int) {
+		if scope == nil {
 			return
 		}
-		apiObjects := []ApiObject{}
+		objects := []ApiObject{}
 		chartCount := 0
-		for _, childNode := range node.children {
+		for _, object := range scope.objects {
+			if a.props.PatchNdots {
+				patchObject(object)
+			}
+			objects = append(objects, object)
+		}
+		for _, childNode := range scope.children {
 			// for i := 0; i < level; i++ {
 			// 	fmt.Print("  ")
 			// }
 			// fmt.Println(node.id)
 			thisChartID := currentChartID
-			if _, ok := childNode.value.(Chart); ok {
-				chartCount++
-				thisChartID = append(thisChartID, fmt.Sprintf("%02d", chartCount), childNode.ID())
-			}
+			chartCount++
+			thisChartID = append(thisChartID, fmt.Sprintf("%02d", chartCount), childNode.ID())
 			// fmt.Println(strings.Join(currentChartID, "-"), reflect.TypeOf(childNode.value), thisChartID)
 			synth(childNode, thisChartID, level+1)
-			if apiObject, ok := childNode.value.(ApiObject); ok {
-				if a.props.PatchNdots {
-					patchObject(apiObject)
-				}
-				apiObjects = append(apiObjects, apiObject)
-			}
 		}
-		if len(apiObjects) > 0 {
+		if len(objects) > 0 {
 			currentChartID := strings.Join(currentChartID, "-")
 			if _, ok := files[currentChartID]; !ok {
 				fileNo++
 			}
-			files[currentChartID] = append(files[currentChartID], apiObjects...)
+			files[currentChartID] = append(files[currentChartID], objects...)
 		}
 	}
-	synth(a.node, []string{}, 0)
+	synth(a.Construct.(*scope), []string{}, 0)
 	fileContents := map[string][]byte{}
 	for _, currentChartID := range infrahelpers.MapKeys(files) {
 		apiObjects := files[currentChartID]

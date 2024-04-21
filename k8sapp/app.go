@@ -44,7 +44,7 @@ func NewKappConfig(scope kubegogen.Construct) kubegogen.Construct {
 			},
 		},
 	}
-	chart.ApiObjectFromMap("config", map[string]interface{}{
+	chart.ApiObjectFromMap(map[string]interface{}{
 		"apiVersion":             "kapp.k14s.io/v1alpha1",
 		"kind":                   "Config",
 		"minimumRequiredVersion": "0.23.0",

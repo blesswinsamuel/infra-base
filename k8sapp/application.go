@@ -156,16 +156,15 @@ type ApplicationPrometheusScrape struct {
 	Path string // defaults to "/metrics"
 }
 
-func NewApplicationChart(scope kubegogen.Construct, id string, props *ApplicationProps) kubegogen.Chart {
+func NewApplicationChart(scope kubegogen.Construct, id string, props *ApplicationProps) kubegogen.Construct {
 	chart := scope.Chart(id, kubegogen.ChartProps{
 		Namespace: GetNamespaceContext(scope),
 	})
-	NewApplication(chart, "application", props)
+	NewApplication(chart, props)
 	return chart
 }
 
-func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProps) kubegogen.Construct {
-	scope = scope.Construct(id)
+func NewApplication(scope kubegogen.Construct, props *ApplicationProps) kubegogen.Construct {
 	if props.Kind == "" {
 		props.Kind = "Deployment"
 	}
@@ -429,7 +428,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 	}
 	switch props.Kind {
 	case "Deployment":
-		NewK8sObject(scope, "deployment", &v1.Deployment{
+		scope.ApiObject(&v1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        props.Name,
 				Annotations: appAnnotations,
@@ -444,7 +443,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 			},
 		})
 	case "StatefulSet":
-		NewK8sObject(scope, "statefuleset", &v1.StatefulSet{
+		scope.ApiObject(&v1.StatefulSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        props.Name,
 				Annotations: appAnnotations,
@@ -461,7 +460,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 		})
 	}
 	if len(servicePorts) > 0 {
-		NewK8sObject(scope, "service", &corev1.Service{
+		scope.ApiObject(&corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        props.Name,
 				Annotations: serviceAnnotations,
@@ -472,7 +471,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 			},
 		})
 		if props.CreateHeadlessService {
-			NewK8sObject(scope, "service-headless", &corev1.Service{
+			scope.ApiObject(&corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: props.Name + "-headless",
 				},
@@ -493,7 +492,7 @@ func NewApplication(scope kubegogen.Construct, id string, props *ApplicationProp
 		}
 	}
 	if props.CreateServiceAccount {
-		NewK8sObject(scope, "serviceaccount", &corev1.ServiceAccount{
+		scope.ApiObject(&corev1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: props.ServiceAccountName,
 			},

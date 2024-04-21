@@ -14,9 +14,9 @@ type CertificateProps struct {
 	CertIssuer CertIssuerRefProps
 }
 
-func NewCertificate(scope kubegogen.Construct, id string, props *CertificateProps) kubegogen.Construct {
+func NewCertificate(scope kubegogen.Construct, id string, props *CertificateProps) {
 	globals := GetGlobalContext(scope)
-	return NewK8sObject(scope, id, &certmanagerv1.Certificate{
+	scope.ApiObject(&certmanagerv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name},
 		Spec: certmanagerv1.CertificateSpec{
 			DNSNames:   props.Hosts,

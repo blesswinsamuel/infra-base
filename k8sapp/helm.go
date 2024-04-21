@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
@@ -114,7 +113,7 @@ func NewHelm(scope kubegogen.Construct, id string, props *HelmProps) kubegogen.C
 		if props.PatchResource != nil {
 			props.PatchResource(runtimeObj)
 		}
-		scope.ApiObject("api-"+strconv.Itoa(i), runtimeObj)
+		scope.ApiObject(runtimeObj)
 		// scope.ApiObjectFromMap("api-"+strconv.Itoa(i), kubegogen.ApiObjectProps{
 		// 	// TypeMeta: v1.TypeMeta{
 		// 	// 	APIVersion: obj["apiVersion"].(string),
@@ -127,7 +126,7 @@ func NewHelm(scope kubegogen.Construct, id string, props *HelmProps) kubegogen.C
 	return scope
 }
 
-func NewHelmChart(scope kubegogen.Construct, id string, props *HelmProps) kubegogen.Chart {
+func NewHelmChart(scope kubegogen.Construct, id string, props *HelmProps) kubegogen.Construct {
 	cprops := kubegogen.ChartProps{
 		Namespace: GetNamespaceContext(scope),
 	}

@@ -35,7 +35,7 @@ func NewGrafanaDashboards(scope kubegogen.Construct, props map[string]GrafanaDas
 	return scope
 }
 
-func NewGrafanaDashboard(scope kubegogen.Construct, dashboardID string, props GrafanaDashboard) kubegogen.Construct {
+func NewGrafanaDashboard(scope kubegogen.Construct, dashboardID string, props GrafanaDashboard) {
 	cacheDir := GetGlobalContext(scope).CacheDir
 	dashboardContents := GetCachedFile(props.URL, path.Join(cacheDir, "dashboards"))
 	dashboard := infrahelpers.FromJSONString[map[string]any](string(dashboardContents))
@@ -95,7 +95,7 @@ func NewGrafanaDashboard(scope kubegogen.Construct, dashboardID string, props Gr
 		outStr = strings.ReplaceAll(outStr, k, v)
 	}
 
-	return NewConfigMap(scope, dashboardID, &ConfigmapProps{
+	NewConfigMap(scope, dashboardID, &ConfigmapProps{
 		Name: "grafana-dashboard-" + dashboardID + "-json",
 		// Name: ("grafana-dashboards-" + id + "-" + baseName),
 		Labels: map[string]string{

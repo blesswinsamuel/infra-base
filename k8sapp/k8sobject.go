@@ -6,5 +6,5 @@ import (
 )
 
 func NewK8sObject(scope kubegogen.Construct, id string, obj runtime.Object) kubegogen.ApiObject {
-	return scope.ApiObject(id, obj)
+	return scope.ApiObject(obj)
 }

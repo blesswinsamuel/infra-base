@@ -6,7 +6,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewNamespaceChart(scope kubegogen.Construct, namespaceName string) kubegogen.Chart {
+func NewNamespaceChart(scope kubegogen.Construct, namespaceName string) kubegogen.Construct {
 	chart := scope.Chart(namespaceName, kubegogen.ChartProps{
 		Namespace: namespaceName,
 	})
@@ -17,8 +17,8 @@ func NewNamespaceChart(scope kubegogen.Construct, namespaceName string) kubegoge
 	return chart
 }
 
-func NewNamespace(scope kubegogen.Construct, id string, namespaceName string) kubegogen.Construct {
-	return NewK8sObject(scope, id, &corev1.Namespace{
+func NewNamespace(scope kubegogen.Construct, id string, namespaceName string) {
+	scope.ApiObject(&corev1.Namespace{
 		ObjectMeta: v1.ObjectMeta{
 			Name: namespaceName,
 			Labels: map[string]string{
