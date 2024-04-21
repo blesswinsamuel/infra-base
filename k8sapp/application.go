@@ -156,15 +156,15 @@ type ApplicationPrometheusScrape struct {
 	Path string // defaults to "/metrics"
 }
 
-func NewApplicationChart(scope kubegogen.Construct, id string, props *ApplicationProps) kubegogen.Construct {
-	chart := scope.Chart(id, kubegogen.ChartProps{
+func NewApplicationChart(scope kubegogen.Scope, id string, props *ApplicationProps) kubegogen.Scope {
+	chart := scope.CreateScope(id, kubegogen.ScopeProps{
 		Namespace: GetNamespaceContext(scope),
 	})
 	NewApplication(chart, props)
 	return chart
 }
 
-func NewApplication(scope kubegogen.Construct, props *ApplicationProps) kubegogen.Construct {
+func NewApplication(scope kubegogen.Scope, props *ApplicationProps) kubegogen.Scope {
 	if props.Kind == "" {
 		props.Kind = "Deployment"
 	}
@@ -212,7 +212,7 @@ func NewApplication(scope kubegogen.Construct, props *ApplicationProps) kubegoge
 			configmapHash.Write([]byte(configmap.Data[key]))
 			addConfigMapHash = true
 		}
-		NewConfigMap(scope, "configmap-"+configmap.Name, &ConfigmapProps{
+		NewConfigMap(scope, &ConfigmapProps{
 			Name: configmap.Name,
 			Data: configmap.Data,
 		})
@@ -231,7 +231,7 @@ func NewApplication(scope kubegogen.Construct, props *ApplicationProps) kubegoge
 				watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, secret.Name)
 			}
 		}
-		NewSecret(scope, "secret-"+secret.Name, &SecretProps{
+		NewSecret(scope, &SecretProps{
 			Name:       secret.Name,
 			StringData: secret.Data,
 		})
@@ -247,7 +247,7 @@ func NewApplication(scope kubegogen.Construct, props *ApplicationProps) kubegoge
 				watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, externalSecret.Name)
 			}
 		}
-		NewExternalSecret(scope, "external-secret-"+externalSecret.Name, &ExternalSecretProps{
+		NewExternalSecret(scope, &ExternalSecretProps{
 			Name:       externalSecret.Name,
 			RemoteRefs: externalSecret.RemoteRefs,
 			Template:   externalSecret.Template,
@@ -262,7 +262,7 @@ func NewApplication(scope kubegogen.Construct, props *ApplicationProps) kubegoge
 			})
 			addVolumeMount(pv.MountToContainers, pv.MountName, pv.MountPath, pv.SubPath, pv.ReadOnly)
 		}
-		NewPersistentVolumeClaim(scope, "pvc-"+pv.Name, &PersistentVolumeClaim{
+		NewPersistentVolumeClaim(scope, &PersistentVolumeClaim{
 			Name:            pv.Name,
 			StorageClass:    pv.StorageClass,
 			VolumeName:      pv.VolumeName,
@@ -428,7 +428,7 @@ func NewApplication(scope kubegogen.Construct, props *ApplicationProps) kubegoge
 	}
 	switch props.Kind {
 	case "Deployment":
-		scope.ApiObject(&v1.Deployment{
+		scope.AddApiObject(&v1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        props.Name,
 				Annotations: appAnnotations,
@@ -443,7 +443,7 @@ func NewApplication(scope kubegogen.Construct, props *ApplicationProps) kubegoge
 			},
 		})
 	case "StatefulSet":
-		scope.ApiObject(&v1.StatefulSet{
+		scope.AddApiObject(&v1.StatefulSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        props.Name,
 				Annotations: appAnnotations,
@@ -460,7 +460,7 @@ func NewApplication(scope kubegogen.Construct, props *ApplicationProps) kubegoge
 		})
 	}
 	if len(servicePorts) > 0 {
-		scope.ApiObject(&corev1.Service{
+		scope.AddApiObject(&corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        props.Name,
 				Annotations: serviceAnnotations,
@@ -471,7 +471,7 @@ func NewApplication(scope kubegogen.Construct, props *ApplicationProps) kubegoge
 			},
 		})
 		if props.CreateHeadlessService {
-			scope.ApiObject(&corev1.Service{
+			scope.AddApiObject(&corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: props.Name + "-headless",
 				},
@@ -492,7 +492,7 @@ func NewApplication(scope kubegogen.Construct, props *ApplicationProps) kubegoge
 		}
 	}
 	if props.CreateServiceAccount {
-		scope.ApiObject(&corev1.ServiceAccount{
+		scope.AddApiObject(&corev1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: props.ServiceAccountName,
 			},

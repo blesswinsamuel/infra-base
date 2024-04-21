@@ -20,17 +20,17 @@ type VictoriaMetricsProps struct {
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single
-func (props *VictoriaMetricsProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *VictoriaMetricsProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("victoriametrics", cprops)
+	chart := scope.CreateScope("victoriametrics", cprops)
 
 	if props.PersistentVolume == nil {
 		props.PersistentVolume = map[string]any{}
 	}
 	if props.PersistentVolumeName != "" {
-		k8sapp.NewPersistentVolumeClaim(chart, "victoriametrics", &k8sapp.PersistentVolumeClaim{
+		k8sapp.NewPersistentVolumeClaim(chart, &k8sapp.PersistentVolumeClaim{
 			Name:            "victoriametrics",
 			StorageClass:    infrahelpers.Ternary(props.PersistentVolumeName != "", "-", ""),
 			RequestsStorage: "1Gi",
@@ -38,7 +38,7 @@ func (props *VictoriaMetricsProps) Chart(scope kubegogen.Construct) kubegogen.Co
 		})
 		props.PersistentVolume["existingClaim"] = "victoriametrics"
 	}
-	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "victoriametrics",
 		Namespace:   chart.Namespace(),
@@ -82,7 +82,7 @@ func (props *VictoriaMetricsProps) Chart(scope kubegogen.Construct) kubegogen.Co
 		},
 	})
 
-	k8sapp.NewConfigMap(chart, "grafana-datasource-victoriametrics", &k8sapp.ConfigmapProps{
+	k8sapp.NewConfigMap(chart, &k8sapp.ConfigmapProps{
 		Name: "grafana-datasource-victoriametrics",
 		Labels: map[string]string{
 			"grafana_datasource": "1",

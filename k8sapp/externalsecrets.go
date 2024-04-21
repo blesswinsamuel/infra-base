@@ -27,8 +27,7 @@ type ExternalSecretProps struct {
 	SecretStore     ExternalSecretStoreProps
 }
 
-func NewExternalSecret(scope kubegogen.Construct, id string, props *ExternalSecretProps) kubegogen.ApiObject {
-	// construct := constructs.NewConstruct(scope, id)
+func NewExternalSecret(scope kubegogen.Scope, props *ExternalSecretProps) kubegogen.ApiObject {
 	var data []externalsecretsv1beta1.ExternalSecretData
 	for k, v := range props.RemoteRefs {
 		data = append(data, externalsecretsv1beta1.ExternalSecretData{
@@ -61,5 +60,5 @@ func NewExternalSecret(scope kubegogen.Construct, id string, props *ExternalSecr
 		}
 	}
 
-	return NewK8sObject(scope, id, &externalsecret)
+	return scope.AddApiObject(&externalsecret)
 }

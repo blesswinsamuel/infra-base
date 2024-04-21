@@ -24,7 +24,7 @@ type Grafana struct {
 }
 
 // https://github.com/grafana/helm-charts/tree/main/charts/grafana
-func (props *Grafana) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *Grafana) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	app := k8sapp.NewApplicationChart(scope, "grafana", &k8sapp.ApplicationProps{
 		Name: "grafana",
 		// AutomountServiceAccountToken: true,
@@ -206,13 +206,13 @@ mode = console
 			},
 		},
 	})
-	k8sapp.NewK8sObject(app, "clusterrole", &rbacv1.ClusterRole{
+	app.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: v1.ObjectMeta{Name: "grafana"},
 		Rules: []rbacv1.PolicyRule{
 			{APIGroups: []string{""}, Resources: []string{"configmaps", "secrets"}, Verbs: []string{"get", "list", "watch"}},
 		},
 	})
-	k8sapp.NewK8sObject(app, "clusterrolebinding", &rbacv1.ClusterRoleBinding{
+	app.AddApiObject(&rbacv1.ClusterRoleBinding{
 		ObjectMeta: v1.ObjectMeta{Name: "grafana"},
 		RoleRef:    rbacv1.RoleRef{Kind: "ClusterRole", Name: "grafana", APIGroup: "rbac.authorization.k8s.io"},
 		Subjects:   []rbacv1.Subject{{Kind: "ServiceAccount", Name: "grafana", Namespace: app.Namespace()}},

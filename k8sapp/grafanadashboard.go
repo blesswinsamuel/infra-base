@@ -28,14 +28,14 @@ func hash(s string) string {
 	return fmt.Sprintf("%v", h.Sum32())
 }
 
-func NewGrafanaDashboards(scope kubegogen.Construct, props map[string]GrafanaDashboard) kubegogen.Construct {
+func NewGrafanaDashboards(scope kubegogen.Scope, props map[string]GrafanaDashboard) kubegogen.Scope {
 	for _, dashboardID := range infrahelpers.MapKeys(props) {
 		NewGrafanaDashboard(scope, dashboardID, props[dashboardID])
 	}
 	return scope
 }
 
-func NewGrafanaDashboard(scope kubegogen.Construct, dashboardID string, props GrafanaDashboard) {
+func NewGrafanaDashboard(scope kubegogen.Scope, dashboardID string, props GrafanaDashboard) {
 	cacheDir := GetGlobalContext(scope).CacheDir
 	dashboardContents := GetCachedFile(props.URL, path.Join(cacheDir, "dashboards"))
 	dashboard := infrahelpers.FromJSONString[map[string]any](string(dashboardContents))
@@ -95,7 +95,7 @@ func NewGrafanaDashboard(scope kubegogen.Construct, dashboardID string, props Gr
 		outStr = strings.ReplaceAll(outStr, k, v)
 	}
 
-	NewConfigMap(scope, dashboardID, &ConfigmapProps{
+	NewConfigMap(scope, &ConfigmapProps{
 		Name: "grafana-dashboard-" + dashboardID + "-json",
 		// Name: ("grafana-dashboards-" + id + "-" + baseName),
 		Labels: map[string]string{

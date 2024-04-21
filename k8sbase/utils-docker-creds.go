@@ -12,10 +12,10 @@ type UtilsDockerCreds struct {
 	KeyPrefix string `json:"keyPrefix"`
 }
 
-func (props *UtilsDockerCreds) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{}
-	chart := scope.Chart("docker-creds", cprops)
-	k8sapp.NewExternalSecret(chart, "externalsecret", &k8sapp.ExternalSecretProps{
+func (props *UtilsDockerCreds) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{}
+	chart := scope.CreateScope("docker-creds", cprops)
+	k8sapp.NewExternalSecret(chart, &k8sapp.ExternalSecretProps{
 		Name:       "regcred",
 		SecretType: "kubernetes.io/dockerconfigjson",
 		Template: map[string]string{

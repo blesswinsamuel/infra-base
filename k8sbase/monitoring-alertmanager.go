@@ -39,7 +39,7 @@ type AlertmanagerProps struct {
 // https://github.com/prometheus-community/helm-charts/blob/main/charts/alertmanager
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-alert
 
-func (props *AlertmanagerProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *AlertmanagerProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	chart := k8sapp.NewApplicationChart(scope, "alertmanager", &k8sapp.ApplicationProps{
 		Kind:                         "StatefulSet",
 		Name:                         "alertmanager",
@@ -156,7 +156,7 @@ func (props *AlertmanagerProps) Chart(scope kubegogen.Construct) kubegogen.Const
 		}},
 	})
 
-	k8sapp.NewK8sObject(scope, "alertmanager-sa", &corev1.ServiceAccount{
+	scope.AddApiObject(&corev1.ServiceAccount{
 		ObjectMeta: v1.ObjectMeta{
 			Name: "alertmanager",
 		},

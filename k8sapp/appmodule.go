@@ -34,7 +34,7 @@ func mergeMaps(a, b map[string]interface{}) map[string]interface{} {
 }
 
 type Module interface {
-	Chart(scope kubegogen.Construct) kubegogen.Construct
+	Chart(scope kubegogen.Scope) kubegogen.Scope
 }
 
 type ModuleWithMeta interface {
@@ -85,7 +85,7 @@ type ModuleCommons[T Module] struct {
 	Rest T `json:",inline"`
 }
 
-func (m ModuleCommons[T]) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (m ModuleCommons[T]) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	return m.Rest.Chart(scope)
 }
 
@@ -130,7 +130,7 @@ func logModuleTiming(moduleName string, level int) func() {
 	}
 }
 
-func Render(scope kubegogen.Construct, values Values) {
+func Render(scope kubegogen.Scope, values Values) {
 	getModuleName := func(node ast.Node, defaultValue string) string {
 		if node == nil {
 			return defaultValue

@@ -15,7 +15,7 @@ type CertIssuerProps struct {
 	Solver string `json:"solver"` // dns or http
 }
 
-func letsEncryptIssuer(chart kubegogen.Construct, props CertIssuerProps, name string, server string) {
+func letsEncryptIssuer(scope kubegogen.Scope, props CertIssuerProps, name string, server string) {
 	issuer := &certmanagerv1.ClusterIssuer{
 		ObjectMeta: v1.ObjectMeta{Name: name},
 		Spec: certmanagerv1.IssuerSpec{IssuerConfig: certmanagerv1.IssuerConfig{
@@ -55,21 +55,21 @@ func letsEncryptIssuer(chart kubegogen.Construct, props CertIssuerProps, name st
 		}
 	}
 
-	k8sapp.NewK8sObject(chart, name, issuer)
+	scope.AddApiObject(issuer)
 }
 
-func (props *CertIssuerProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *CertIssuerProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: "cert-manager",
 	}
-	chart := scope.Chart("cert-issuer", cprops)
+	chart := scope.CreateScope("cert-issuer", cprops)
 
 	// NewNamespace(chart, ("namespace"), &NamespaceProps{Name: "cert-manager"})
 	letsEncryptIssuer(chart, *props, "letsencrypt-prod", "https://acme-v02.api.letsencrypt.org/directory")
 	letsEncryptIssuer(chart, *props, "letsencrypt-staging", "https://acme-staging-v02.api.letsencrypt.org/directory")
 
 	if props.Solver == "dns" {
-		k8sapp.NewExternalSecret(chart, "cloudflare-externalsecret", &k8sapp.ExternalSecretProps{
+		k8sapp.NewExternalSecret(chart, &k8sapp.ExternalSecretProps{
 			Name: "cloudflare-api-token",
 			RemoteRefs: map[string]string{
 				"api-token": "CLOUDFLARE_API_TOKEN",

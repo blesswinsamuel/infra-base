@@ -9,13 +9,13 @@ type KubeStateMetricsProps struct {
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
-func (props *KubeStateMetricsProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *KubeStateMetricsProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("kube-state-metrics", cprops)
+	chart := scope.CreateScope("kube-state-metrics", cprops)
 
-	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "kube-state-metrics",
 		Namespace:   chart.Namespace(),

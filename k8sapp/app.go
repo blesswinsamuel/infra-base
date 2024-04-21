@@ -34,8 +34,8 @@ func NewApp(props kubegogen.AppProps) kubegogen.App {
 	return app
 }
 
-func NewKappConfig(scope kubegogen.Construct) kubegogen.Construct {
-	chart := scope.Chart("kapp-config", kubegogen.ChartProps{})
+func NewKappConfig(scope kubegogen.Scope) kubegogen.Scope {
+	chart := scope.CreateScope("kapp-config", kubegogen.ScopeProps{})
 	pvResourceMatchers := []any{
 		map[string]any{
 			"apiVersionKindMatcher": map[string]any{
@@ -44,7 +44,7 @@ func NewKappConfig(scope kubegogen.Construct) kubegogen.Construct {
 			},
 		},
 	}
-	chart.ApiObjectFromMap(map[string]interface{}{
+	chart.AddApiObjectFromMap(map[string]interface{}{
 		"apiVersion":             "kapp.k14s.io/v1alpha1",
 		"kind":                   "Config",
 		"minimumRequiredVersion": "0.23.0",

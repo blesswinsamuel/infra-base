@@ -14,9 +14,9 @@ type CertificateProps struct {
 	CertIssuer CertIssuerRefProps
 }
 
-func NewCertificate(scope kubegogen.Construct, id string, props *CertificateProps) {
+func NewCertificate(scope kubegogen.Scope, props *CertificateProps) {
 	globals := GetGlobalContext(scope)
-	scope.ApiObject(&certmanagerv1.Certificate{
+	scope.AddApiObject(&certmanagerv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name},
 		Spec: certmanagerv1.CertificateSpec{
 			DNSNames:   props.Hosts,

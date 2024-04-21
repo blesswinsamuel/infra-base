@@ -16,11 +16,11 @@ type Globals struct {
 	CacheDir string
 }
 
-func GetGlobalContext(scope kubegogen.Construct) Globals {
+func GetGlobalContext(scope kubegogen.Scope) Globals {
 	globalValues := scope.GetContext("globals").(string)
 	return infrahelpers.FromYamlString[Globals](globalValues)
 }
 
-func SetGlobalContext(scope kubegogen.Construct, props Globals) {
+func SetGlobalContext(scope kubegogen.Scope, props Globals) {
 	scope.SetContext("globals", infrahelpers.ToYamlString(props))
 }

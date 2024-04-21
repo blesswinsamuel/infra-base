@@ -109,7 +109,7 @@ type Authelia struct {
 
 // https://github.com/authelia/chartrepo/tree/master/charts/authelia
 
-func (props *Authelia) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *Authelia) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	appProps := &k8sapp.ApplicationProps{
 		Name:               "authelia",
 		IngressMiddlewares: []k8sapp.NameNamespace{{Name: "chain-authelia", Namespace: k8sapp.GetNamespaceContext(scope)}},
@@ -412,7 +412,7 @@ func (props *Authelia) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	})
 
 	app := k8sapp.NewApplicationChart(scope, "authelia", appProps)
-	// k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
+	// k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 	// 	ChartInfo:     props.ChartInfo,
 	// 	ReleaseName:   "authelia",
 	// 	Namespace:     chart.Namespace(),
@@ -441,7 +441,7 @@ func (props *Authelia) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	// 	},
 	// })
 
-	k8sapp.NewK8sObject(app, "forwardauth-authelia", &traefikv1alpha1.Middleware{
+	scope.AddApiObject(&traefikv1alpha1.Middleware{
 		ObjectMeta: metav1.ObjectMeta{Name: "forwardauth-authelia"},
 		Spec: traefikv1alpha1.MiddlewareSpec{
 			ForwardAuth: &traefikv1alpha1.ForwardAuth{
@@ -456,7 +456,7 @@ func (props *Authelia) Chart(scope kubegogen.Construct) kubegogen.Construct {
 			},
 		},
 	})
-	k8sapp.NewK8sObject(app, "headers-authelia", &traefikv1alpha1.Middleware{
+	scope.AddApiObject(&traefikv1alpha1.Middleware{
 		ObjectMeta: metav1.ObjectMeta{Name: "headers-authelia"},
 		Spec: traefikv1alpha1.MiddlewareSpec{
 			Headers: &dynamic.Headers{
@@ -469,7 +469,7 @@ func (props *Authelia) Chart(scope kubegogen.Construct) kubegogen.Construct {
 			},
 		},
 	})
-	k8sapp.NewK8sObject(app, "chain-authelia-auth", &traefikv1alpha1.Middleware{
+	scope.AddApiObject(&traefikv1alpha1.Middleware{
 		ObjectMeta: metav1.ObjectMeta{Name: "chain-authelia-auth"},
 		Spec: traefikv1alpha1.MiddlewareSpec{
 			Chain: &traefikv1alpha1.Chain{
@@ -477,7 +477,7 @@ func (props *Authelia) Chart(scope kubegogen.Construct) kubegogen.Construct {
 			},
 		},
 	})
-	k8sapp.NewK8sObject(app, "chain-authelia", &traefikv1alpha1.Middleware{
+	scope.AddApiObject(&traefikv1alpha1.Middleware{
 		ObjectMeta: metav1.ObjectMeta{Name: "chain-authelia"},
 		Spec: traefikv1alpha1.MiddlewareSpec{
 			Chain: &traefikv1alpha1.Chain{
@@ -485,7 +485,7 @@ func (props *Authelia) Chart(scope kubegogen.Construct) kubegogen.Construct {
 			},
 		},
 	})
-	k8sapp.NewK8sObject(app, "authelia-tlsoption", &traefikv1alpha1.TLSOption{
+	scope.AddApiObject(&traefikv1alpha1.TLSOption{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "authelia",
 			Annotations: infrahelpers.MergeAnnotations( // is this needed?

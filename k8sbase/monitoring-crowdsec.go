@@ -10,13 +10,13 @@ type CrowdsecProps struct {
 }
 
 // https://github.com/crowdsecurity/helm-charts/tree/main/charts/crowdsec
-func (props *CrowdsecProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *CrowdsecProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("crowdsec", cprops)
+	chart := scope.CreateScope("crowdsec", cprops)
 
-	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "crowdsec",
 		Namespace:   chart.Namespace(),
@@ -115,7 +115,7 @@ func (props *CrowdsecProps) Chart(scope kubegogen.Construct) kubegogen.Construct
 	// 	}
 	// }
 
-	k8sapp.NewExternalSecret(chart, "crowdsec-keys", &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, &k8sapp.ExternalSecretProps{
 		Name: "crowdsec-keys",
 		RemoteRefs: map[string]string{
 			"ENROLL_KEY": "CROWDSEC_ENROLL_KEY",

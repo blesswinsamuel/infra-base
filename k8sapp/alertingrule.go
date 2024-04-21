@@ -16,7 +16,7 @@ type AlertingRule struct {
 	Replacements map[string]string `json:"replacements"`
 }
 
-func NewAlertingRules(scope kubegogen.Construct, props map[string]AlertingRule) kubegogen.Construct {
+func NewAlertingRules(scope kubegogen.Scope, props map[string]AlertingRule) kubegogen.Scope {
 	for _, alertingRuleID := range infrahelpers.MapKeys(props) {
 		dashboardProps := props[alertingRuleID]
 		NewAlertingRule(scope, alertingRuleID, dashboardProps)
@@ -24,7 +24,7 @@ func NewAlertingRules(scope kubegogen.Construct, props map[string]AlertingRule) 
 	return scope
 }
 
-func NewAlertingRule(scope kubegogen.Construct, alertingRuleID string, props AlertingRule) {
+func NewAlertingRule(scope kubegogen.Scope, alertingRuleID string, props AlertingRule) {
 	cacheDir := GetGlobalContext(scope).CacheDir
 	groups := []any{}
 	data := GetCachedFile(props.URL, path.Join(cacheDir, "alerting-rules"))
@@ -67,7 +67,7 @@ func NewAlertingRule(scope kubegogen.Construct, alertingRuleID string, props Ale
 	}
 	outStr := infrahelpers.ToYamlString(map[string]any{"groups": groupsFiltered})
 
-	NewConfigMap(scope, alertingRuleID, &ConfigmapProps{
+	NewConfigMap(scope, &ConfigmapProps{
 		Name: "alerting-rule-" + alertingRuleID,
 		Labels: map[string]string{
 			"alerting_rule": "1",

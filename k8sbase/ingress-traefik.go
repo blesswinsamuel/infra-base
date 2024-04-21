@@ -26,17 +26,17 @@ type TraefikProps struct {
 }
 
 // https://github.com/traefik/traefik-helm-chart/tree/master/traefik
-func (props *TraefikProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *TraefikProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("traefik", cprops)
+	chart := scope.CreateScope("traefik", cprops)
 
 	if props.ServiceType == "" {
 		props.ServiceType = "LoadBalancer"
 	}
 
-	k8sapp.NewHelm(chart, "traefik", &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: "traefik",
 		Namespace:   chart.Namespace(),
@@ -177,7 +177,7 @@ func (props *TraefikProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 	}
 
 	if props.CreateMiddlewares.StripPrefix.Enabled {
-		k8sapp.NewK8sObject(chart, "traefik-strip-prefix", &traefikv1alpha1.Middleware{
+		scope.AddApiObject(&traefikv1alpha1.Middleware{
 			ObjectMeta: v1.ObjectMeta{Name: "traefik-strip-prefix"},
 			Spec: traefikv1alpha1.MiddlewareSpec{
 				StripPrefixRegex: &dynamic.StripPrefixRegex{

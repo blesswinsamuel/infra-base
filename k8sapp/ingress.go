@@ -42,7 +42,7 @@ type CertIssuerRefProps struct {
 	Kind string
 }
 
-func NewIngress(scope kubegogen.Construct, id string, props *IngressProps) kubegogen.Construct {
+func NewIngress(scope kubegogen.Scope, id string, props *IngressProps) kubegogen.Scope {
 	if props.IngressType == "" {
 		props.IngressType = "kubernetes"
 	}
@@ -87,7 +87,7 @@ func NewIngress(scope kubegogen.Construct, id string, props *IngressProps) kubeg
 		}
 		tlsDomains := []traefiktypes.Domain{}
 		if len(tlsHosts) > 0 {
-			NewCertificate(scope, id+"-cert", &CertificateProps{
+			NewCertificate(scope, &CertificateProps{
 				Name:       props.Name,
 				Hosts:      infrahelpers.MapKeys(tlsHosts),
 				CertIssuer: props.CertIssuer,
@@ -98,7 +98,7 @@ func NewIngress(scope kubegogen.Construct, id string, props *IngressProps) kubeg
 				Main: host,
 			})
 		}
-		NewK8sObject(scope, id, &traefikv1alpha1.IngressRoute{
+		scope.AddApiObject(&traefikv1alpha1.IngressRoute{
 			ObjectMeta: v1.ObjectMeta{
 				Name: props.Name,
 			},
@@ -157,7 +157,7 @@ func NewIngress(scope kubegogen.Construct, id string, props *IngressProps) kubeg
 		if len(traefikMiddlwareNames) > 0 {
 			annotations["traefik.ingress.kubernetes.io/router.middlewares"] = strings.Join(traefikMiddlwareNames, ",")
 		}
-		NewK8sObject(scope, id, &networkingv1.Ingress{
+		scope.AddApiObject(&networkingv1.Ingress{
 			ObjectMeta: v1.ObjectMeta{
 				Name:        props.Name,
 				Annotations: annotations,

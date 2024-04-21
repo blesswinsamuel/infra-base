@@ -19,8 +19,8 @@ type PersistentVolume struct {
 	NodeAffinity           *corev1.VolumeNodeAffinity
 }
 
-func NewPersistentVolume(scope kubegogen.Construct, id string, props *PersistentVolume) kubegogen.ApiObject {
-	return NewK8sObject(scope, id, infrahelpers.Ptr(NewPersistentVolumeProps(props)))
+func NewPersistentVolume(scope kubegogen.Scope, props *PersistentVolume) kubegogen.ApiObject {
+	return scope.AddApiObject(infrahelpers.Ptr(NewPersistentVolumeProps(props)))
 }
 
 func NewPersistentVolumeProps(props *PersistentVolume) corev1.PersistentVolume {

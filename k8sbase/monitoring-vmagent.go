@@ -26,7 +26,7 @@ type VmagentProps struct {
 var vmagentConfig string
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-agent
-func (props *VmagentProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *VmagentProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	vmagentConfig := infrahelpers.FromYamlString[map[string]any](vmagentConfig)
 
 	extraScrapeConfigs := []any{}
@@ -67,7 +67,7 @@ func (props *VmagentProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 			{Name: "tmpdata", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 		},
 	})
-	k8sapp.NewK8sObject(app, "clusterrole", &rbacv1.ClusterRole{
+	app.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: v1.ObjectMeta{Name: "vmagent"},
 		Rules: []rbacv1.PolicyRule{
 			{APIGroups: []string{"discovery.k8s.io"}, Resources: []string{"endpointslices"}, Verbs: []string{"get", "list", "watch"}},
@@ -76,12 +76,12 @@ func (props *VmagentProps) Chart(scope kubegogen.Construct) kubegogen.Construct 
 			{NonResourceURLs: []string{"/metrics"}, Verbs: []string{"get"}},
 		},
 	})
-	k8sapp.NewK8sObject(app, "clusterrolebinding", &rbacv1.ClusterRoleBinding{
+	app.AddApiObject(&rbacv1.ClusterRoleBinding{
 		ObjectMeta: v1.ObjectMeta{Name: "vmagent"},
 		Subjects:   []rbacv1.Subject{{Kind: "ServiceAccount", Name: "vmagent", Namespace: app.Namespace()}},
 		RoleRef:    rbacv1.RoleRef{Kind: "ClusterRole", Name: "vmagent", APIGroup: "rbac.authorization.k8s.io"},
 	})
-	k8sapp.NewK8sObject(app, "serviceaccount", &corev1.ServiceAccount{
+	app.AddApiObject(&corev1.ServiceAccount{
 		ObjectMeta: v1.ObjectMeta{Name: "vmagent"},
 	})
 	return app

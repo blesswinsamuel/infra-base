@@ -35,13 +35,13 @@ type Postgres struct {
 	Resources            *corev1.ResourceRequirements     `json:"resources"`
 }
 
-func (props *Postgres) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *Postgres) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("postgres", cprops)
+	chart := scope.CreateScope("postgres", cprops)
 
-	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "postgres",
 		Namespace:   chart.Namespace(),
@@ -69,7 +69,7 @@ func (props *Postgres) Chart(scope kubegogen.Construct) kubegogen.Construct {
 		},
 	})
 	if props.PersistentVolumeName != "" {
-		k8sapp.NewPersistentVolumeClaim(chart, "postgres", &k8sapp.PersistentVolumeClaim{
+		k8sapp.NewPersistentVolumeClaim(chart, &k8sapp.PersistentVolumeClaim{
 			Name:            "postgres",
 			StorageClass:    infrahelpers.Ternary(props.PersistentVolumeName != "", "-", ""),
 			RequestsStorage: "8Gi",
@@ -77,7 +77,7 @@ func (props *Postgres) Chart(scope kubegogen.Construct) kubegogen.Construct {
 		})
 	}
 
-	k8sapp.NewExternalSecret(chart, "external-secret", &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, &k8sapp.ExternalSecretProps{
 		Name: "postgres-passwords",
 		RemoteRefs: map[string]string{
 			"postgres-password":    "POSTGRES_ADMIN_PASSWORD",
@@ -87,7 +87,7 @@ func (props *Postgres) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	})
 
 	if props.LoadBalancer.Enabled {
-		k8sapp.NewK8sObject(scope, "postgres-lb", &corev1.Service{
+		scope.AddApiObject(&corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "postgres-lb",
 			},
@@ -106,7 +106,7 @@ func (props *Postgres) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	}
 
 	for _, grafanaDatasource := range props.GrafanaDatasources {
-		k8sapp.NewExternalSecret(chart, "grafana-datasource-postgres", &k8sapp.ExternalSecretProps{
+		k8sapp.NewExternalSecret(chart, &k8sapp.ExternalSecretProps{
 			Name: fmt.Sprintf("grafana-datasource-postgres-%s", grafanaDatasource.Database),
 			SecretLabels: map[string]string{
 				"grafana_datasource": "1",

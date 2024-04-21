@@ -26,11 +26,11 @@ type LokiProps struct {
 }
 
 // https://github.com/grafana/loki/tree/main/production/helm/loki
-func (props *LokiProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *LokiProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("loki", cprops)
+	chart := scope.CreateScope("loki", cprops)
 
 	patchResource := func(resource *unstructured.Unstructured) {
 		if props.Local.PVName == nil {
@@ -52,7 +52,7 @@ func (props *LokiProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 		}
 	}
 
-	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 		ChartInfo:     props.HelmChartInfo,
 		ReleaseName:   "loki",
 		Namespace:     chart.Namespace(),
@@ -149,7 +149,7 @@ func (props *LokiProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 		},
 	})
 
-	k8sapp.NewConfigMap(chart, "grafana-datasource-loki", &k8sapp.ConfigmapProps{
+	k8sapp.NewConfigMap(chart, &k8sapp.ConfigmapProps{
 		Name: "grafana-datasource-loki",
 		Labels: map[string]string{
 			"grafana_datasource": "1",

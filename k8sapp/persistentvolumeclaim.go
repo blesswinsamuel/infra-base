@@ -16,8 +16,8 @@ type PersistentVolumeClaim struct {
 	AccessModes     []corev1.PersistentVolumeAccessMode
 }
 
-func NewPersistentVolumeClaim(scope kubegogen.Construct, id string, props *PersistentVolumeClaim) kubegogen.ApiObject {
-	return NewK8sObject(scope, id, infrahelpers.Ptr(NewPersistentVolumeClaimProps(props)))
+func NewPersistentVolumeClaim(scope kubegogen.Scope, props *PersistentVolumeClaim) kubegogen.ApiObject {
+	return scope.AddApiObject(infrahelpers.Ptr(NewPersistentVolumeClaimProps(props)))
 }
 
 func NewPersistentVolumeClaimProps(props *PersistentVolumeClaim) corev1.PersistentVolumeClaim {

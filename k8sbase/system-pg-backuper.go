@@ -20,7 +20,7 @@ type PgBackuper struct {
 	} `json:"persistentVolumeClaims"`
 }
 
-func (props *PgBackuper) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *PgBackuper) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	config := map[string]any{
 		"backupDestinations": []map[string]any{
 			{"filesystem": map[string]any{"pathTemplate": "{{`/data/{{.Database}}/{{.Database}}.pgdump`}}"}},
@@ -95,7 +95,7 @@ func (props *PgBackuper) Chart(scope kubegogen.Construct) kubegogen.Construct {
 			if pvc.StorageClass == "__none__" {
 				pvc.StorageClass = "-"
 			}
-			k8sapp.NewPersistentVolumeClaim(app, pvc.Name, &k8sapp.PersistentVolumeClaim{
+			k8sapp.NewPersistentVolumeClaim(app, &k8sapp.PersistentVolumeClaim{
 				Name:            pvc.Name,
 				RequestsStorage: "1Gi",
 				StorageClass:    pvc.StorageClass,

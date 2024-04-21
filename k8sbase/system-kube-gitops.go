@@ -29,7 +29,7 @@ type KubeGitOpsProps struct {
 	} `json:"kapp"`
 }
 
-func (props *KubeGitOpsProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
+func (props *KubeGitOpsProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
 	return k8sapp.NewApplicationChart(scope, "kube-gitops", &k8sapp.ApplicationProps{
 		Name: "kube-gitops",
 		Containers: []k8sapp.ApplicationContainer{

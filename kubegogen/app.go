@@ -17,7 +17,7 @@ import (
 )
 
 type App interface {
-	Construct
+	Scope
 	OutDir() string
 	Synth()
 }
@@ -30,14 +30,14 @@ type AppProps struct {
 }
 
 type app struct {
-	Construct
+	Scope
 	props AppProps
 }
 
 func NewApp(props AppProps) App {
 	return &app{
-		Construct: newScope("$$root", ChartProps{}),
-		props:     props,
+		Scope: newScope("$$root", ScopeProps{}),
+		props: props,
 	}
 }
 
@@ -113,7 +113,7 @@ func (a *app) Synth() {
 			files[currentChartID] = append(files[currentChartID], objects...)
 		}
 	}
-	synth(a.Construct.(*scope), []string{}, 0)
+	synth(a.Scope.(*scope), []string{}, 0)
 	fileContents := map[string][]byte{}
 	for _, currentChartID := range infrahelpers.MapKeys(files) {
 		apiObjects := files[currentChartID]

@@ -22,7 +22,7 @@ type ApiObjectProps struct {
 	unstructured.Unstructured
 }
 
-func getNamespaceContext(scope Construct) string {
+func getNamespaceContext(scope Scope) string {
 	ns, _ := scope.GetContext("namespace").(string)
 	return ns
 }

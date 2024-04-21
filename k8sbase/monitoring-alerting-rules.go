@@ -9,11 +9,11 @@ type AlertingRulesProps struct {
 	Rules map[string]k8sapp.AlertingRule
 }
 
-func (props *AlertingRulesProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *AlertingRulesProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("alerting-rules", cprops)
+	chart := scope.CreateScope("alerting-rules", cprops)
 
 	k8sapp.NewAlertingRules(chart, props.Rules)
 

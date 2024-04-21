@@ -7,30 +7,30 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-type Construct interface { // Scope
+type Scope interface {
 	ID() string
 	Namespace() string
-	Chart(id string, props ChartProps) Construct // CreateScope
+	CreateScope(id string, props ScopeProps) Scope
 	GetContext(key string) any
 	SetContext(key string, value any)
-	ApiObject(obj runtime.Object) ApiObject          // AddApiObject
-	ApiObjectFromMap(props map[string]any) ApiObject // AddApiObjectFromMap
+	AddApiObject(obj runtime.Object) ApiObject
+	AddApiObjectFromMap(props map[string]any) ApiObject
 }
 
-type ChartProps struct { // ScopeProps
+type ScopeProps struct {
 	Namespace string
 }
 
 type scope struct {
 	id       string
-	props    ChartProps
+	props    ScopeProps
 	context  map[string]any
 	parent   *scope
 	children []*scope
 	objects  []ApiObject
 }
 
-func newScope(id string, props ChartProps) Construct {
+func newScope(id string, props ScopeProps) Scope {
 	return &scope{
 		id:      id,
 		props:   props,
@@ -55,7 +55,7 @@ func (c *scope) ID() string {
 	return c.id
 }
 
-func (c *scope) Chart(id string, props ChartProps) Construct {
+func (c *scope) CreateScope(id string, props ScopeProps) Scope {
 	childScope := &scope{
 		id:      id,
 		props:   props,
@@ -73,7 +73,7 @@ func (c *scope) Namespace() string {
 	return c.props.Namespace
 }
 
-func (c *scope) ApiObject(obj runtime.Object) ApiObject {
+func (c *scope) AddApiObject(obj runtime.Object) ApiObject {
 	groupVersionKinds, _, err := infrahelpers.Scheme.ObjectKinds(obj)
 	if err != nil {
 		log.Panic().Err(err).Msg("ObjectKinds")
@@ -85,10 +85,10 @@ func (c *scope) ApiObject(obj runtime.Object) ApiObject {
 	mobj := infrahelpers.K8sObjectToMap(obj)
 	mobj["apiVersion"] = groupVersion.GroupVersion().String()
 	mobj["kind"] = groupVersion.Kind
-	return c.ApiObjectFromMap(mobj)
+	return c.AddApiObjectFromMap(mobj)
 }
 
-func (c *scope) ApiObjectFromMap(obj map[string]any) ApiObject {
+func (c *scope) AddApiObjectFromMap(obj map[string]any) ApiObject {
 	props := ApiObjectProps{Unstructured: unstructured.Unstructured{Object: obj}}
 	if props.GetNamespace() == "" {
 		if namespaceCtx := getNamespaceContext(c); namespaceCtx != "" {

@@ -13,13 +13,13 @@ type Redis struct {
 
 // https://github.com/bitnami/charts/tree/main/bitnami/redis
 
-func (props *Redis) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *Redis) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("redis", cprops)
+	chart := scope.CreateScope("redis", cprops)
 
-	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "redis",
 		Namespace:   chart.Namespace(),

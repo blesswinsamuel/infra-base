@@ -13,7 +13,7 @@ type ConfigmapProps struct {
 	Data        map[string]string
 }
 
-func NewConfigMap(scope kubegogen.Construct, id string, props *ConfigmapProps) kubegogen.ApiObject {
+func NewConfigMap(scope kubegogen.Scope, props *ConfigmapProps) kubegogen.ApiObject {
 	configMap := v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        props.Name,
@@ -23,5 +23,5 @@ func NewConfigMap(scope kubegogen.Construct, id string, props *ConfigmapProps) k
 		Data: props.Data,
 	}
 
-	return NewK8sObject(scope, id, &configMap)
+	return scope.AddApiObject(&configMap)
 }

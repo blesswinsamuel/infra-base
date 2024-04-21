@@ -23,13 +23,13 @@ type TraefikForwardAuth struct {
 // https://github.com/k8s-at-home/charts/tree/master/charts/stable/traefik-forward-auth
 // https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common
 // https://github.com/thomseddon/traefik-forward-auth
-func (props *TraefikForwardAuth) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *TraefikForwardAuth) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("traefik-forward-auth", cprops)
+	chart := scope.CreateScope("traefik-forward-auth", cprops)
 
-	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "traefik-forward-auth",
 		Namespace:   chart.Namespace(),
@@ -86,7 +86,7 @@ func (props *TraefikForwardAuth) Chart(scope kubegogen.Construct) kubegogen.Cons
 		},
 	})
 
-	k8sapp.NewExternalSecret(chart, "external-secret", &k8sapp.ExternalSecretProps{
+	k8sapp.NewExternalSecret(chart, &k8sapp.ExternalSecretProps{
 		Name: "traefik-forward-auth",
 		RemoteRefs: map[string]string{
 			"PROVIDERS_GOOGLE_CLIENT_SECRET": "AUTH_GOOGLE_CLIENT_SECRET",

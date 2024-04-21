@@ -10,11 +10,11 @@ type GrafanaDashboardsProps struct {
 	Dashboards infrahelpers.MergeableMap[string, k8sapp.GrafanaDashboard] `json:"dashboards"`
 }
 
-func (props *GrafanaDashboardsProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *GrafanaDashboardsProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("grafana-dashboards", cprops)
+	chart := scope.CreateScope("grafana-dashboards", cprops)
 
 	k8sapp.NewGrafanaDashboards(chart, props.Dashboards)
 	return chart

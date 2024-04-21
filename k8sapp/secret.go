@@ -15,7 +15,7 @@ type SecretProps struct {
 	Data        map[string][]byte
 }
 
-func NewSecret(scope kubegogen.Construct, id string, props *SecretProps) kubegogen.ApiObject {
+func NewSecret(scope kubegogen.Scope, props *SecretProps) kubegogen.ApiObject {
 	configMap := v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        props.Name,
@@ -27,5 +27,5 @@ func NewSecret(scope kubegogen.Construct, id string, props *SecretProps) kubegog
 		Data:       props.Data,
 	}
 
-	return NewK8sObject(scope, id, &configMap)
+	return scope.AddApiObject(&configMap)
 }

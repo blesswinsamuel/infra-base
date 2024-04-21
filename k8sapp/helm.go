@@ -31,7 +31,7 @@ type HelmProps struct {
 	PatchResource       func(resource *unstructured.Unstructured)
 }
 
-func NewHelm(scope kubegogen.Construct, id string, props *HelmProps) kubegogen.Construct {
+func NewHelm(scope kubegogen.Scope, props *HelmProps) {
 	globals := GetGlobalContext(scope)
 	chartsCacheDir := fmt.Sprintf("%s/%s", globals.CacheDir, "charts")
 	if err := os.MkdirAll(chartsCacheDir, os.ModePerm); err != nil {
@@ -113,7 +113,7 @@ func NewHelm(scope kubegogen.Construct, id string, props *HelmProps) kubegogen.C
 		if props.PatchResource != nil {
 			props.PatchResource(runtimeObj)
 		}
-		scope.ApiObject(runtimeObj)
+		scope.AddApiObject(runtimeObj)
 		// scope.ApiObjectFromMap("api-"+strconv.Itoa(i), kubegogen.ApiObjectProps{
 		// 	// TypeMeta: v1.TypeMeta{
 		// 	// 	APIVersion: obj["apiVersion"].(string),
@@ -122,15 +122,13 @@ func NewHelm(scope kubegogen.Construct, id string, props *HelmProps) kubegogen.C
 		// 	Unstructured: unstructured.Unstructured{Object: obj},
 		// })
 	}
-
-	return scope
 }
 
-func NewHelmChart(scope kubegogen.Construct, id string, props *HelmProps) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func NewHelmChart(scope kubegogen.Scope, id string, props *HelmProps) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: GetNamespaceContext(scope),
 	}
-	chart := scope.Chart(id, cprops)
-	NewHelm(chart, "helm", props)
+	chart := scope.CreateScope(id, cprops)
+	NewHelm(chart, props)
 	return chart
 }

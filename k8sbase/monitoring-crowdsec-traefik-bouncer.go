@@ -10,13 +10,13 @@ type CrowdsecTraefikBouncerProps struct {
 }
 
 // https://github.com/crowdsecurity/helm-charts/tree/main/charts/crowdsec-traefik-bouncer
-func (props *CrowdsecTraefikBouncerProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *CrowdsecTraefikBouncerProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("crowdsec-traefik-bouncer", cprops)
+	chart := scope.CreateScope("crowdsec-traefik-bouncer", cprops)
 
-	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "crowdsec-traefik-bouncer",
 		Namespace:   chart.Namespace(),

@@ -28,11 +28,11 @@ type VectorProps struct {
 // https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector
 // https://helm.vector.dev/index.yaml
 
-func (props *VectorProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
-	cprops := kubegogen.ChartProps{
+func (props *VectorProps) Chart(scope kubegogen.Scope) kubegogen.Scope {
+	cprops := kubegogen.ScopeProps{
 		Namespace: k8sapp.GetNamespaceContext(scope),
 	}
-	chart := scope.Chart("vector", cprops)
+	chart := scope.CreateScope("vector", cprops)
 
 	syslogOpts := map[string]any{
 		"decoding": map[string]any{
@@ -44,7 +44,7 @@ func (props *VectorProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 		},
 	}
 
-	k8sapp.NewHelm(chart, "helm", &k8sapp.HelmProps{
+	k8sapp.NewHelm(chart, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "vector",
 		Namespace:   chart.Namespace(),
@@ -221,7 +221,7 @@ func (props *VectorProps) Chart(scope kubegogen.Construct) kubegogen.Construct {
 	})
 
 	if props.SyslogServer.Enabled {
-		k8sapp.NewK8sObject(chart, "syslog-service", &corev1.Service{
+		chart.AddApiObject(&corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "vector-syslog-server",
 			},
