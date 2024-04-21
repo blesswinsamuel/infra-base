@@ -19,7 +19,7 @@ import (
 type App interface {
 	Scope
 	OutDir() string
-	Synth()
+	WriteYAMLsToDisk()
 }
 
 type AppProps struct {
@@ -78,7 +78,7 @@ func modifyObj[T any](apiObject ApiObject, f func(*T)) {
 	apiObject.SetObject(unstructured.Unstructured{Object: unstructuredObj})
 }
 
-func (a *app) Synth() {
+func (a *app) WriteYAMLsToDisk() {
 	fileNo := 0
 	files := map[string][]ApiObject{}
 	var synth func(scope *scope, currentChartID []string, level int)
