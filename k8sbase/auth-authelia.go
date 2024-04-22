@@ -80,9 +80,6 @@ type Authelia struct {
 		PasswordSecretKey    string `json:"passwordSecretKey"`
 	} `json:"ldap"`
 	SMTP struct {
-		Host        string `json:"host"`
-		Port        int    `json:"port"`
-		Username    string `json:"username"`
 		EmailDomain string `json:"emailDomain"`
 		Sender      string `json:"sender"`
 		Subject     string `json:"subject"`
@@ -92,7 +89,6 @@ type Authelia struct {
 			Host     *string `json:"host"`
 			Port     *int    `json:"port"`
 			Database *string `json:"database"`
-			Username *string `json:"username"`
 			Schema   *string `json:"schema"`
 		} `json:"postgres"`
 		Redis struct {
@@ -227,19 +223,19 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 				"address":  "tcp://" + *props.Database.Postgres.Host + ":" + fmt.Sprintf("%d", *props.Database.Postgres.Port),
 				"database": props.Database.Postgres.Database,
 				"schema":   props.Database.Postgres.Schema,
-				"username": props.Database.Postgres.Username,
+				"username": "{{ .POSTGRES_USERNAME }}",
 				"timeout":  "5s",
-				"password": "{{ .STORAGE_PASSWORD }}",
+				"password": "{{ .POSTGRES_PASSWORD }}",
 			},
 			"encryption_key": "{{ .STORAGE_ENCRYPTION_KEY }}",
 		},
 		"notifier": map[string]any{
 			"disable_startup_check": false,
 			"smtp": map[string]any{
-				"address":  "smtp://" + props.SMTP.Host + ":" + fmt.Sprintf("%d", props.SMTP.Port),
+				"address":  "smtp://{{ .SMTP_HOST }}:{{ .SMTP_PORT }}",
 				"password": "{{ .SMTP_PASSWORD }}",
 				"timeout":  "5s",
-				"username": props.SMTP.Username,
+				"username": "{{ .SMTP_USERNAME }}",
 				"sender": infrahelpers.UseOrDefault(
 					props.SMTP.Sender,
 					fmt.Sprintf("Authelia <authelia@%s>", props.SMTP.EmailDomain),
@@ -251,7 +247,7 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 				"disable_require_tls":   false,
 				"disable_starttls":      false,
 				"tls": map[string]any{
-					"server_name":     props.SMTP.Host,
+					"server_name":     "{{ .SMTP_HOST }}",
 					"skip_verify":     false,
 					"minimum_version": "TLS1.2",
 					"maximum_version": "TLS1.3",
@@ -291,10 +287,14 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 	}
 	secrets := map[string]string{
 		"SMTP_PASSWORD":          "SMTP_PASSWORD",
+		"SMTP_HOST":              "SMTP_HOST",
+		"SMTP_PORT":              "SMTP_PORT",
+		"SMTP_USERNAME":          "SMTP_USERNAME",
 		"JWT_TOKEN":              "AUTHELIA_JWT_TOKEN",
 		"SESSION_ENCRYPTION_KEY": "AUTHELIA_SESSION_ENCRYPTION_KEY",
 		"STORAGE_ENCRYPTION_KEY": "AUTHELIA_STORAGE_ENCRYPTION_KEY",
-		"STORAGE_PASSWORD":       "POSTGRES_USER_PASSWORD",
+		"POSTGRES_PASSWORD":      "POSTGRES_USER_PASSWORD",
+		"POSTGRES_USERNAME":      "POSTGRES_USERNAME",
 	}
 	if props.OIDC.Enabled {
 		for i, client := range props.OIDC.Clients {
