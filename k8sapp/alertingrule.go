@@ -10,10 +10,11 @@ import (
 )
 
 type AlertingRule struct {
-	URL          string            `json:"url"`
-	SkipGroups   []string          `json:"skipGroups"`
-	SkipAlerts   []string          `json:"skipAlerts"`
-	Replacements map[string]string `json:"replacements"`
+	URL               string                       `json:"url"`
+	SkipGroups        []string                     `json:"skipGroups"`
+	SkipAlerts        []string                     `json:"skipAlerts"`
+	Replacements      map[string]string            `json:"replacements"`
+	AlertReplacements map[string]map[string]string `json:"alertReplacements"`
 }
 
 func NewAlertingRules(scope kubegogen.Scope, props map[string]AlertingRule) kubegogen.Scope {
@@ -53,6 +54,13 @@ func NewAlertingRule(scope kubegogen.Scope, alertingRuleID string, props Alertin
 			ruleName, _ := rule["alert"].(string)
 			if slices.Contains(props.SkipAlerts, ruleName) {
 				continue
+			}
+			if alertReplacements, ok := props.AlertReplacements[ruleName]; ok {
+				ruleStr := infrahelpers.ToYamlString(rule)
+				for k, v := range alertReplacements {
+					ruleStr = strings.ReplaceAll(ruleStr, k, v)
+				}
+				rule = infrahelpers.FromYamlString[map[string]any](ruleStr)
 			}
 			rulesFiltered = append(rulesFiltered, rule)
 		}

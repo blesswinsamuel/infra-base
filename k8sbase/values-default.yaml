@@ -41,17 +41,17 @@ traefik:
     stripPrefix:
       enabled: false
   _grafana_dashboards:
-    traefik-kubernetes:
-      url: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
-      title: Traefik Kubernetes (official)
-      folder: Ingress
+    # traefik-kubernetes:
+    #   url: https://github.com/traefik/traefik/raw/master/contrib/grafana/traefik-kubernetes.json
+    #   title: Traefik Kubernetes (official)
+    #   folder: Ingress
     traefik:
       url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/traefik.json
       title: Traefik
       folder: Ingress
-  # - url: https://grafana.com/api/dashboards/17501/revisions/1/download
-  #   id: traefik-logs
-  #   title: Traefik Logs
+    # - url: https://grafana.com/api/dashboards/17501/revisions/1/download
+    #   id: traefik-logs
+    #   title: Traefik Logs
   _alerting_rules:
     traefik:
       url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/traefik/embedded-exporter-v1.yml
@@ -94,6 +94,10 @@ postgres:
         - PostgresqlNotEnoughConnections
         - PostgresqlCommitRateLow
         - PostgresqlConfigurationChanged # bad query
+      alertReplacements:
+        PostgresqlHighRollbackRate:
+          "0.02": "0.05"
+          "2 %": "5 %"
 
 redis:
   helm:
