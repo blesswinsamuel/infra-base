@@ -8,6 +8,7 @@ import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -53,7 +54,19 @@ func (props *Postgres) Render(scope kubegogen.Scope) {
 				"username":       props.Username,
 				"existingSecret": "postgres-passwords",
 			},
-			"metrics": map[string]interface{}{"enabled": true},
+			"metrics": map[string]interface{}{
+				"enabled": true,
+				"resources": corev1.ResourceRequirements{
+					Limits: corev1.ResourceList{
+						"cpu":    resource.MustParse("300m"),
+						"memory": resource.MustParse("200Mi"),
+					},
+					Requests: corev1.ResourceList{
+						"cpu":    resource.MustParse("100m"),
+						"memory": resource.MustParse("128Mi"),
+					},
+				},
+			},
 			"primary": map[string]interface{}{
 				"persistence": map[string]interface{}{
 					"existingClaim": infrahelpers.Ternary(props.PersistentVolumeName != "", "postgres", ""),

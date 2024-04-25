@@ -15,15 +15,50 @@ type TraefikForwardAuth struct {
 	Ingress       struct {
 		SubDomain string `json:"subDomain"`
 	} `json:"ingress"`
-	WhiteList      string   `json:"whilelist"`
-	ImageTagSuffix string   `json:"imageTagSuffix"`
-	Args           []string `json:"args"`
+	AllowUsers []string `json:"allowUsers"`
+	Args       []string `json:"args"`
+	Provider   string   `json:"provider"`
 }
 
 // https://github.com/k8s-at-home/charts/tree/master/charts/stable/traefik-forward-auth
 // https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common
 // https://github.com/thomseddon/traefik-forward-auth
 func (props *TraefikForwardAuth) Render(scope kubegogen.Scope) {
+	if props.Provider == "" {
+		props.Provider = "google"
+	}
+	env := map[string]interface{}{
+		"WHITELIST":     strings.Join(props.AllowUsers, ","),
+		"LOG_FORMAT":    "json",
+		"LOG_LEVEL":     "info",
+		"AUTH_HOST":     props.Ingress.SubDomain + "." + GetDomain(scope),
+		"COOKIE_DOMAIN": GetDomain(scope),
+		"SECRET":        valueFromSecretKeyRef("traefik-forward-auth", "SECRET"),
+		// "PROVIDERS_GOOGLE_PROMPT": "select_account",
+	}
+	externalSecretRemoteRefs := map[string]string{
+		"SECRET": "FORWARD_AUTH_COOKIE_SECRET",
+	}
+	// https://github.com/thomseddon/traefik-forward-auth/wiki/Provider-Setup#github
+	switch props.Provider {
+	case "google":
+		env["PROVIDERS_GOOGLE_CLIENT_ID"] = valueFromSecretKeyRef("traefik-forward-auth", "PROVIDERS_GOOGLE_CLIENT_ID")
+		env["PROVIDERS_GOOGLE_CLIENT_SECRET"] = valueFromSecretKeyRef("traefik-forward-auth", "PROVIDERS_GOOGLE_CLIENT_SECRET")
+		env["DEFAULT_PROVIDER"] = "google"
+		externalSecretRemoteRefs["PROVIDERS_GOOGLE_CLIENT_SECRET"] = "FORWARD_AUTH_GOOGLE_CLIENT_SECRET"
+		externalSecretRemoteRefs["PROVIDERS_GOOGLE_CLIENT_ID"] = "FORWARD_AUTH_GOOGLE_CLIENT_ID"
+	case "github":
+		env["PROVIDERS_GENERIC_OAUTH_CLIENT_ID"] = valueFromSecretKeyRef("traefik-forward-auth", "PROVIDERS_GENERIC_OAUTH_CLIENT_ID")
+		env["PROVIDERS_GENERIC_OAUTH_CLIENT_SECRET"] = valueFromSecretKeyRef("traefik-forward-auth", "PROVIDERS_GENERIC_OAUTH_CLIENT_SECRET")
+		env["PROVIDERS_GENERIC_OAUTH_AUTH_URL"] = "https://github.com/login/oauth/authorize"
+		env["PROVIDERS_GENERIC_OAUTH_TOKEN_URL"] = "https://github.com/login/oauth/access_token"
+		// env["PROVIDERS_GENERIC_OAUTH_USER_URL"] = "https://api.github.com/user"
+		env["PROVIDERS_GENERIC_OAUTH_USER_URL"] = "https://api.github.com/user/emails"
+		env["PROVIDERS_GENERIC_OAUTH_SCOPE"] = "user:email"
+		env["DEFAULT_PROVIDER"] = "generic-oauth"
+		externalSecretRemoteRefs["PROVIDERS_GENERIC_OAUTH_CLIENT_ID"] = "FORWARD_AUTH_GITHUB_CLIENT_ID"
+		externalSecretRemoteRefs["PROVIDERS_GENERIC_OAUTH_CLIENT_SECRET"] = "FORWARD_AUTH_GITHUB_CLIENT_SECRET"
+	}
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "traefik-forward-auth",
@@ -31,7 +66,7 @@ func (props *TraefikForwardAuth) Render(scope kubegogen.Scope) {
 		Values: map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": props.ImageInfo.Repository,
-				"tag":        strings.ReplaceAll(props.ImageInfo.Tag, "-arm", props.ImageTagSuffix),
+				"tag":        props.ImageInfo.Tag,
 			},
 			"controller": map[string]interface{}{
 				"annotations": map[string]interface{}{
@@ -64,17 +99,7 @@ func (props *TraefikForwardAuth) Render(scope kubegogen.Scope) {
 				},
 			},
 			"args": props.Args,
-			"env": map[string]interface{}{
-				"WHITELIST":                      props.WhiteList,
-				"LOG_FORMAT":                     "json",
-				"LOG_LEVEL":                      "info",
-				"AUTH_HOST":                      props.Ingress.SubDomain + "." + GetDomain(scope),
-				"COOKIE_DOMAIN":                  GetDomain(scope),
-				"PROVIDERS_GOOGLE_CLIENT_ID":     valueFromSecretKeyRef("traefik-forward-auth", "PROVIDERS_GOOGLE_CLIENT_ID"),
-				"PROVIDERS_GOOGLE_CLIENT_SECRET": valueFromSecretKeyRef("traefik-forward-auth", "PROVIDERS_GOOGLE_CLIENT_SECRET"),
-				"SECRET":                         valueFromSecretKeyRef("traefik-forward-auth", "SECRET"),
-				// "PROVIDERS_GOOGLE_PROMPT": "select_account",
-			},
+			"env":  env,
 			"middleware": map[string]interface{}{
 				"nameOverride": "traefik-forward-auth",
 			},
@@ -82,12 +107,8 @@ func (props *TraefikForwardAuth) Render(scope kubegogen.Scope) {
 	})
 
 	k8sapp.NewExternalSecret(scope, &k8sapp.ExternalSecretProps{
-		Name: "traefik-forward-auth",
-		RemoteRefs: map[string]string{
-			"PROVIDERS_GOOGLE_CLIENT_SECRET": "AUTH_GOOGLE_CLIENT_SECRET",
-			"PROVIDERS_GOOGLE_CLIENT_ID":     "AUTH_GOOGLE_CLIENT_ID",
-			"SECRET":                         "AUTH_COOKIE_SECRET",
-		},
+		Name:       "traefik-forward-auth",
+		RemoteRefs: externalSecretRemoteRefs,
 	})
 }
 

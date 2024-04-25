@@ -23,6 +23,9 @@ func (props *ReloaderProps) Render(scope kubegogen.Scope) {
 					"prometheus.io/scrape": "true",
 				},
 			},
+			"reloader": map[string]interface{}{
+				"reloadStrategy": "annotations",
+			},
 		},
 	})
 }
