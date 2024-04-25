@@ -6,7 +6,10 @@ external-secrets:
     chart: external-secrets
     version: "0.9.14"
 
-cluster-secret-store: {}
+external-secrets-store:
+  dopplerTokenSecretName: doppler-token-auth-api
+  dopplerTokenSecretNamespace: default
+  dopplerTokenSecretKey: dopplerToken
 
 ### cert-manager ###
 

@@ -38,14 +38,14 @@ func NewExternalSecret(scope kubegogen.Scope, props *ExternalSecretProps) kubego
 	slices.SortFunc(data, func(a externalsecretsv1beta1.ExternalSecretData, b externalsecretsv1beta1.ExternalSecretData) int {
 		return strings.Compare(a.SecretKey, b.SecretKey)
 	})
-	globals := GetConfig(scope)
+	globals := GetGlobals(scope)
 	externalsecret := externalsecretsv1beta1.ExternalSecret{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name}, // , Namespace: infrahelpers.StrPtrIfNonEmpty(props.Namespace)
 		Spec: externalsecretsv1beta1.ExternalSecretSpec{
-			RefreshInterval: infrahelpers.ToDuration(infrahelpers.UseOrDefault(props.RefreshInterval, globals.DefaultExternalSecretRefreshInterval)),
+			RefreshInterval: infrahelpers.ToDuration(infrahelpers.UseOrDefault(props.RefreshInterval, globals.Defaults.ExternalSecretRefreshInterval)),
 			SecretStoreRef: externalsecretsv1beta1.SecretStoreRef{
-				Name: infrahelpers.UseOrDefault(props.SecretStore.Name, globals.DefaultSecretStoreName),
-				Kind: infrahelpers.UseOrDefault(props.SecretStore.Kind, globals.DefaultSecretStoreKind),
+				Name: infrahelpers.UseOrDefault(props.SecretStore.Name, globals.Defaults.SecretStoreName),
+				Kind: infrahelpers.UseOrDefault(props.SecretStore.Kind, globals.Defaults.SecretStoreKind),
 			},
 			Data: data,
 		},

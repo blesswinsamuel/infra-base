@@ -24,12 +24,7 @@ func NewApp(props kubegogen.AppProps) kubegogen.App {
 	}
 
 	SetConfig(app, Config{
-		DefaultSecretStoreName:               "secretstore",
-		DefaultSecretStoreKind:               "ClusterSecretStore",
-		DefaultExternalSecretRefreshInterval: "10m",
-		DefaultCertIssuerName:                "letsencrypt-prod",
-		DefaultCertIssuerKind:                "ClusterIssuer",
-		CacheDir:                             cacheDir,
+		CacheDir: cacheDir,
 	})
 	return app
 }

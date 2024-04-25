@@ -10,12 +10,12 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type CertIssuerProps struct {
+type CertIssuer struct {
 	Email  string `json:"email"`
 	Solver string `json:"solver"` // dns or http
 }
 
-func letsEncryptIssuer(scope kubegogen.Scope, props CertIssuerProps, name string, server string) {
+func letsEncryptIssuer(scope kubegogen.Scope, props CertIssuer, name string, server string) {
 	issuer := &certmanagerv1.ClusterIssuer{
 		ObjectMeta: v1.ObjectMeta{Name: name},
 		Spec: certmanagerv1.IssuerSpec{IssuerConfig: certmanagerv1.IssuerConfig{
@@ -58,7 +58,7 @@ func letsEncryptIssuer(scope kubegogen.Scope, props CertIssuerProps, name string
 	scope.AddApiObject(issuer)
 }
 
-func (props *CertIssuerProps) Render(scope kubegogen.Scope) {
+func (props *CertIssuer) Render(scope kubegogen.Scope) {
 	// NewNamespace(chart, ("namespace"), &NamespaceProps{Name: "cert-manager"})
 	letsEncryptIssuer(scope, *props, "letsencrypt-prod", "https://acme-v02.api.letsencrypt.org/directory")
 	letsEncryptIssuer(scope, *props, "letsencrypt-staging", "https://acme-staging-v02.api.letsencrypt.org/directory")

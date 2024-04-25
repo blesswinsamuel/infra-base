@@ -15,15 +15,15 @@ type CertificateProps struct {
 }
 
 func NewCertificate(scope kubegogen.Scope, props *CertificateProps) {
-	globals := GetConfig(scope)
+	globals := GetGlobals(scope)
 	scope.AddApiObject(&certmanagerv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name},
 		Spec: certmanagerv1.CertificateSpec{
 			DNSNames:   props.Hosts,
 			SecretName: props.Name + "-tls",
 			IssuerRef: certmanagermetav1.ObjectReference{
-				Name: infrahelpers.UseOrDefault(props.CertIssuer.Name, globals.DefaultCertIssuerName),
-				Kind: infrahelpers.UseOrDefault(props.CertIssuer.Kind, globals.DefaultCertIssuerKind),
+				Name: infrahelpers.UseOrDefault(props.CertIssuer.Name, globals.Defaults.CertIssuerName),
+				Kind: infrahelpers.UseOrDefault(props.CertIssuer.Kind, globals.Defaults.CertIssuerKind),
 			},
 		},
 	})

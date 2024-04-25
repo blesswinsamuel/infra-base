@@ -99,16 +99,22 @@ type Authelia struct {
 		LogoURL    string `json:"logoURL"`
 		FaviconURL string `json:"faviconURL"`
 	} `json:"assets"`
-	RedirectionSubDomain string           `json:"redirectionSubDomain"`
-	CookieDomains        []map[string]any `json:"cookieDomains"`
+	RedirectionSubDomain         string           `json:"redirectionSubDomain"`
+	CookieDomains                []map[string]any `json:"cookieDomains"`
+	IncludeForwardAuthMiddleware bool             `json:"includeForwardAuthMiddleware"`
 }
 
 // https://github.com/authelia/chartrepo/tree/master/charts/authelia
 
 func (props *Authelia) Render(scope kubegogen.Scope) {
+	ingressMiddlewares := []k8sapp.NameNamespace{}
+	if props.IncludeForwardAuthMiddleware {
+		ingressMiddlewares = append(ingressMiddlewares, k8sapp.NameNamespace{Name: "forwardauth-authelia", Namespace: scope.Namespace()})
+	}
+	ingressMiddlewares = append(ingressMiddlewares, k8sapp.NameNamespace{Name: "chain-authelia", Namespace: scope.Namespace()})
 	appProps := &k8sapp.ApplicationProps{
 		Name:               "authelia",
-		IngressMiddlewares: []k8sapp.NameNamespace{{Name: "chain-authelia", Namespace: scope.Namespace()}},
+		IngressMiddlewares: ingressMiddlewares,
 		Containers: []k8sapp.ApplicationContainer{{
 			Name:  "authelia",
 			Image: props.ImageInfo,
@@ -488,12 +494,12 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 	scope.AddApiObject(&traefikv1alpha1.TLSOption{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "authelia",
-			Annotations: infrahelpers.MergeAnnotations( // is this needed?
-				GetCertIssuerAnnotation(scope),
-				map[string]string{
-					"traefik.ingress.kubernetes.io/router.middlewares": scope.Namespace() + "-chain-authelia@kubernetescrd",
-				},
-			),
+			// Annotations: infrahelpers.MergeAnnotations( // is this needed?
+			// 	GetCertIssuerAnnotation(scope),
+			// 	map[string]string{
+			// 		"traefik.ingress.kubernetes.io/router.middlewares": scope.Namespace() + "-chain-authelia@kubernetescrd",
+			// 	},
+			// ),
 		},
 		Spec: traefikv1alpha1.TLSOptionSpec{
 			CipherSuites: []string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_RSA_WITH_AES_256_GCM_SHA384"},

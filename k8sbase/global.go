@@ -10,7 +10,7 @@ func GetGlobals(scope kubegogen.Scope) k8sapp.ValuesGlobal {
 }
 
 func GetCertIssuer(scope kubegogen.Scope) string {
-	return GetGlobals(scope).CertIssuer
+	return GetGlobals(scope).Defaults.CertIssuerName
 }
 
 func GetCertIssuerAnnotation(scope kubegogen.Scope) map[string]string {

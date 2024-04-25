@@ -46,7 +46,7 @@ func NewIngress(scope kubegogen.Scope, props *IngressProps) kubegogen.Scope {
 	if props.IngressType == "" {
 		props.IngressType = "kubernetes"
 	}
-	globals := GetConfig(scope)
+	globals := GetGlobals(scope)
 	if props.IngressType == "traefik" {
 		ingressRules := []traefikv1alpha1.Route{}
 		tlsHosts := map[string]bool{}
@@ -152,8 +152,8 @@ func NewIngress(scope kubegogen.Scope, props *IngressProps) kubegogen.Scope {
 		clusterIssuerAnnotationKey := map[string]string{
 			"ClusterIssuer": "cert-manager.io/cluster-issuer",
 			"Issuer":        "cert-manager.io/issuer",
-		}[infrahelpers.UseOrDefault(props.CertIssuer.Kind, globals.DefaultCertIssuerKind)]
-		annotations[clusterIssuerAnnotationKey] = infrahelpers.UseOrDefault(props.CertIssuer.Name, globals.DefaultCertIssuerName)
+		}[infrahelpers.UseOrDefault(props.CertIssuer.Kind, globals.Defaults.CertIssuerKind)]
+		annotations[clusterIssuerAnnotationKey] = infrahelpers.UseOrDefault(props.CertIssuer.Name, globals.Defaults.CertIssuerName)
 		if len(traefikMiddlwareNames) > 0 {
 			annotations["traefik.ingress.kubernetes.io/router.middlewares"] = strings.Join(traefikMiddlwareNames, ",")
 		}

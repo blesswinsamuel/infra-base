@@ -3,6 +3,7 @@ package k8sapp
 import "github.com/blesswinsamuel/infra-base/kubegogen"
 
 func NewKappConfig(scope kubegogen.Scope) kubegogen.Scope {
+	// https://carvel.dev/kapp/docs/v0.45.0/config/#rebaserules
 	scope = scope.CreateScope("kapp-config", kubegogen.ScopeProps{})
 	pvResourceMatchers := []any{
 		map[string]any{

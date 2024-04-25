@@ -5,13 +5,6 @@ import (
 )
 
 type Config struct {
-	DefaultSecretStoreName               string
-	DefaultSecretStoreKind               string
-	DefaultExternalSecretRefreshInterval string
-
-	DefaultCertIssuerName string
-	DefaultCertIssuerKind string
-
 	CacheDir string
 }
 

@@ -25,7 +25,7 @@ func RegisterModules() {
 		"lldap":                &k8sapp.ModuleCommons[*LLDAP]{},
 		"authelia":             &k8sapp.ModuleCommons[*Authelia]{},
 
-		"cert-issuer":  &k8sapp.ModuleCommons[*CertIssuerProps]{},
+		"cert-issuer":  &k8sapp.ModuleCommons[*CertIssuer]{},
 		"cert-manager": &k8sapp.ModuleCommons[*CertManagerProps]{},
 
 		"traefik": &k8sapp.ModuleCommons[*TraefikProps]{},
@@ -44,8 +44,8 @@ func RegisterModules() {
 		"vmagent":                  &k8sapp.ModuleCommons[*VmagentProps]{},
 		"vmalert":                  &k8sapp.ModuleCommons[*VmalertProps]{},
 
-		"cluster-secret-store": &k8sapp.ModuleCommons[*ClusterSecretStoreProps]{},
-		"external-secrets":     &k8sapp.ModuleCommons[*ExternalSecretsProps]{},
+		"external-secrets-store": &k8sapp.ModuleCommons[*ExternalSecretsStore]{},
+		"external-secrets":       &k8sapp.ModuleCommons[*ExternalSecretsProps]{},
 
 		"kube-gitops": &k8sapp.ModuleCommons[*KubeGitOpsProps]{},
 		"reloader":    &k8sapp.ModuleCommons[*ReloaderProps]{},

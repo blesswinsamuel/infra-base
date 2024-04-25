@@ -7,16 +7,25 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/blesswinsamuel/infra-base/kubegogen"
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/xerrors"
 )
 
+type ValuesGlobalDefaults struct {
+	SecretStoreName               string `json:"secretStoreName"`
+	SecretStoreKind               string `json:"secretStoreKind"`
+	ExternalSecretRefreshInterval string `json:"externalSecretRefreshInterval"`
+
+	CertIssuerName string `json:"certIssuerName"`
+	CertIssuerKind string `json:"certIssuerKind"`
+}
+
 type ValuesGlobal struct {
-	Domain                         string `json:"domain"`
-	CertIssuer                     string `json:"clusterCertIssuerName"`
-	ClusterExternalSecretStoreName string `json:"clusterExternalSecretStoreName"`
+	Domain   string               `json:"domain"`
+	Defaults ValuesGlobalDefaults `json:"defaults"`
 }
 
 type Values struct {
@@ -24,13 +33,22 @@ type Values struct {
 	Services OrderedMap[string, OrderedMap[string, ast.Node]] `json:"services"`
 }
 
+func GetGlobals(scope kubegogen.Scope) ValuesGlobal {
+	return scope.GetContext("global").(ValuesGlobal)
+}
+
 func LoadValues(valuesFiles []string, templateMap map[string]any) Values {
 	var values Values
 	// default global values
 	values.Global = ValuesGlobal{
-		Domain:                         "",
-		CertIssuer:                     "letsencrypt-prod",
-		ClusterExternalSecretStoreName: "secretstore",
+		Domain: "",
+		Defaults: ValuesGlobalDefaults{
+			SecretStoreName:               "secretstore",
+			SecretStoreKind:               "ClusterSecretStore",
+			ExternalSecretRefreshInterval: "10m",
+			CertIssuerName:                "letsencrypt-prod",
+			CertIssuerKind:                "ClusterIssuer",
+		},
 	}
 
 	valuesMerged := map[string]interface{}{}
