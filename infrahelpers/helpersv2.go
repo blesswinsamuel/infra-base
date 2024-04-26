@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
@@ -183,5 +184,28 @@ func (m *MergeableMap[K, V]) UnmarshalYAML(ctx context.Context, data []byte) err
 		return err
 	}
 	m.MergeMap(goMap)
+	return nil
+}
+
+// https://github.com/goccy/go-yaml/issues/425
+type YAMLRawMessage []byte
+
+func (m YAMLRawMessage) MarshalJSON() ([]byte, error) { return m.marshal() }
+func (m YAMLRawMessage) MarshalYAML() ([]byte, error) { return m.marshal() }
+
+func (m YAMLRawMessage) marshal() ([]byte, error) {
+	if m == nil {
+		return []byte("null"), nil
+	}
+	return m, nil
+}
+func (m *YAMLRawMessage) UnmarshalJSON(data []byte) error { return m.unmarshal(data) }
+func (m *YAMLRawMessage) UnmarshalYAML(data []byte) error { return m.unmarshal(data) }
+
+func (m *YAMLRawMessage) unmarshal(data []byte) error {
+	if m == nil {
+		return errors.New("RawMessage: unmarshal on nil pointer")
+	}
+	*m = append((*m)[0:0], data...)
 	return nil
 }

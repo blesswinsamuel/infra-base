@@ -193,6 +193,13 @@ func NewApplication(scope kubegogen.Scope, props *ApplicationProps) {
 	addConfigMapHash := false
 	configmapHash := sha256.New()
 	for _, configmap := range props.ConfigMaps {
+		NewConfigMap(scope, &ConfigmapProps{
+			Name: configmap.Name,
+			Data: configmap.Data,
+		})
+		if configmap.MountName == "" {
+			continue
+		}
 		volumes = append(volumes, corev1.Volume{
 			Name: configmap.MountName,
 			VolumeSource: corev1.VolumeSource{
@@ -204,29 +211,26 @@ func NewApplication(scope kubegogen.Scope, props *ApplicationProps) {
 			configmapHash.Write([]byte(configmap.Data[key]))
 			addConfigMapHash = true
 		}
-		NewConfigMap(scope, &ConfigmapProps{
-			Name: configmap.Name,
-			Data: configmap.Data,
-		})
 	}
 	if addConfigMapHash {
 		podAnnotations["configmap/checksum"] = fmt.Sprintf("%x", configmapHash.Sum(nil))
 	}
 	for _, secret := range props.Secrets {
-		if secret.MountName != "" {
-			volumes = append(volumes, corev1.Volume{
-				Name:         secret.MountName,
-				VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: secret.Name, Items: secret.VolumeItems}},
-			})
-			addVolumeMount(secret.MountToContainers, secret.MountName, secret.MountPath, secret.SubPath, secret.ReadOnly)
-			if secret.MountPath != "" {
-				watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, secret.Name)
-			}
-		}
 		NewSecret(scope, &SecretProps{
 			Name:       secret.Name,
 			StringData: secret.Data,
 		})
+		if secret.MountName == "" {
+			continue
+		}
+		volumes = append(volumes, corev1.Volume{
+			Name:         secret.MountName,
+			VolumeSource: corev1.VolumeSource{Secret: &corev1.SecretVolumeSource{SecretName: secret.Name, Items: secret.VolumeItems}},
+		})
+		addVolumeMount(secret.MountToContainers, secret.MountName, secret.MountPath, secret.SubPath, secret.ReadOnly)
+		if secret.MountPath != "" {
+			watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, secret.Name)
+		}
 	}
 	for _, externalSecret := range props.ExternalSecrets {
 		if externalSecret.MountName != "" {

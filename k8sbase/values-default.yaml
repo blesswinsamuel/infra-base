@@ -99,8 +99,8 @@ postgres:
         - PostgresqlConfigurationChanged # bad query
       alertReplacements:
         PostgresqlHighRollbackRate:
-          "0.02": "0.05"
-          "2 %": "5 %"
+          "0.02": "0.07"
+          "2 %": "7 %"
 
 redis:
   helm:
@@ -187,7 +187,7 @@ crowdsec:
   #   version: "0.9.12"
   image:
     repository: crowdsecurity/crowdsec
-    tag: v1.6.1-2-slim
+    tag: v1.6.1-2
   # traefik-bouncer:
   #   image:
   #     repository: fbonalair/traefik-crowdsec-bouncer
