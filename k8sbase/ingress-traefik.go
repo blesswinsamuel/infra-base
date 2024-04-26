@@ -23,6 +23,8 @@ type TraefikProps struct {
 		} `json:"stripPrefix"`
 	} `json:"createMiddlewares"`
 	DefaultMiddlewares []string `json:"defaultMiddlewares"`
+	Plugins            []string `json:"plugins"`
+	// HostPathMountForLogs bool     `json:"hostPathMountForLogs"`
 }
 
 // https://github.com/traefik/traefik-helm-chart/tree/master/traefik
@@ -31,134 +33,167 @@ func (props *TraefikProps) Render(scope kubegogen.Scope) {
 		props.ServiceType = "LoadBalancer"
 	}
 
-	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
-		ChartInfo:   props.ChartInfo,
-		ReleaseName: "traefik",
-		Namespace:   scope.Namespace(),
-		Values: map[string]interface{}{
-			// "deployment": map[string]any{
-			// 	"podAnnotations": map[string]any{
-			// 		"prometheus.io/port":   "8082",
-			// 		"prometheus.io/scrape": "true",
-			// 	},
-			// },
-			// above is already set in the helm chart
-			"providers": map[string]any{
-				"kubernetesCRD": map[string]any{
-					"allowCrossNamespace":       true,
-					"allowExternalNameServices": true,
-				},
-				"kubernetesIngress": map[string]any{
-					"allowExternalNameServices": true,
-					"publishedService": map[string]any{
-						"enabled": true,
-					},
+	values := map[string]interface{}{
+		// "deployment": map[string]any{
+		// 	"podAnnotations": map[string]any{
+		// 		"prometheus.io/port":   "8082",
+		// 		"prometheus.io/scrape": "true",
+		// 	},
+		// },
+		// above is already set in the helm chart
+		"providers": map[string]any{
+			"kubernetesCRD": map[string]any{
+				"allowCrossNamespace":       true,
+				"allowExternalNameServices": true,
+			},
+			"kubernetesIngress": map[string]any{
+				"allowExternalNameServices": true,
+				"publishedService": map[string]any{
+					"enabled": true,
 				},
 			},
-			"priorityClassName": "system-cluster-critical",
-			"tolerations": []map[string]any{
-				{
-					"key":      "CriticalAddonsOnly",
-					"operator": "Exists",
-				},
-				{
-					"key":      "node-role.kubernetes.io/control-plane",
-					"operator": "Exists",
-					"effect":   "NoSchedule",
-				},
-				{
-					"key":      "node-role.kubernetes.io/master",
-					"operator": "Exists",
-					"effect":   "NoSchedule",
-				},
+		},
+		"priorityClassName": "system-cluster-critical",
+		"tolerations": []map[string]any{
+			{
+				"key":      "CriticalAddonsOnly",
+				"operator": "Exists",
 			},
+			{
+				"key":      "node-role.kubernetes.io/control-plane",
+				"operator": "Exists",
+				"effect":   "NoSchedule",
+			},
+			{
+				"key":      "node-role.kubernetes.io/master",
+				"operator": "Exists",
+				"effect":   "NoSchedule",
+			},
+		},
 
-			"ingressClass": map[string]any{
-				"enabled":        true,
-				"isDefaultClass": true,
+		"ingressClass": map[string]any{
+			"enabled":        true,
+			"isDefaultClass": true,
+		},
+		"ingressRoute": map[string]any{
+			"dashboard": map[string]any{
+				"enabled": false,
 			},
-			"ingressRoute": map[string]any{
-				"dashboard": map[string]any{
-					"enabled": false,
-				},
-			},
-			// "tlsOptions": map[string]any{
-			// 	// add traefik-ssh to the default alpnProtocols
-			// 	"default": map[string]any{
-			// 		"alpnProtocols": []string{
-			// 			"h2", "http/1.1", "acme-tls/1", "traefik-ssh",
-			// 		},
-			// 	},
+		},
+		// "tlsOptions": map[string]any{
+		// 	// add traefik-ssh to the default alpnProtocols
+		// 	"default": map[string]any{
+		// 		"alpnProtocols": []string{
+		// 			"h2", "http/1.1", "acme-tls/1", "traefik-ssh",
+		// 		},
+		// 	},
+		// },
+		"additionalArguments": []string{
+			"--api.insecure=true", // to expose the api for homepage dashboard via kubernetes service created below
+		},
+		"experimental": map[string]any{
+			"plugins": map[string]any{},
+		},
+		"ports": map[string]any{
+			// "traefik": map[string]any{
+			// 	"expose": true,
 			// },
-			"additionalArguments": []string{
-				"--api.insecure=true", // to expose the api for homepage dashboard via kubernetes service created below
-				"--accesslog=true",
-				"--accesslog.format=json",
-				"--log.format=json",
+			"web": map[string]any{
+				// "expose":           map[string]any{"default": true},
+				// "exposedPort":      80,
+				"redirectTo":       map[string]any{"port": "websecure"},
+				"forwardedHeaders": map[string]any{"trustedIPs": props.TrustedIPs},
+				"proxyProtocol":    map[string]any{"trustedIPs": props.TrustedIPs},
 			},
-			"experimental": map[string]any{
-				"plugins": map[string]any{
-					"htransformation": map[string]any{
-						"moduleName": "github.com/tomMoulard/htransformation",
-						"version":    "v0.2.8",
-					},
-				},
+			"websecure": map[string]any{
+				// "expose":           map[string]any{"default": true},
+				// "exposedPort":      443,
+				"forwardedHeaders": map[string]any{"trustedIPs": props.TrustedIPs},
+				"proxyProtocol":    map[string]any{"trustedIPs": props.TrustedIPs},
+				// ## Enable this entrypoint as a default entrypoint. When a service doesn't explicity set an entrypoint it will only use this entrypoint.
+				// # works only from traefik v3
+				// # asDefault: true
+				"middlewares": props.DefaultMiddlewares,
 			},
-			"ports": map[string]any{
-				// "traefik": map[string]any{
-				// 	"expose": true,
-				// },
-				"web": map[string]any{
-					// "expose":           map[string]any{"default": true},
-					// "exposedPort":      80,
-					"redirectTo":       map[string]any{"port": "websecure"},
-					"forwardedHeaders": map[string]any{"trustedIPs": props.TrustedIPs},
-					"proxyProtocol":    map[string]any{"trustedIPs": props.TrustedIPs},
-				},
-				"websecure": map[string]any{
-					// "expose":           map[string]any{"default": true},
-					// "exposedPort":      443,
-					"forwardedHeaders": map[string]any{"trustedIPs": props.TrustedIPs},
-					"proxyProtocol":    map[string]any{"trustedIPs": props.TrustedIPs},
-					// ## Enable this entrypoint as a default entrypoint. When a service doesn't explicity set an entrypoint it will only use this entrypoint.
-					// # works only from traefik v3
-					// # asDefault: true
-					"middlewares": props.DefaultMiddlewares,
-				},
+		},
+		"service": map[string]any{
+			"type":           props.ServiceType,
+			"ipFamilyPolicy": "PreferDualStack",
+			"spec": map[string]any{
+				"externalTrafficPolicy": infrahelpers.If(props.ServiceType == "LoadBalancer", "Local", ""), // So that traefik gets the real IP - https://github.com/k3s-io/k3s/discussions/2997#discussioncomment-413904
+				// also see https://www.authelia.com/integration/kubernetes/introduction/#external-traffic-policy
 			},
-			"service": map[string]any{
-				"type":           props.ServiceType,
-				"ipFamilyPolicy": "PreferDualStack",
+		},
+		"extraObjects": []map[string]any{
+			{
+				"apiVersion": "v1",
+				"kind":       "Service",
+				"metadata": map[string]any{
+					"name": "traefik-api",
+				},
 				"spec": map[string]any{
-					"externalTrafficPolicy": infrahelpers.If(props.ServiceType == "LoadBalancer", "Local", ""), // So that traefik gets the real IP - https://github.com/k3s-io/k3s/discussions/2997#discussioncomment-413904
-					// also see https://www.authelia.com/integration/kubernetes/introduction/#external-traffic-policy
-				},
-			},
-			"extraObjects": []map[string]any{
-				{
-					"apiVersion": "v1",
-					"kind":       "Service",
-					"metadata": map[string]any{
-						"name": "traefik-api",
+					"type": "ClusterIP",
+					"selector": map[string]any{
+						"app.kubernetes.io/name":     "traefik",
+						"app.kubernetes.io/instance": "traefik-ingress",
 					},
-					"spec": map[string]any{
-						"type": "ClusterIP",
-						"selector": map[string]any{
-							"app.kubernetes.io/name":     "traefik",
-							"app.kubernetes.io/instance": "traefik-ingress",
-						},
-						"ports": []map[string]any{
-							{
-								"port":       8080,
-								"name":       "traefik",
-								"targetPort": 9000,
-								"protocol":   "TCP",
-							},
+					"ports": []map[string]any{
+						{
+							"port":       8080,
+							"name":       "traefik",
+							"targetPort": 9000,
+							"protocol":   "TCP",
 						},
 					},
 				},
 			},
 		},
+		"logs": map[string]any{
+			"general": map[string]any{"format": "json"},
+		},
+	}
+	values["logs"].(map[string]any)["access"] = map[string]any{
+		"enabled": true,
+		"format":  "json",
+	}
+
+	plugins := values["experimental"].(map[string]any)["plugins"].(map[string]any)
+	for _, plugin := range props.Plugins {
+		switch plugin {
+		case "htransformation":
+			plugins[plugin] = map[string]any{
+				"moduleName": "github.com/tomMoulard/htransformation",
+				"version":    "v0.2.8",
+			}
+		case "crowdsec-bouncer":
+			plugins[plugin] = map[string]any{
+				"moduleName": "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin",
+				"version":    "v1.2.1",
+			}
+		}
+	}
+
+	// if props.HostPathMountForLogs {
+	// 	values["logs"].(map[string]any)["access"] = map[string]any{
+	// 		"enabled": true,
+	// 		"format":  "json",
+	// 		// "bufferingSize": 100,
+	// 		// "filters":       map[string]any{"statuscodes": "204-299,400-499,500-59"},
+	// 		// "filePath":      "/var/log/traefik/access.log",
+	// 	}
+	// 	values["additionalVolumeMounts"] = []corev1.VolumeMount{
+	// 		{Name: "access-logs", MountPath: "/var/log/traefik"},
+	// 	}
+	// 	values["additionalVolumes"] = []corev1.Volume{
+	// 		{Name: "access-logs", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/var/log/traefik"}}},
+	// 	}
+	// }
+
+	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
+		ChartInfo:   props.ChartInfo,
+		ReleaseName: "traefik",
+		Namespace:   scope.Namespace(),
+		Values:      values,
 	})
 
 	if props.DashboardIngress.Enabled {
