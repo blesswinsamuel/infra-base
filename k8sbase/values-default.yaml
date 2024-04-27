@@ -410,6 +410,7 @@ node-exporter:
       skipAlerts:
         - HostMemoryIsUnderutilized
         - HostCpuIsUnderutilized
+        - HostSystemdServiceCrashed # duplicate of NodeSystemdServiceFailed
 victoria-metrics:
   helm:
     repo: https://victoriametrics.github.io/helm-charts

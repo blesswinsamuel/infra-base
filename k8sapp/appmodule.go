@@ -41,7 +41,7 @@ type ModuleWithMeta interface {
 	Module
 	GetModuleName() string
 	GetGrafanaDashboards() map[string]GrafanaDashboard
-	GetAlertingRules() map[string]AlertingRule
+	GetAlertingRules() map[string]AlertingRules
 }
 
 type OrderedMap[K comparable, V any] struct {
@@ -80,7 +80,7 @@ func (m *OrderedMap[K, V]) UnmarshalYAML(ctx context.Context, data []byte) error
 type ModuleCommons[T Module] struct {
 	Module            string                                              `json:"_module"`
 	GrafanaDashboards infrahelpers.MergeableMap[string, GrafanaDashboard] `json:"_grafana_dashboards"`
-	AlertingRules     infrahelpers.MergeableMap[string, AlertingRule]     `json:"_alerting_rules"`
+	AlertingRules     infrahelpers.MergeableMap[string, AlertingRules]    `json:"_alerting_rules"`
 
 	Rest T `json:",inline"`
 }
@@ -97,7 +97,7 @@ func (m ModuleCommons[T]) GetGrafanaDashboards() map[string]GrafanaDashboard {
 	return m.GrafanaDashboards
 }
 
-func (m ModuleCommons[T]) GetAlertingRules() map[string]AlertingRule {
+func (m ModuleCommons[T]) GetAlertingRules() map[string]AlertingRules {
 	return m.AlertingRules
 }
 

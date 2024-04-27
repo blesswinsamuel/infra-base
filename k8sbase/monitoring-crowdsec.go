@@ -217,34 +217,44 @@ fi;
 						// The output goes in the http request body
 
 						// Replace XXXXXXXXX with your Telegram chat ID
+						// https://docs.crowdsec.net/docs/notification_plugins/template_helpers
+						// {{$alert.Source.IP}} ({{$alert.Source.Cn}}) triggered *{{$alert.Scenario}}* ({{$alert.Source.AsName}}) : Maliciousness Score is
+						// {{- $cti := $alert.Source.IP | CrowdsecCTI  -}}
+						// {{" "}}{{mulf $cti.GetMaliciousnessScore 100 | floor}} %
+						// 						"format": infrahelpers.YAMLRawMessage(`{
+						//     "chat_id": "{{ env "TELEGRAM_CHAT_ID" }}",
+						//     "text": "
+						// {{- range . }}
+						// {{- $alert := . }}
+						// 🌎 {{$alert.Source.Cn}}
+						// 🌐 <a href="https://app.crowdsec.net/cti/{{$alert.Source.IP}}">{{$alert.Source.IP}}</a>
+						// 📜 <i>{{$alert.Scenario}}</i>
+						// 📝 <b>{{$alert.Source.AsName}}</b>
+						// 🏷 Decisions:
+						// {{- range .Decisions }}
+						// {{.Value}} will get {{.Type}} for next {{.Duration}} for triggering {{.Scenario}}.
+						// {{- end }}
+						// {{- end -}}
+						// ",
+						//     "parse_mode": "HTML"
+						// }`),
 						"format": infrahelpers.YAMLRawMessage(`|
+  {{- $telegramChatID := env "TELEGRAM_CHAT_ID" -}}
   {
-    "chat_id": "{{ env "TELEGRAM_CHAT_ID" }}", 
+    "chat_id": "{{ $telegramChatID }}",
     "text": "
-      {{ range . -}}  
-      {{$alert := . -}}  
-      {{range .Decisions -}}
-      {{.Value}} will get {{.Type}} for next {{.Duration}} for triggering {{.Scenario}}.
-      {{end -}}
-      {{end -}}
-    ",
-    "reply_markup": {
-      "inline_keyboard": [
-           {{ $arrLength := len . -}}
-           {{ range $i, $value := . -}}
-           {{ $V := $value.Source.Value -}}
-           [
-               {
-                   "text": "See {{ $V }} on shodan.io",
-                   "url": "https://www.shodan.io/host/{{ $V -}}"
-               },
-               {
-                   "text": "See {{ $V }} on crowdsec.net",
-                   "url": "https://app.crowdsec.net/cti/{{ $V -}}"
-               }
-           ]{{if lt $i ( sub $arrLength 1) }},{{end }}
-       {{end -}}
-      ]
+  {{- range . }}
+  {{- $alert := . }}
+  🕵️ <b>{{$alert.Source.AsName}}</b>
+  🌐 <a href=\"https://app.crowdsec.net/cti/{{$alert.Source.IP}}\">{{$alert.Source.IP}}</a> 🌎 {{$alert.Source.Cn}}
+  📜 <i>{{$alert.Scenario}}</i>
+  🏷 Decisions:
+  {{- range .Decisions }}
+    {{.Value}} will get <i>{{.Type}}</i> for next <b>{{.Duration}}</b> for triggering <i>{{.Scenario}}</i>.
+  {{- end }}
+  {{- end -}}
+  ",
+    "parse_mode": "HTML"
   }`),
 
 						"url": "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage", // Replace XXX:YYY with your API key

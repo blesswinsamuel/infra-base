@@ -6,7 +6,7 @@ import (
 )
 
 type AlertingRulesProps struct {
-	Rules map[string]k8sapp.AlertingRule
+	Rules map[string]k8sapp.AlertingRules
 }
 
 func (props *AlertingRulesProps) Render(scope kubegogen.Scope) {

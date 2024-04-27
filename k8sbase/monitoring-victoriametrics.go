@@ -5,6 +5,8 @@ import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type VictoriaMetrics struct {
@@ -14,9 +16,10 @@ type VictoriaMetrics struct {
 		Enabled   bool   `json:"enabled"`
 		SubDomain string `json:"subDomain"`
 	} `json:"ingress"`
-	RetentionPeriod      string         `json:"retentionPeriod"`
-	PersistentVolume     map[string]any `json:"persistentVolume"`
-	PersistentVolumeName string         `json:"persistentVolumeName"`
+	RetentionPeriod        string         `json:"retentionPeriod"`
+	PersistentVolume       map[string]any `json:"persistentVolume"`
+	PersistentVolumeName   string         `json:"persistentVolumeName"`
+	NodePortServiceEnabled bool           `json:"nodePortServiceEnabled"`
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single
@@ -77,6 +80,17 @@ func (props *VictoriaMetrics) Render(scope kubegogen.Scope) {
 			},
 		},
 	})
+
+	if props.NodePortServiceEnabled {
+		scope.AddApiObject(&corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{Name: "victoriametrics-np"},
+			Spec: corev1.ServiceSpec{
+				Type:     corev1.ServiceTypeNodePort,
+				Ports:    []corev1.ServicePort{{Name: "http", Port: 8428, TargetPort: intstr.FromInt32(8428), NodePort: 30428}},
+				Selector: map[string]string{"app.kubernetes.io/name": "victoria-metrics-single"},
+			},
+		})
+	}
 
 	k8sapp.NewConfigMap(scope, &k8sapp.ConfigmapProps{
 		Name: "grafana-datasource-victoriametrics",
