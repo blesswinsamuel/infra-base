@@ -15,6 +15,7 @@ func (props *NodeExporterProps) Render(scope kubegogen.Scope) {
 	if props.Disable {
 		return
 	}
+	// TODO: remove helm dependency
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "node-exporter",

@@ -32,33 +32,35 @@ func (i *ImageInfo) ToMap() map[string]interface{} {
 }
 
 type ApplicationProps struct {
-	Kind                            string
-	Name                            string
-	ServiceAccountName              string
-	CreateServiceAccount            bool
-	Hostname                        string
-	CreateHeadlessService           bool
-	StatefulSetServiceName          string
-	EnableServiceLinks              *bool
-	AutomountServiceAccountToken    bool
-	DeploymentUpdateStrategy        v1.DeploymentStrategy
-	AppAnnotations                  map[string]string
-	PodAnnotations                  map[string]string
-	PodSecurityContext              *corev1.PodSecurityContext
-	ImagePullSecrets                string
-	InitContainers                  []ApplicationContainer
-	Containers                      []ApplicationContainer
-	ConfigMaps                      []ApplicationConfigMap
-	ExternalSecrets                 []ApplicationExternalSecret
-	Secrets                         []ApplicationSecret
-	PersistentVolumes               []ApplicationPersistentVolume // TODO: change to PersistentVolumeClaims
-	StatefulSetVolumeClaimTemplates []ApplicationPersistentVolume
-	ExtraVolumes                    []corev1.Volume
-	HostNetwork                     bool
-	DnsPolicy                       string
-	DNSConfig                       *corev1.PodDNSConfig
-	IngressMiddlewares              []NameNamespace
+	Kind                         string
+	Name                         string
+	ServiceAccountName           string
+	Replicas                     *int32
+	CreateServiceAccount         bool
+	Hostname                     string
+	CreateHeadlessService        bool
+	EnableServiceLinks           *bool
+	AutomountServiceAccountToken bool
+	AppAnnotations               map[string]string
+	PodAnnotations               map[string]string
+	PodSecurityContext           *corev1.PodSecurityContext
+	ImagePullSecrets             string
+	InitContainers               []ApplicationContainer
+	Containers                   []ApplicationContainer
+	ConfigMaps                   []ApplicationConfigMap
+	ExternalSecrets              []ApplicationExternalSecret
+	Secrets                      []ApplicationSecret
+	PersistentVolumes            []ApplicationPersistentVolume // TODO: change to PersistentVolumeClaims
+	ExtraVolumes                 []corev1.Volume
+	HostNetwork                  bool
+	DNSPolicy                    corev1.DNSPolicy
+	DNSConfig                    *corev1.PodDNSConfig
+	IngressMiddlewares           []NameNamespace
 	// IngressAnnotations              map[string]string
+
+	DeploymentUpdateStrategy        v1.DeploymentStrategy
+	StatefulSetServiceName          string
+	StatefulSetVolumeClaimTemplates []ApplicationPersistentVolume
 }
 
 type ApplicationPersistentVolume struct {
@@ -83,6 +85,7 @@ type ApplicationConfigMap struct {
 	MountPath         string
 	SubPath           string
 	ReadOnly          bool
+	DefaultMode       *int32
 }
 
 type ApplicationExternalSecret struct {
@@ -203,7 +206,7 @@ func NewApplication(scope kubegogen.Scope, props *ApplicationProps) {
 		volumes = append(volumes, corev1.Volume{
 			Name: configmap.MountName,
 			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: configmap.Name}},
+				ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: configmap.Name}, DefaultMode: configmap.DefaultMode},
 			},
 		})
 		addVolumeMount(configmap.MountToContainers, configmap.MountName, configmap.MountPath, configmap.SubPath, configmap.ReadOnly)
@@ -418,9 +421,12 @@ func NewApplication(scope kubegogen.Scope, props *ApplicationProps) {
 			InitContainers: initContainers,
 			Volumes:        volumes,
 			HostNetwork:    props.HostNetwork,
-			DNSPolicy:      corev1.DNSPolicy(props.DnsPolicy),
+			DNSPolicy:      props.DNSPolicy,
 			DNSConfig:      props.DNSConfig,
 		},
+	}
+	if props.Replicas == nil {
+		props.Replicas = infrahelpers.Ptr(int32(1))
 	}
 	switch props.Kind {
 	case "Deployment":
@@ -430,7 +436,7 @@ func NewApplication(scope kubegogen.Scope, props *ApplicationProps) {
 				Annotations: appAnnotations,
 			},
 			Spec: v1.DeploymentSpec{
-				Replicas: infrahelpers.Ptr(int32(1)),
+				Replicas: props.Replicas,
 				Strategy: props.DeploymentUpdateStrategy,
 				Selector: &metav1.LabelSelector{
 					MatchLabels: commonLabels,
@@ -445,13 +451,26 @@ func NewApplication(scope kubegogen.Scope, props *ApplicationProps) {
 				Annotations: appAnnotations,
 			},
 			Spec: v1.StatefulSetSpec{
-				Replicas:    infrahelpers.Ptr(int32(1)),
+				Replicas:    props.Replicas,
 				ServiceName: infrahelpers.UseOrDefault(props.StatefulSetServiceName, props.Name),
 				Selector: &metav1.LabelSelector{
 					MatchLabels: commonLabels,
 				},
 				Template:             podTemplate,
 				VolumeClaimTemplates: statefulSetVolumeClaimTemplates,
+			},
+		})
+	case "DaemonSet":
+		scope.AddApiObject(&v1.DaemonSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        props.Name,
+				Annotations: appAnnotations,
+			},
+			Spec: v1.DaemonSetSpec{
+				Selector: &metav1.LabelSelector{
+					MatchLabels: commonLabels,
+				},
+				Template: podTemplate,
 			},
 		})
 	}

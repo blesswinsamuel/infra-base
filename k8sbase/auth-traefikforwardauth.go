@@ -59,6 +59,7 @@ func (props *TraefikForwardAuth) Render(scope kubegogen.Scope) {
 		externalSecretRemoteRefs["PROVIDERS_GENERIC_OAUTH_CLIENT_ID"] = "FORWARD_AUTH_GITHUB_CLIENT_ID"
 		externalSecretRemoteRefs["PROVIDERS_GENERIC_OAUTH_CLIENT_SECRET"] = "FORWARD_AUTH_GITHUB_CLIENT_SECRET"
 	}
+	// TODO: remove helm dependency
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "traefik-forward-auth",

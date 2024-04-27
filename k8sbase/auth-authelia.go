@@ -417,34 +417,6 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 	})
 
 	k8sapp.NewApplication(scope, appProps)
-	// k8sapp.NewHelm(chart, &k8sapp.HelmProps{
-	// 	ChartInfo:     props.ChartInfo,
-	// 	ReleaseName:   "authelia",
-	// 	Namespace:     chart.Namespace(),
-	// 	PatchResource: patchResource,
-	// 	Values: map[string]any{
-	// 		"domain": GetDomain(scope),
-	// 		"pod":    pod,
-	// 		"ingress": map[string]any{
-	// 			"enabled":   true,
-	// 			"subdomain": props.Ingress.SubDomain,
-	// 			"traefikCRD": map[string]any{
-	// 				"enabled":             true,
-	// 				"disableIngressRoute": true,
-	// 			},
-	// 			"annotations": infrahelpers.MergeAnnotations(
-	// 				GetCertIssuerAnnotation(scope),
-	// 				map[string]string{
-	// 					"traefik.ingress.kubernetes.io/router.middlewares": scope.Namespace() + "-chain-authelia@kubernetescrd",
-	// 				},
-	// 			),
-	// 		},
-	// 		"secret": map[string]any{
-	// 			"existingSecret": "authelia",
-	// 		},
-	// 		"configMap": configMap,
-	// 	},
-	// })
 
 	scope.AddApiObject(&traefikv1alpha1.Middleware{
 		ObjectMeta: metav1.ObjectMeta{Name: "forwardauth-authelia"},

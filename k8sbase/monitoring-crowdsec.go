@@ -1,6 +1,7 @@
 package k8sbase
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
@@ -18,6 +19,12 @@ type Crowdsec struct {
 	ExtraParsers      []string                  `json:"extraParsers"`
 	ExtraScenarios    []string                  `json:"extraScenarios"`
 	ExtraAcquisitions map[string]map[string]any `json:"extraAcquisitions"`
+	InstanceName      string                    `json:"instanceName"`
+	FirewallBouncer   struct {
+		Enabled   bool             `json:"enabled"`
+		Mode      string           `json:"mode"`
+		ImageInfo k8sapp.ImageInfo `json:"image"`
+	} `json:"firewallBouncer"`
 	// HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
@@ -27,11 +34,20 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 	// https://docs.crowdsec.net/u/getting_started/installation/kubernetes/
 	// https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin/blob/main/examples/behind-proxy/docker-compose.cloudflare.yml
 	// https://app.crowdsec.net/hub/collections
-	collections := []string{"crowdsecurity/traefik"}
+	collections := []string{
+		"crowdsecurity/linux",
+		"crowdsecurity/sshd",
+
+		"crowdsecurity/traefik",
+		// base-http-scenarios and http-cve are included in traefik, but added explicitly here for pruning to work correctly
+		"crowdsecurity/base-http-scenarios",
+		"crowdsecurity/http-cve",
+	}
 	parsers := []string{}
 	scenarios := []string{}
 	parsers = append(parsers, props.ExtraParsers...)
 	collections = append(collections, props.ExtraCollections...)
+	sort.Strings(collections)
 	scenarios = append(scenarios, props.ExtraScenarios...)
 
 	if props.ExtraAcquisitions == nil {
@@ -41,10 +57,16 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 		"filenames": []string{"/var/log/containers/traefik-*_ingress_traefik-*.log"},
 		"labels":    map[string]interface{}{"type": "containerd", "program": "traefik"},
 	}
+	props.ExtraAcquisitions["sshd"] = map[string]any{
+		"filenames": []string{"/var/log/auth.log"},
+		// "filenames": []string{"/var/log/auth.log", "/var/log/syslog"},
+		"labels": map[string]interface{}{"type": "syslog", "program": "sshd"},
+	}
 
 	extraAcquisitionsCm := map[string]string{}
 	extraAcquisitionsVolMounts := []corev1.VolumeMount{}
-	for k, v := range props.ExtraAcquisitions {
+	for _, k := range infrahelpers.MapKeys(props.ExtraAcquisitions) {
+		v := props.ExtraAcquisitions[k]
 		// to fix the error "file is a symlink, but inotify polling is enabled. Crowdsec will not be able to detect rotation. Consider setting poll_without_inotify to true in your configuration"
 		v["poll_without_inotify"] = true
 		// https://discourse.crowdsec.net/t/error-could-not-create-fsnotify-watcher-too-many-open-files-kubernetes/1584/8
@@ -52,6 +74,45 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 		extraAcquisitionsCm["acquis-"+k+".yaml"] = infrahelpers.ToYamlString(v)
 		extraAcquisitionsVolMounts = append(extraAcquisitionsVolMounts, corev1.VolumeMount{Name: "config", MountPath: "/etc/crowdsec/acquis.d/" + k + ".yaml", SubPath: "acquis-" + k + ".yaml", ReadOnly: true})
 	}
+	extraAcquisitionsCm["acquis.yaml"] = ``
+	extraAcquisitionsVolMounts = append(extraAcquisitionsVolMounts, corev1.VolumeMount{Name: "config", MountPath: "/etc/crowdsec/acquis.yaml", SubPath: "acquis.yaml", ReadOnly: true})
+
+	firewallBouncerProfile := infrahelpers.ToYamlString(map[string]interface{}{
+		"name": "firewall_ip_remediation",
+		// "debug": true,
+		"filters": []string{
+			`Alert.Remediation == true && Alert.GetScope() == "Ip" && Alert.GetScenario() contains "ssh"`,
+		},
+		"decisions": []map[string]interface{}{
+			{"type": "ban-firewall", "duration": "24h"},
+		},
+		"notifications": []string{"telegram"},
+		"on_success":    "break",
+	})
+	traefikBouncerProfile := infrahelpers.ToYamlString(map[string]interface{}{
+		"name": "traefik_ip_remediation",
+		// "debug": true,
+		"filters": []string{
+			`Alert.Remediation == true && Alert.GetScope() == "Ip"`,
+		},
+		"decisions": []map[string]interface{}{
+			{"type": "ban", "duration": "24h"},
+		},
+		"notifications": []string{"telegram"},
+		// "duration_expr": `Sprintf('%dh', (GetDecisionsCount(Alert.GetValue()) + 1) * 4)`,
+		// # notifications:
+		// #   - slack_default  # Set the webhook in /etc/crowdsec/notifications/slack.yaml before enabling this.
+		// #   - splunk_default # Set the splunk url and token in /etc/crowdsec/notifications/splunk.yaml before enabling this.
+		// #   - http_default   # Set the required http parameters in /etc/crowdsec/notifications/http.yaml before enabling this.
+		// #   - email_default  # Set the required email parameters in /etc/crowdsec/notifications/email.yaml before enabling this.
+		"on_success": "break",
+	})
+	profiles := []string{}
+	if props.FirewallBouncer.Enabled {
+		profiles = append(profiles, firewallBouncerProfile)
+	}
+	profiles = append(profiles, traefikBouncerProfile)
+
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Name: "crowdsec",
 		InitContainers: []k8sapp.ApplicationContainer{
@@ -71,6 +132,28 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 					{Name: "config-envsubst", MountPath: "/config-envsubst"},
 				},
 			},
+			{
+				Name:  "prune-collections",
+				Image: props.ImageInfo,
+				// Command: []string{"sh", "-c", `cscli collections remove --all`},
+				Env: map[string]string{
+					"COLLECTIONS": strings.Join(collections, " "),
+				},
+				Command: []string{"sh", "-c", `
+cscli collections list -o raw | cut -d',' -f1 | tail -n +2 | sort -u > /tmp/existing-collections;
+echo $COLLECTIONS | tr ' ' '\n' | sort -u > /tmp/required-collections;
+DIFF=$(comm -23 /tmp/existing-collections /tmp/required-collections | xargs);
+if [ -n "$DIFF" ]; then
+  echo "Pruning collections: $DIFF";
+  cscli collections remove $DIFF;
+else
+  echo "No collections to prune";
+fi;
+`},
+				ExtraVolumeMounts: infrahelpers.MergeLists(extraAcquisitionsVolMounts, []corev1.VolumeMount{
+					{Name: "config", MountPath: "/etc/crowdsec/profiles.yaml", SubPath: "profiles.yaml", ReadOnly: true},
+				}),
+			},
 		},
 		Containers: []k8sapp.ApplicationContainer{
 			{
@@ -82,8 +165,8 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 				},
 				Env: map[string]string{
 					"GID":                  "1000",
-					"ENROLL_INSTANCE_NAME": "homelab",
-					"ENROLL_TAGS":          "k8s traefik homelab",
+					"ENROLL_INSTANCE_NAME": props.InstanceName,
+					"ENROLL_TAGS":          "k8s",
 					"COLLECTIONS":          strings.Join(collections, " "),
 					"PARSERS":              strings.Join(parsers, " "),
 					"SCEANRIOS":            strings.Join(scenarios, " "),
@@ -113,24 +196,8 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 			{
 				Name: "crowdsec-config",
 				Data: infrahelpers.MergeMaps(extraAcquisitionsCm, map[string]string{
-					"profiles.yaml": infrahelpers.ToYamlString(map[string]interface{}{
-						"name": "default_ip_remediation",
-						// "debug": true,
-						"filters": []string{
-							`Alert.Remediation == true && Alert.GetScope() == "Ip"`,
-						},
-						"decisions": []map[string]interface{}{
-							{"type": "ban", "duration": "4h"},
-						},
-						"notifications": []string{"telegram"},
-						// "duration_expr": `Sprintf('%dh', (GetDecisionsCount(Alert.GetValue()) + 1) * 4)`,
-						// # notifications:
-						// #   - slack_default  # Set the webhook in /etc/crowdsec/notifications/slack.yaml before enabling this.
-						// #   - splunk_default # Set the splunk url and token in /etc/crowdsec/notifications/splunk.yaml before enabling this.
-						// #   - http_default   # Set the required http parameters in /etc/crowdsec/notifications/http.yaml before enabling this.
-						// #   - email_default  # Set the required email parameters in /etc/crowdsec/notifications/email.yaml before enabling this.
-						"on_success": "break",
-					}),
+					// https://docs.crowdsec.net/docs/profiles/captcha_profile
+					"profiles.yaml": strings.Join(profiles, "---\n"),
 					"notifications-telegram.yaml": infrahelpers.ToYamlString(map[string]interface{}{
 						"type": "http",     // Don't change
 						"name": "telegram", // Must match the registered plugin in the profile
@@ -265,6 +332,94 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 	// 		},
 	// 	},
 	// })
+
+	// https://github.com/crowdsecurity/cs-firewall-bouncer/issues/32#issuecomment-1060890534
+	if props.FirewallBouncer.Enabled {
+		k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
+			Name:        "crowdsec-firewall-bouncer",
+			HostNetwork: true,
+			Kind:        "DaemonSet",
+			Containers: []k8sapp.ApplicationContainer{
+				{
+					Name:    "crowdsec-firewall-bouncer",
+					Command: []string{"crowdsec-firewall-bouncer", "-c", "/config/crowdsec-firewall-bouncer.yaml"},
+					Image:   props.FirewallBouncer.ImageInfo,
+					Env:     map[string]string{},
+					SecurityContext: &corev1.SecurityContext{
+						AllowPrivilegeEscalation: infrahelpers.Ptr(false),
+						Privileged:               infrahelpers.Ptr(false),
+						Capabilities: &corev1.Capabilities{
+							Add: []corev1.Capability{"NET_ADMIN", "NET_RAW"},
+						},
+					},
+				},
+			},
+			DNSPolicy: corev1.DNSClusterFirstWithHostNet,
+			ConfigMaps: []k8sapp.ApplicationConfigMap{
+				{
+					Name: "crowdsec-firewall-bouncer",
+					Data: map[string]string{
+						// nft list ruleset
+						"crowdsec-firewall-bouncer.yaml": infrahelpers.ToYamlString(map[string]any{
+							// "mode":             "iptables",
+							"mode":             props.FirewallBouncer.Mode,
+							"update_frequency": "10s",
+							// "log_mode":         "file",
+							// "log_dir":          "/var/log/",
+							"log_level": "info",
+							// "log_compression":  true,
+							// "log_max_size":     100,
+							// "log_max_backups":  3,
+							// "log_max_age":      30,
+							"api_url": "http://crowdsec." + scope.Namespace() + ".svc.cluster.local:8080",
+							"api_key": "mysecretkey12345",
+							// "insecure_skip_verify": false,
+							"disable_ipv6": true,
+							"deny_action":  "DROP",
+							"deny_log":     false,
+							"supported_decisions_types": []string{
+								"ban-firewall",
+							},
+							"blacklists_ipv4": "crowdsec-blacklists",
+							"blacklists_ipv6": "crowdsec6-blacklists",
+							"ipset_type":      "nethash",
+							"iptables_chains": []string{
+								"INPUT",
+							},
+							"nftables": map[string]map[string]any{
+								"ipv4": {
+									"enabled":  true,
+									"set-only": false,
+									"table":    "crowdsec",
+									"chain":    "crowdsec-chain",
+									"priority": -10,
+								},
+								"ipv6": {
+									"enabled":  true,
+									"set-only": false,
+									"table":    "crowdsec6",
+									"chain":    "crowdsec6-chain",
+									"priority": -10,
+								},
+							},
+							"nftables_hooks": []string{
+								"input",
+								"forward",
+							},
+							// "prometheus": map[string]any{
+							// 	"enabled":     false,
+							// 	"listen_addr": "127.0.0.1",
+							// 	"listen_port": 60601,
+							// },
+						}),
+					},
+					MountName: "config",
+					MountPath: "/config",
+					ReadOnly:  true,
+				},
+			},
+		})
+	}
 }
 
 // kubectl exec -it -n ingress deploy/crowdsec -- cscli decisions list
