@@ -91,7 +91,7 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 						}, syslogOpts),
 						"syslog_server_udp": infrahelpers.MergeMaps(map[string]interface{}{
 							"type":       "socket",
-							"address":    "0.0.0.0:513",
+							"address":    "0.0.0.0:514",
 							"max_length": 102400,
 							"mode":       "udp",
 						}, syslogOpts),
@@ -222,7 +222,7 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 				Name: "vector-syslog-server",
 			},
 			Spec: corev1.ServiceSpec{
-				Type: corev1.ServiceType("NodePort"),
+				Type: corev1.ServiceTypeNodePort,
 				Ports: []corev1.ServicePort{
 					{
 						Name:       "syslog-tcp",
@@ -233,10 +233,10 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 					},
 					{
 						Name:       "syslog-udp",
-						Port:       int32(513),
+						Port:       int32(514),
 						Protocol:   "UDP",
-						TargetPort: intstr.FromInt(513),
-						NodePort:   int32(30513),
+						TargetPort: intstr.FromInt(514),
+						NodePort:   int32(30514),
 					},
 				},
 				Selector: map[string]string{
