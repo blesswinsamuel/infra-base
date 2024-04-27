@@ -30,6 +30,9 @@ func NewApp(props kubegogen.AppProps) kubegogen.App {
 }
 
 func Render(scope kubegogen.Scope, values Values) {
+	startTime := time.Now()
+	log.Info().Msg("Starting render...")
+
 	getModuleName := func(node ast.Node, defaultValue string) string {
 		if node == nil {
 			return defaultValue
@@ -87,11 +90,12 @@ func Render(scope kubegogen.Scope, values Values) {
 		}
 		t()
 	}
+	log.Info().Msgf("Render done in %s.", time.Since(startTime))
 }
 
 func Synth(app kubegogen.App) {
-	log.Info().Msg("Starting synth (writing YAMLs to disk)...")
 	startTime := time.Now()
+	log.Info().Msg("Starting synth (writing YAMLs to disk)...")
 	NewKappConfig(app)
 
 	app.WriteYAMLsToDisk()

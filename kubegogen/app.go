@@ -81,8 +81,8 @@ func modifyObj[T any](apiObject ApiObject, f func(*T)) {
 func (a *app) WriteYAMLsToDisk() {
 	fileNo := 0
 	files := map[string][]ApiObject{}
-	var synth func(scope *scope, currentChartID []string, level int)
-	synth = func(scope *scope, currentChartID []string, level int) {
+	var prepareFiles func(scope *scope, currentChartID []string, level int)
+	prepareFiles = func(scope *scope, currentChartID []string, level int) {
 		if scope == nil {
 			return
 		}
@@ -103,7 +103,7 @@ func (a *app) WriteYAMLsToDisk() {
 			chartCount++
 			thisChartID = append(thisChartID, fmt.Sprintf("%02d", chartCount), childNode.ID())
 			// fmt.Println(strings.Join(currentChartID, "-"), reflect.TypeOf(childNode.value), thisChartID)
-			synth(childNode, thisChartID, level+1)
+			prepareFiles(childNode, thisChartID, level+1)
 		}
 		if len(objects) > 0 {
 			currentChartID := strings.Join(currentChartID, "-")
@@ -113,7 +113,7 @@ func (a *app) WriteYAMLsToDisk() {
 			files[currentChartID] = append(files[currentChartID], objects...)
 		}
 	}
-	synth(a.Scope.(*scope), []string{}, 0)
+	prepareFiles(a.Scope.(*scope), []string{}, 0)
 	fileContents := map[string][]byte{}
 	for _, currentChartID := range infrahelpers.MapKeys(files) {
 		apiObjects := files[currentChartID]

@@ -5,13 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -35,13 +35,13 @@ func NewHelm(scope kubegogen.Scope, props *HelmProps) {
 	globals := GetConfig(scope)
 	chartsCacheDir := fmt.Sprintf("%s/%s", globals.CacheDir, "charts")
 	if err := os.MkdirAll(chartsCacheDir, os.ModePerm); err != nil {
-		log.Fatalln("MkdirAll failed", err)
+		log.Fatal().Err(err).Msg("MkdirAll failed")
 	}
 	if _, err := exec.LookPath("helm"); err != nil {
-		log.Fatalln("helm LookPath failed", err)
+		log.Fatal().Err(err).Msg("helm LookPath failed")
 	}
 	if props.ChartInfo.Repo == nil {
-		log.Fatalf("props.ChartInfo is nil for %s", props.ReleaseName)
+		log.Fatal().Msgf("props.ChartInfo is nil for %s", props.ReleaseName)
 	}
 	chartFileName := *props.ChartInfo.Chart + "-" + *props.ChartInfo.Version + ".tgz"
 	if props.ChartFileNamePrefix != "" {
@@ -50,18 +50,18 @@ func NewHelm(scope kubegogen.Scope, props *HelmProps) {
 	chartPath := fmt.Sprintf("%s/%s", chartsCacheDir, chartFileName)
 	if _, err := os.Stat(chartPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			log.Printf("Fetching chart '%s' from repo '%s' version '%s' ...", *props.ChartInfo.Chart, *props.ChartInfo.Repo, *props.ChartInfo.Version)
+			log.Info().Msgf("Fetching chart '%s' from repo '%s' version '%s' ...", *props.ChartInfo.Chart, *props.ChartInfo.Repo, *props.ChartInfo.Version)
 			cmd := exec.Command("helm", "pull", *props.ChartInfo.Chart, "--repo", *props.ChartInfo.Repo, "--destination", chartsCacheDir, "--version", *props.ChartInfo.Version)
 			if out, err := cmd.CombinedOutput(); err != nil {
-				log.Println("Error occured during helm pull command", string(out))
-				log.Fatalln("Error occured during helm pull command", err)
+				fmt.Println(string(out))
+				log.Fatal().Err(err).Msg("Error occured during helm pull command")
 			} else {
 				if len(out) > 0 {
-					log.Println(string(out))
+					log.Info().Msgf(string(out))
 				}
 			}
 		} else {
-			log.Fatalln("helm Stat failed", err)
+			log.Fatal().Err(err).Msg("helm Stat failed")
 		}
 	}
 	namespace := props.Namespace
@@ -76,7 +76,7 @@ func NewHelm(scope kubegogen.Scope, props *HelmProps) {
 		chartPath,
 		"--namespace",
 		namespace,
-		"--kube-version=v1.27.4",
+		"--kube-version=v1.28.8",
 		"--include-crds",
 		"--skip-tests",
 		"--no-hooks",
@@ -86,11 +86,10 @@ func NewHelm(scope kubegogen.Scope, props *HelmProps) {
 	cmd.Stdin = strings.NewReader(infrahelpers.ToJSONString(props.Values))
 	out, err := cmd.Output()
 	if err != nil {
-		msg := fmt.Sprintf("helm template failed: %s", err)
 		if ee, ok := err.(*exec.ExitError); ok {
-			msg = fmt.Sprintf("helm template failed: %s\n%s", err, string(ee.Stderr))
+			fmt.Println(string(ee.Stderr))
 		}
-		panic(msg)
+		log.Panic().Err(err).Msg("helm template failed")
 	}
 
 	dec := yaml.NewDecoder(bytes.NewReader(out))
@@ -103,8 +102,7 @@ func NewHelm(scope kubegogen.Scope, props *HelmProps) {
 			if err == io.EOF {
 				break
 			}
-			// fmt.Println("Error decoding yaml:\n%v", string(out))
-			panic(err)
+			log.Panic().Err(err).Msg("Error decoding yaml")
 		}
 		if len(obj) == 0 {
 			continue
@@ -114,12 +112,5 @@ func NewHelm(scope kubegogen.Scope, props *HelmProps) {
 			props.PatchResource(runtimeObj)
 		}
 		scope.AddApiObject(runtimeObj)
-		// scope.ApiObjectFromMap("api-"+strconv.Itoa(i), kubegogen.ApiObjectProps{
-		// 	// TypeMeta: v1.TypeMeta{
-		// 	// 	APIVersion: obj["apiVersion"].(string),
-		// 	// 	Kind:       obj["kind"].(string),
-		// 	// },
-		// 	Unstructured: unstructured.Unstructured{Object: obj},
-		// })
 	}
 }
