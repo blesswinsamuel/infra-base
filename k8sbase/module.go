@@ -39,7 +39,7 @@ func RegisterModules() {
 		"loki":               &k8sapp.ModuleCommons[*LokiProps]{},
 		"node-exporter":      &k8sapp.ModuleCommons[*NodeExporterProps]{},
 		"vector":             &k8sapp.ModuleCommons[*VectorProps]{},
-		"victoria-metrics":   &k8sapp.ModuleCommons[*VictoriaMetrics]{},
+		"victoriametrics":    &k8sapp.ModuleCommons[*VictoriaMetrics]{},
 		"vmagent":            &k8sapp.ModuleCommons[*VmagentProps]{},
 		"vmalert":            &k8sapp.ModuleCommons[*VmalertProps]{},
 

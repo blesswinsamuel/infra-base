@@ -10,75 +10,58 @@ import (
 )
 
 type VictoriaMetrics struct {
-	HelmChartInfo k8sapp.ChartInfo            `json:"helm"`
-	Resources     corev1.ResourceRequirements `json:"resources"`
-	Ingress       struct {
+	ImageInfo k8sapp.ImageInfo            `json:"image"`
+	Resources corev1.ResourceRequirements `json:"resources"`
+	Ingress   struct {
 		Enabled   bool   `json:"enabled"`
 		SubDomain string `json:"subDomain"`
 	} `json:"ingress"`
-	RetentionPeriod        string         `json:"retentionPeriod"`
-	PersistentVolume       map[string]any `json:"persistentVolume"`
-	PersistentVolumeName   string         `json:"persistentVolumeName"`
-	NodePortServiceEnabled bool           `json:"nodePortServiceEnabled"`
+	RetentionPeriod        string `json:"retentionPeriod"`
+	PersistentVolumeName   string `json:"persistentVolumeName"`
+	NodePortServiceEnabled bool   `json:"nodePortServiceEnabled"`
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single
 func (props *VictoriaMetrics) Render(scope kubegogen.Scope) {
-	if props.PersistentVolume == nil {
-		props.PersistentVolume = map[string]any{}
-	}
+	vcts := []k8sapp.ApplicationPersistentVolume{}
+	vols := []corev1.Volume{}
+	volMnts := []corev1.VolumeMount{}
 	if props.PersistentVolumeName != "" {
 		k8sapp.NewPersistentVolumeClaim(scope, &k8sapp.PersistentVolumeClaim{
 			Name:            "victoriametrics",
-			StorageClass:    infrahelpers.Ternary(props.PersistentVolumeName != "", "-", ""),
+			StorageClass:    "-",
 			RequestsStorage: "1Gi",
 			VolumeName:      props.PersistentVolumeName,
 		})
-		props.PersistentVolume["existingClaim"] = "victoriametrics"
+		vols = []corev1.Volume{{Name: "server-volume", VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "victoriametrics"}}}}
+		volMnts = []corev1.VolumeMount{{Name: "server-volume", MountPath: "/storage"}}
+	} else {
+		vcts = []k8sapp.ApplicationPersistentVolume{{Name: "server-volume", RequestsStorage: "16Gi", MountName: "server-volume", MountPath: "/storage"}}
 	}
-	// TODO: remove helm dependency
-	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
-		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: "victoriametrics",
-		Namespace:   scope.Namespace(),
-		Values: map[string]any{
-			"server": map[string]any{
-				"retentionPeriod": props.RetentionPeriod,
-				"statefulSet": map[string]any{
-					"service": map[string]any{
-						"annotations": map[string]any{
-							"prometheus.io/scrape": "true",
-							"prometheus.io/port":   "8428",
-						},
-					},
-				},
-				"ingress": map[string]any{
-					"enabled":     props.Ingress.Enabled,
-					"annotations": GetCertIssuerAnnotation(scope),
-					"hosts": []map[string]any{
-						{
-							"name": props.Ingress.SubDomain + "." + GetDomain(scope),
-							"path": "/",
-							"port": "http",
-						},
-					},
-					"tls": []map[string]any{
-						{
-							"hosts": []string{
-								props.Ingress.SubDomain + "." + GetDomain(scope),
-							},
-							"secretName": "victoriametrics-tls",
-						},
-					},
-					"pathType": "Prefix",
-				},
-				"extraArgs": map[string]any{
-					"vmalert.proxyURL": `http://vmalert:8880`,
-				},
-				"resources":        props.Resources,
-				"persistentVolume": props.PersistentVolume,
+	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
+		Kind: "StatefulSet",
+		Name: "victoriametrics",
+		Containers: []k8sapp.ApplicationContainer{{
+			Name:  "victoriametrics",
+			Image: props.ImageInfo,
+			Ports: []k8sapp.ContainerPort{
+				{Name: "http", Port: 8428, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}},
 			},
-		},
+			Args: []string{
+				"--retentionPeriod=" + props.RetentionPeriod,
+				"--storageDataPath=/storage",
+				"--envflag.enable=true",
+				"--envflag.prefix=VM_",
+				"--loggerFormat=json",
+				"--vmalert.proxyURL=http://vmalert:8880",
+			},
+			ReadinessProbe:    &corev1.Probe{FailureThreshold: 10, InitialDelaySeconds: 30, PeriodSeconds: 30, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/health"}}},
+			LivenessProbe:     &corev1.Probe{FailureThreshold: 10, InitialDelaySeconds: 30, PeriodSeconds: 30, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/health"}}},
+			Resources:         props.Resources,
+			ExtraVolumeMounts: volMnts,
+		}},
+		ExtraVolumes:                    vols,
+		StatefulSetVolumeClaimTemplates: vcts,
 	})
 
 	if props.NodePortServiceEnabled {
@@ -87,7 +70,7 @@ func (props *VictoriaMetrics) Render(scope kubegogen.Scope) {
 			Spec: corev1.ServiceSpec{
 				Type:     corev1.ServiceTypeNodePort,
 				Ports:    []corev1.ServicePort{{Name: "http", Port: 8428, TargetPort: intstr.FromInt32(8428), NodePort: 30428}},
-				Selector: map[string]string{"app.kubernetes.io/name": "victoria-metrics-single"},
+				Selector: map[string]string{"app.kubernetes.io/name": "victoriametrics"},
 			},
 		})
 	}
@@ -113,7 +96,7 @@ func (props *VictoriaMetrics) Render(scope kubegogen.Scope) {
 						"access":    "proxy",
 						"orgId":     1,
 						"uid":       "victoriametrics",
-						"url":       "http://victoriametrics-victoria-metrics-single-server:8428",
+						"url":       "http://victoriametrics:8428",
 						"isDefault": true,
 						"version":   1,
 						"editable":  false,

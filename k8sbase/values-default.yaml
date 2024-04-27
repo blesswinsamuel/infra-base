@@ -411,11 +411,10 @@ node-exporter:
         - HostMemoryIsUnderutilized
         - HostCpuIsUnderutilized
         - HostSystemdServiceCrashed # duplicate of NodeSystemdServiceFailed
-victoria-metrics:
-  helm:
-    repo: https://victoriametrics.github.io/helm-charts
-    chart: victoria-metrics-single
-    version: "0.9.18"
+victoriametrics:
+  image:
+    repository: victoriametrics/victoria-metrics
+    tag: v1.101.0
   ingress:
     enabled: true
     subDomain: "victoriametrics"

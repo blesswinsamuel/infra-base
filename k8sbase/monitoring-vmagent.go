@@ -47,7 +47,7 @@ func (props *VmagentProps) Render(scope kubegogen.Scope) {
 			Args: []string{
 				"-promscrape.config=/config/scrape.yml",
 				"-remoteWrite.tmpDataPath=/tmpData",
-				"-remoteWrite.url=http://victoriametrics-victoria-metrics-single-server:8428/api/v1/write",
+				"-remoteWrite.url=http://victoriametrics:8428/api/v1/write",
 				"-envflag.enable=true",
 				"-envflag.prefix=VM_",
 				"-loggerFormat=json",

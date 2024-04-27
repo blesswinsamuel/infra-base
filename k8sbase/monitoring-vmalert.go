@@ -31,10 +31,10 @@ func (props *VmalertProps) Render(scope kubegogen.Scope) {
 				Image: props.ImageInfo,
 				Args: []string{
 					`-rule=/config/alert-rules.yaml`,
-					`-datasource.url=http://victoriametrics-victoria-metrics-single-server:8428`,
+					`-datasource.url=http://victoriametrics:8428`,
 					`-notifier.url=http://alertmanager:9093`,
-					`-remoteRead.url=http://victoriametrics-victoria-metrics-single-server:8428`,
-					`-remoteWrite.url=http://victoriametrics-victoria-metrics-single-server:8428`,
+					`-remoteRead.url=http://victoriametrics:8428`,
+					`-remoteWrite.url=http://victoriametrics:8428`,
 					`-envflag.enable=true`,
 					`-envflag.prefix=VM_`,
 					// # external.alert.source: explore?orgId=1&left=["now-1h","now","VictoriaMetrics",{"expr":""},{"mode":"Metrics"},{"ui":[true,true,true,"none"]}]
