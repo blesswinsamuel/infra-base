@@ -19,6 +19,7 @@ type VectorProps struct {
 	SyslogServer struct {
 		Enabled          bool   `json:"enabled"`
 		VrlDecoderSource string `json:"vrlDecoderSource"`
+		WriteToFile      bool   `json:"writeToFile"`
 		Debug            bool   `json:"debug"`
 	} `json:"syslogServer"`
 }
@@ -128,6 +129,7 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 			},
 		}),
 	}
+	extraVolumeMounts := []corev1.VolumeMount{}
 	if props.SyslogServer.Enabled {
 		// Sources
 		syslogOpts := map[string]any{
@@ -160,8 +162,7 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 		transforms["syslog_transform"] = map[string]any{
 			"type":   "remap",
 			"inputs": []string{"syslog_server_tcp", "syslog_server_udp"},
-			"source": strings.TrimSpace(dedent.String(`
-			`)),
+			"source": ``,
 		}
 
 		// Sinks
@@ -175,7 +176,12 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 				"facility": "{{ facility }}",
 				"level":    "{{ severity }}",
 			},
+			"encoding": map[string]any{
+				"codec":         "json",
+				"except_fields": []string{"raw_message", "source_type"},
+			},
 		})
+		// props.SyslogServer.Debug = true
 		if props.SyslogServer.Debug {
 			sinks["console_debug_syslog"] = map[string]any{
 				"type":   "console",
@@ -184,6 +190,55 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 					"codec": "json",
 				},
 			}
+			// {"appname":"tailscaled","facility":"daemon","host":"10.42.0.1","hostname":"homelab-asdf","message":"portmapper: UPnP discovered root \"http://asdf:1900/gatedesc.xml\" does not match gateway IP 192.168.1.1; repointing at gateway which is assumed to be floating","port":40549,"procid":999,"raw_message":"<30>Apr 28 14:54:12 homelab-asdf tailscaled[999]: portmapper: UPnP discovered root \"http://192.168.0.254:1900/gatedesc.xml\" does not match gateway IP 192.168.1.1; repointing at gateway which is assumed to be floating","severity":"info","source_type":"socket","timestamp":"2024-04-28T09:24:12.012889488+00:00"}
+			// {"appname":"kernel","facility":"kern","host":"10.42.0.1","hostname":"isp-asdf","message":"1714296251.091441: [mapd][wapp_wait_recv_parse_wapp_resp][1326][wapp_wait_recv_parse_wapp_resp]wait for event timeout","port":1223,"priority":4,"raw_message":"<DSNW29D0D0C0> - <4> kernel: 1714296251.091441: [mapd][wapp_wait_recv_parse_wapp_resp][1326][wapp_wait_recv_parse_wapp_resp]wait for event timeout","severity":"warning","source_type":"socket","timestamp":"2024-04-28T09:24:11.144703156Z"}
+		}
+		if props.SyslogServer.WriteToFile {
+			// transforms["syslog_to_string_transform"] = map[string]any{
+			// 	"type":   "remap",
+			// 	"inputs": []string{"syslog_transform"},
+			// 	// https://github.com/vectordotdev/vector/issues/6863#issuecomment-2069259829
+			// 	"source": strings.TrimSpace(dedent.String(`
+			// 		., err = "<86>1 " + to_string(.timestamp) + " eks " + .kubernetes.container_name + " 0 - - " + decode_base16!("EFBBBF") + .message
+			// 		if err != null {
+			// 		  log(err, level: "error")
+			// 		}
+			// 		@timestamp = to_timestamp(.timestamp)
+			// 		.level = .severity || "unknown"
+			// 		.message = .message || .raw_message
+			// 		del(.raw_message)
+			// 		del(.severity)
+			// 	`)),
+			// }
+
+			transforms["syslog_to_string_transform"] = map[string]any{
+				"type":   "remap",
+				"inputs": []string{"syslog_transform"},
+				"source": strings.TrimSpace(dedent.String(`
+				  . = {"hostname": .hostname, "message": .raw_message}
+				`)),
+			}
+			// sinks["console_debug_syslog"] = map[string]any{
+			// 	"type":   "console",
+			// 	"inputs": []string{"syslog_to_string_transform"},
+			// 	"encoding": map[string]any{
+			// 		"codec": "json",
+			// 	},
+			// }
+
+			sinks["file_syslog"] = map[string]any{
+				"type":   "file",
+				"inputs": []string{"syslog_to_string_transform"},
+				"path":   "/var/log/vector-syslog/{{ hostname }}/%Y-%m-%d.log",
+				"encoding": map[string]any{
+					"codec": "text",
+				},
+				"framing": map[string]any{
+					"method": "newline_delimited",
+				},
+			}
+
+			extraVolumeMounts = append(extraVolumeMounts, corev1.VolumeMount{Name: "var-log", MountPath: "/var/log/vector-syslog/", SubPath: "vector-syslog"})
 		}
 	}
 
@@ -223,13 +278,13 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 					{Name: "VECTOR_SELF_POD_NAME", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}},
 					{Name: "VECTOR_SELF_POD_NAMESPACE", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.namespace"}}},
 				},
-				ExtraVolumeMounts: []corev1.VolumeMount{
+				ExtraVolumeMounts: infrahelpers.MergeLists(extraVolumeMounts, []corev1.VolumeMount{
 					{Name: "data", MountPath: "/vector-data-dir"},
 					{Name: "var-log", MountPath: "/var/log/", ReadOnly: true},
 					{Name: "var-lib", MountPath: "/var/lib", ReadOnly: true},
 					{Name: "procfs", MountPath: "/host/proc", ReadOnly: true},
 					{Name: "sysfs", MountPath: "/host/sys", ReadOnly: true},
-				},
+				}),
 			},
 		},
 		ExtraVolumes: []corev1.Volume{

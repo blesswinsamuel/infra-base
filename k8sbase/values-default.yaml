@@ -171,21 +171,20 @@ vector:
       url: https://github.com/zamazan4ik/vector-community/raw/main/grafana_dashboards/full-dashboard.json
       title: Vector
       folder: Monitoring
-
+crowdsec-firewall-bouncer:
+  image:
+    repository: ghcr.io/blesswinsamuel/infra-base/crowdsec-firewall-bouncer
+    tag: latest
+  mode: nftables
 crowdsec:
   image:
     repository: crowdsecurity/crowdsec
     tag: v1.6.1-2
+  enableFirewallRemediation: true
   # traefik-bouncer:
   #   image:
   #     repository: fbonalair/traefik-crowdsec-bouncer
   #     tag: 0.5.0
-  firewallBouncer:
-    enabled: false
-    mode: nftables
-    image:
-      repository: ghcr.io/blesswinsamuel/infra-base/crowdsec-firewall-bouncer
-      tag: latest
   _grafana_dashboards:
     crowdsec-details-per-machine:
       url: https://github.com/crowdsecurity/grafana-dashboards/raw/master/dashboards_v5/Crowdsec%20Details%20per%20Machine.json

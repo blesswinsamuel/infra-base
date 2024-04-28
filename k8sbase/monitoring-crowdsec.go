@@ -11,20 +11,19 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apiextensionv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type Crowdsec struct {
-	ImageInfo         k8sapp.ImageInfo          `json:"image"`
-	ExtraCollections  []string                  `json:"extraCollections"`
-	ExtraParsers      []string                  `json:"extraParsers"`
-	ExtraScenarios    []string                  `json:"extraScenarios"`
-	ExtraAcquisitions map[string]map[string]any `json:"extraAcquisitions"`
-	InstanceName      string                    `json:"instanceName"`
-	FirewallBouncer   struct {
-		Enabled   bool             `json:"enabled"`
-		Mode      string           `json:"mode"`
-		ImageInfo k8sapp.ImageInfo `json:"image"`
-	} `json:"firewallBouncer"`
+	ImageInfo            k8sapp.ImageInfo          `json:"image"`
+	ExtraCollections     []string                  `json:"extraCollections"`
+	ExtraParsers         []string                  `json:"extraParsers"`
+	ExtraScenarios       []string                  `json:"extraScenarios"`
+	ExtraAcquisitions    map[string]map[string]any `json:"extraAcquisitions"`
+	InstanceName         string                    `json:"instanceName"`
+	NodePortService      bool                      `json:"nodePortService"`
+	EnableSshRemediation bool                      `json:"enableFirewallRemediation"`
+	BouncerKeys          map[string]string         `json:"bouncerKeys"`
 	// HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
@@ -67,10 +66,12 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 	extraAcquisitionsVolMounts := []corev1.VolumeMount{}
 	for _, k := range infrahelpers.MapKeys(props.ExtraAcquisitions) {
 		v := props.ExtraAcquisitions[k]
-		// to fix the error "file is a symlink, but inotify polling is enabled. Crowdsec will not be able to detect rotation. Consider setting poll_without_inotify to true in your configuration"
-		v["poll_without_inotify"] = true
-		// https://discourse.crowdsec.net/t/error-could-not-create-fsnotify-watcher-too-many-open-files-kubernetes/1584/8
-		v["force_inotify"] = true
+		if v["filenames"] != nil {
+			// to fix the error "file is a symlink, but inotify polling is enabled. Crowdsec will not be able to detect rotation. Consider setting poll_without_inotify to true in your configuration"
+			v["poll_without_inotify"] = true
+			// https://discourse.crowdsec.net/t/error-could-not-create-fsnotify-watcher-too-many-open-files-kubernetes/1584/8
+			v["force_inotify"] = true
+		}
 		extraAcquisitionsCm["acquis-"+k+".yaml"] = infrahelpers.ToYamlString(v)
 		extraAcquisitionsVolMounts = append(extraAcquisitionsVolMounts, corev1.VolumeMount{Name: "config", MountPath: "/etc/crowdsec/acquis.d/" + k + ".yaml", SubPath: "acquis-" + k + ".yaml", ReadOnly: true})
 	}
@@ -108,10 +109,15 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 		"on_success": "break",
 	})
 	profiles := []string{}
-	if props.FirewallBouncer.Enabled {
+	if props.EnableSshRemediation {
 		profiles = append(profiles, firewallBouncerProfile)
 	}
 	profiles = append(profiles, traefikBouncerProfile)
+
+	bouncerKeys := map[string]string{}
+	for key, value := range props.BouncerKeys {
+		bouncerKeys["BOUNCER_KEY_"+key] = value
+	}
 
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Name: "crowdsec",
@@ -163,7 +169,7 @@ fi;
 					{Name: "http", Port: 6060, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}},
 					{Name: "lapi", Port: 8080},
 				},
-				Env: map[string]string{
+				Env: infrahelpers.MergeMaps(bouncerKeys, map[string]string{
 					"GID":                  "1000",
 					"ENROLL_INSTANCE_NAME": props.InstanceName,
 					"ENROLL_TAGS":          "k8s",
@@ -173,8 +179,7 @@ fi;
 					// "DISABLE_ONLINE_API":   "true", // If it's a test, we don't want to share signals with CrowdSec so disable the Online API.
 					// "PARSERS": "crowdsecurity/cri-logs",
 					// "DISABLE_PARSERS": "crowdsecurity/whitelists",
-					"BOUNCER_KEY_TRAEFIK": "mysecretkey12345",
-				},
+				}),
 				SecurityContext: &corev1.SecurityContext{
 					AllowPrivilegeEscalation: infrahelpers.Ptr(false),
 					Privileged:               infrahelpers.Ptr(false),
@@ -238,6 +243,8 @@ fi;
 						// ",
 						//     "parse_mode": "HTML"
 						// }`),
+						// https://emojidb.org/decision-emojis
+						//   🏷 Labels: <code>{{ $alert.Labels }}</code>
 						"format": infrahelpers.YAMLRawMessage(`|
   {{- $telegramChatID := env "TELEGRAM_CHAT_ID" -}}
   {
@@ -248,9 +255,9 @@ fi;
   🕵️ <b>{{$alert.Source.AsName}}</b>
   🌐 <a href=\"https://app.crowdsec.net/cti/{{$alert.Source.IP}}\">{{$alert.Source.IP}}</a> 🌎 {{$alert.Source.Cn}}
   📜 <i>{{$alert.Scenario}}</i>
-  🏷 Decisions:
+  🎯 Decisions:
   {{- range .Decisions }}
-    {{.Value}} will get <i>{{.Type}}</i> for next <b>{{.Duration}}</b> for triggering <i>{{.Scenario}}</i>.
+    <code>{{.Value}}</code> will get <i>{{.Type}}</i> for next <b>{{.Duration}}</b> for triggering <i>{{.Scenario}}</i>.
   {{- end }}
   {{- end -}}
   ",
@@ -305,6 +312,17 @@ fi;
 		},
 	})
 
+	if props.NodePortService {
+		scope.AddApiObject(&corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{Name: "crowdsec-np"},
+			Spec: corev1.ServiceSpec{
+				Type:     corev1.ServiceTypeNodePort,
+				Ports:    []corev1.ServicePort{{Name: "http", Port: 8080, TargetPort: intstr.FromInt32(8080), NodePort: 31491}},
+				Selector: map[string]string{"app.kubernetes.io/name": "crowdsec"},
+			},
+		})
+	}
+
 	// // https://github.com/crowdsecurity/helm-charts/tree/main/charts/crowdsec-traefik-bouncer
 	// k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 	// 	Name: "crowdsec-traefik-bouncer",
@@ -343,93 +361,6 @@ fi;
 	// 	},
 	// })
 
-	// https://github.com/crowdsecurity/cs-firewall-bouncer/issues/32#issuecomment-1060890534
-	if props.FirewallBouncer.Enabled {
-		k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
-			Name:        "crowdsec-firewall-bouncer",
-			HostNetwork: true,
-			Kind:        "DaemonSet",
-			Containers: []k8sapp.ApplicationContainer{
-				{
-					Name:    "crowdsec-firewall-bouncer",
-					Command: []string{"crowdsec-firewall-bouncer", "-c", "/config/crowdsec-firewall-bouncer.yaml"},
-					Image:   props.FirewallBouncer.ImageInfo,
-					Env:     map[string]string{},
-					SecurityContext: &corev1.SecurityContext{
-						AllowPrivilegeEscalation: infrahelpers.Ptr(false),
-						Privileged:               infrahelpers.Ptr(false),
-						Capabilities: &corev1.Capabilities{
-							Add: []corev1.Capability{"NET_ADMIN", "NET_RAW"},
-						},
-					},
-				},
-			},
-			DNSPolicy: corev1.DNSClusterFirstWithHostNet,
-			ConfigMaps: []k8sapp.ApplicationConfigMap{
-				{
-					Name: "crowdsec-firewall-bouncer",
-					Data: map[string]string{
-						// nft list ruleset
-						"crowdsec-firewall-bouncer.yaml": infrahelpers.ToYamlString(map[string]any{
-							// "mode":             "iptables",
-							"mode":             props.FirewallBouncer.Mode,
-							"update_frequency": "10s",
-							// "log_mode":         "file",
-							// "log_dir":          "/var/log/",
-							"log_level": "info",
-							// "log_compression":  true,
-							// "log_max_size":     100,
-							// "log_max_backups":  3,
-							// "log_max_age":      30,
-							"api_url": "http://crowdsec." + scope.Namespace() + ".svc.cluster.local:8080",
-							"api_key": "mysecretkey12345",
-							// "insecure_skip_verify": false,
-							"disable_ipv6": true,
-							"deny_action":  "DROP",
-							"deny_log":     false,
-							"supported_decisions_types": []string{
-								"ban-firewall",
-							},
-							"blacklists_ipv4": "crowdsec-blacklists",
-							"blacklists_ipv6": "crowdsec6-blacklists",
-							"ipset_type":      "nethash",
-							"iptables_chains": []string{
-								"INPUT",
-							},
-							"nftables": map[string]map[string]any{
-								"ipv4": {
-									"enabled":  true,
-									"set-only": false,
-									"table":    "crowdsec",
-									"chain":    "crowdsec-chain",
-									"priority": -10,
-								},
-								"ipv6": {
-									"enabled":  true,
-									"set-only": false,
-									"table":    "crowdsec6",
-									"chain":    "crowdsec6-chain",
-									"priority": -10,
-								},
-							},
-							"nftables_hooks": []string{
-								"input",
-								"forward",
-							},
-							// "prometheus": map[string]any{
-							// 	"enabled":     false,
-							// 	"listen_addr": "127.0.0.1",
-							// 	"listen_port": 60601,
-							// },
-						}),
-					},
-					MountName: "config",
-					MountPath: "/config",
-					ReadOnly:  true,
-				},
-			},
-		})
-	}
 }
 
 // kubectl exec -it -n ingress deploy/crowdsec -- cscli decisions list
