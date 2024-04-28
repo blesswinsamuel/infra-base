@@ -19,6 +19,7 @@ type VectorProps struct {
 	SyslogServer struct {
 		Enabled          bool   `json:"enabled"`
 		VrlDecoderSource string `json:"vrlDecoderSource"`
+		Debug            bool   `json:"debug"`
 	} `json:"syslogServer"`
 }
 
@@ -26,14 +27,176 @@ type VectorProps struct {
 // https://helm.vector.dev/index.yaml
 
 func (props *VectorProps) Render(scope kubegogen.Scope) {
-	syslogOpts := map[string]any{
-		"decoding": map[string]any{
-			"codec": "vrl",
-			"vrl": map[string]any{
-				"source":   strings.TrimSpace(props.SyslogServer.VrlDecoderSource),
-				"timezone": "local",
-			},
+	sources := map[string]any{
+		"kubernetes_logs": map[string]any{
+			"type": "kubernetes_logs",
 		},
+		// // # vector_logs:
+		// // #   type: internal_logs
+		// "host_metrics": map[string]any{
+		// 	"type": "host_metrics",
+		// 	"filesystem": map[string]any{
+		// 		"devices": map[string]any{
+		// 			"excludes": []string{"binfmt_misc"},
+		// 		},
+		// 		"filesystems": map[string]any{
+		// 			"excludes": []string{"binfmt_misc"},
+		// 		},
+		// 		"mountPoints": map[string]any{
+		// 			"excludes": []string{"*/proc/sys/fs/binfmt_misc"},
+		// 		},
+		// 	},
+		// },
+		"internal_metrics": map[string]any{
+			"type": "internal_metrics",
+		},
+	}
+
+	// https://playground.vrl.dev/
+	transforms := map[string]any{
+		"kubernetes_parse_and_merge_log_message": map[string]any{
+			"type":   "remap",
+			"inputs": []string{"kubernetes_logs"},
+			"source": strings.TrimSpace(dedent.String(`
+				parsed_message, err = parse_json(.message) # ?? parse_common_log(.message) ?? parse_logfmt(.message) # ?? parse_syslog(.message)
+				if err == null {
+				  del(.message)
+				  ., err = merge(., parsed_message)
+				  if err != null {
+					log("Failed to merge message into log: " + err, level: "error")
+				  }
+				  .level = .level || .severity || "unknown"
+				} else {
+					.level = "unknown"
+				}
+			`)),
+		},
+		"kubernetes_log_transform": map[string]any{
+			"type":   "remap",
+			"inputs": []string{"kubernetes_parse_and_merge_log_message"},
+			"source": strings.TrimSpace(dedent.String(`
+				# .@timestamp = del(.timestamp)
+				del(.kubernetes.pod_labels)
+				del(.kubernetes.pod_annotations)
+				del(.kubernetes.node_labels)
+				del(.kubernetes.namespace_labels)
+				del(.kubernetes.container_id)
+				del(.kubernetes.pod_uid)
+				del(.kubernetes.pod_ip)
+				del(.kubernetes.pod_ips)
+				del(.file)
+			`)),
+		},
+	}
+
+	lokiCommonOpts := map[string]any{
+		"type":     "loki",
+		"endpoint": "http://loki:3100",
+		"encoding": map[string]any{
+			"timestamp_format": "rfc3339",
+			"codec":            "json",
+		},
+		"out_of_order_action": "accept",
+		// # debug_sink:
+		// #   type: console
+		// #   inputs:
+		// #     - syslog_server
+		// #   target: stdout
+		// #   encoding:
+		// #     codec: json
+		//   # healthcheck:
+		//   #   enabled: true
+	}
+	sinks := map[string]any{
+		"prom_exporter": map[string]any{
+			"type": "prometheus_exporter",
+			"inputs": []string{
+				// "host_metrics",
+				"internal_metrics",
+			},
+			"address": "0.0.0.0:9090",
+		},
+		"loki_sink_kubernetes": infrahelpers.MergeMaps(lokiCommonOpts, map[string]any{
+			"inputs": []string{"kubernetes_log_transform"},
+			"labels": map[string]any{
+				"stream":         "kubernetes",
+				"pod_node_name":  "{{ kubernetes.pod_node_name }}",
+				"pod_namespace":  "{{ kubernetes.pod_namespace }}",
+				"pod_name":       "{{ kubernetes.pod_name }}",
+				"container_name": "{{ kubernetes.container_name }}",
+				"level":          "{{ level }}",
+			},
+		}),
+	}
+	if props.SyslogServer.Enabled {
+		// Sources
+		syslogOpts := map[string]any{
+			"decoding": map[string]any{
+				"codec": "vrl",
+				"vrl": map[string]any{
+					"source":   strings.TrimSpace(props.SyslogServer.VrlDecoderSource),
+					"timezone": "local",
+				},
+			},
+		}
+		sources["syslog_server_tcp"] = infrahelpers.MergeMaps(map[string]any{
+			"type":    "socket",
+			"address": "0.0.0.0:514",
+			"mode":    "tcp",
+		}, syslogOpts)
+		sources["syslog_server_udp"] = infrahelpers.MergeMaps(map[string]any{
+			"type":       "socket",
+			"address":    "0.0.0.0:514",
+			"max_length": 102400,
+			"mode":       "udp",
+		}, syslogOpts)
+
+		// Transforms
+		// .level = .severity || "unknown"
+		// @timestamp = to_timestamp(.timestamp)
+		// .message = .message || .raw_message
+		// del(.raw_message)
+		// del(.severity)
+		transforms["syslog_transform"] = map[string]any{
+			"type":   "remap",
+			"inputs": []string{"syslog_server_tcp", "syslog_server_udp"},
+			"source": strings.TrimSpace(dedent.String(`
+			`)),
+		}
+
+		// Sinks
+		sinks["loki_sink_syslog"] = infrahelpers.MergeMaps(lokiCommonOpts, map[string]any{
+			"inputs": []string{"syslog_transform"},
+			"labels": map[string]any{
+				"stream": "syslog",
+				// "host":     "{{ host }}",
+				"hostname": "{{ hostname }}",
+				"program":  "{{ appname }}",
+				"facility": "{{ facility }}",
+				"level":    "{{ severity }}",
+			},
+		})
+		if props.SyslogServer.Debug {
+			sinks["console_debug_syslog"] = map[string]any{
+				"type":   "console",
+				"inputs": []string{"syslog_transform"},
+				"encoding": map[string]any{
+					"codec": "json",
+				},
+			}
+		}
+	}
+
+	config := map[string]any{
+		"data_dir": "/vector-data-dir",
+		"api": map[string]any{
+			"enabled":    true,
+			"address":    "0.0.0.0:8686",
+			"playground": false,
+		},
+		"sources":    sources,
+		"transforms": transforms,
+		"sinks":      sinks,
 	}
 
 	applicationProps := &k8sapp.ApplicationProps{
@@ -53,6 +216,7 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 					"VECTOR_LOG":  "info",
 					"PROCFS_ROOT": "/host/proc",
 					"SYSFS_ROOT":  "/host/sys",
+					"TZ":          "UTC",
 				},
 				ExtraEnvs: []corev1.EnvVar{
 					{Name: "VECTOR_SELF_NODE_NAME", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "spec.nodeName"}}},
@@ -84,144 +248,7 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 				MountPath: "/etc/vector/",
 				ReadOnly:  true,
 				Data: map[string]string{
-					"vector.yaml": infrahelpers.ToYamlString(map[string]interface{}{
-						"data_dir": "/vector-data-dir",
-						"api": map[string]interface{}{
-							"enabled":    true,
-							"address":    "0.0.0.0:8686",
-							"playground": false,
-						},
-						"sources": infrahelpers.MergeMaps(
-							infrahelpers.Ternary(props.SyslogServer.Enabled, map[string]interface{}{
-								"syslog_server_tcp": infrahelpers.MergeMaps(map[string]interface{}{
-									"type":    "socket",
-									"address": "0.0.0.0:514",
-									"mode":    "tcp",
-								}, syslogOpts),
-								"syslog_server_udp": infrahelpers.MergeMaps(map[string]interface{}{
-									"type":       "socket",
-									"address":    "0.0.0.0:514",
-									"max_length": 102400,
-									"mode":       "udp",
-								}, syslogOpts),
-							}, nil),
-							map[string]interface{}{
-								"kubernetes_logs": map[string]interface{}{
-									"type": "kubernetes_logs",
-								},
-								// // # vector_logs:
-								// // #   type: internal_logs
-								// "host_metrics": map[string]interface{}{
-								// 	"type": "host_metrics",
-								// 	"filesystem": map[string]interface{}{
-								// 		"devices": map[string]interface{}{
-								// 			"excludes": []string{"binfmt_misc"},
-								// 		},
-								// 		"filesystems": map[string]interface{}{
-								// 			"excludes": []string{"binfmt_misc"},
-								// 		},
-								// 		"mountPoints": map[string]interface{}{
-								// 			"excludes": []string{"*/proc/sys/fs/binfmt_misc"},
-								// 		},
-								// 	},
-								// },
-								"internal_metrics": map[string]interface{}{
-									"type": "internal_metrics",
-								},
-							},
-						),
-						"transforms": infrahelpers.MergeMaps(
-							infrahelpers.Ternary(props.SyslogServer.Enabled, map[string]interface{}{
-								"syslog_transform": map[string]interface{}{
-									"type":   "remap",
-									"inputs": []string{"syslog_server_tcp", "syslog_server_udp"},
-									"source": strings.TrimSpace(dedent.String(`
-										.kubernetes = {}
-										.kubernetes.container_name = .appname
-										.kubernetes.pod_name = .appname
-										.kubernetes.pod_node_name = .host
-										.kubernetes.pod_namespace = "syslog"
-										.level = .severity
-									`)),
-								},
-							}, nil),
-							// https://playground.vrl.dev/
-							map[string]interface{}{
-								"kubernetes_parse_and_merge_log_message": map[string]interface{}{
-									"type":   "remap",
-									"inputs": []string{"kubernetes_logs"},
-									"source": strings.TrimSpace(dedent.String(`
-										parsed_message, err = parse_json(.message) # ?? parse_common_log(.message) ?? parse_logfmt(.message) # ?? parse_syslog(.message)
-										if err == null {
-										  del(.message)
-										  ., err = merge(., parsed_message)
-										  if err != null {
-											log("Failed to merge message into log: " + err, level: "error")
-										  }
-										  .level = .level || .severity || "unknown"
-										} else {
-											.level = "unknown"
-										}
-									`)),
-								},
-								"kubernetes_log_transform": map[string]interface{}{
-									"type":   "remap",
-									"inputs": []string{"kubernetes_parse_and_merge_log_message"},
-									"source": strings.TrimSpace(dedent.String(`
-										# .@timestamp = del(.timestamp)
-										del(.kubernetes.pod_labels)
-										del(.kubernetes.pod_annotations)
-										del(.kubernetes.node_labels)
-										del(.kubernetes.namespace_labels)
-										del(.kubernetes.container_id)
-										del(.kubernetes.pod_uid)
-										del(.kubernetes.pod_ip)
-										del(.kubernetes.pod_ips)
-										del(.file)
-									`)),
-								},
-							},
-						),
-						"sinks": map[string]interface{}{
-							"prom_exporter": map[string]interface{}{
-								"type": "prometheus_exporter",
-								"inputs": []string{
-									// "host_metrics",
-									"internal_metrics",
-								},
-								"address": "0.0.0.0:9090",
-							},
-							"loki_sink": map[string]interface{}{
-								"type": "loki",
-								"inputs": infrahelpers.MergeLists(
-									[]string{"kubernetes_log_transform"},
-									infrahelpers.Ternary(props.SyslogServer.Enabled, []string{"syslog_transform"}, nil),
-								),
-								"endpoint": "http://loki:3100",
-								"labels": map[string]interface{}{
-									"container_name": "{{ kubernetes.container_name }}",
-									"pod_name":       "{{ kubernetes.pod_name }}",
-									"pod_node_name":  "{{ kubernetes.pod_node_name }}",
-									"pod_namespace":  "{{ kubernetes.pod_namespace }}",
-									"level":          "{{ level }}",
-								},
-								"encoding": map[string]interface{}{
-									"timestamp_format": "rfc3339",
-									"codec":            "json",
-								},
-								"out_of_order_action": "accept",
-								// # debug_sink:
-								// #   type: console
-								// #   inputs:
-								// #     - syslog_server
-								// #   target: stdout
-								// #   encoding:
-								// #     codec: json
-								//   # healthcheck:
-								//   #   enabled: true
-							},
-						},
-					}),
+					"vector.yaml": infrahelpers.ToYamlString(config),
 				},
 			},
 		},

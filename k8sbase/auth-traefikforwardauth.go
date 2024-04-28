@@ -15,9 +15,8 @@ import (
 )
 
 type TraefikForwardAuth struct {
-	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
-	ImageInfo     k8sapp.ImageInfo `json:"image"`
-	Ingress       struct {
+	ImageInfo k8sapp.ImageInfo `json:"image"`
+	Ingress   struct {
 		SubDomain string `json:"subDomain"`
 	} `json:"ingress"`
 	AllowUsers []string `json:"allowUsers"`
