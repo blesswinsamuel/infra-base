@@ -15,15 +15,16 @@ import (
 )
 
 type Crowdsec struct {
-	ImageInfo            k8sapp.ImageInfo          `json:"image"`
-	ExtraCollections     []string                  `json:"extraCollections"`
-	ExtraParsers         []string                  `json:"extraParsers"`
-	ExtraScenarios       []string                  `json:"extraScenarios"`
-	ExtraAcquisitions    map[string]map[string]any `json:"extraAcquisitions"`
-	InstanceName         string                    `json:"instanceName"`
-	NodePortService      bool                      `json:"nodePortService"`
-	EnableSshRemediation bool                      `json:"enableFirewallRemediation"`
-	BouncerKeys          map[string]string         `json:"bouncerKeys"`
+	ImageInfo                  k8sapp.ImageInfo          `json:"image"`
+	ExtraCollections           []string                  `json:"extraCollections"`
+	ExtraParsers               []string                  `json:"extraParsers"`
+	ExtraScenarios             []string                  `json:"extraScenarios"`
+	ExtraAcquisitions          map[string]map[string]any `json:"extraAcquisitions"`
+	InstanceName               string                    `json:"instanceName"`
+	NodePortService            bool                      `json:"nodePortService"`
+	EnableSshRemediation       bool                      `json:"enableFirewallRemediation"`
+	BouncerKeys                map[string]string         `json:"bouncerKeys"`
+	ForwardedHeadersTrustedIPs []string                  `json:"forwardedHeadersTrustedIPs"`
 	// HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
@@ -56,11 +57,6 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 		"filenames": []string{"/var/log/containers/traefik-*_ingress_traefik-*.log"},
 		"labels":    map[string]interface{}{"type": "containerd", "program": "traefik"},
 	}
-	props.ExtraAcquisitions["sshd"] = map[string]any{
-		"filenames": []string{"/var/log/auth.log"},
-		// "filenames": []string{"/var/log/auth.log", "/var/log/syslog"},
-		"labels": map[string]interface{}{"type": "syslog", "program": "sshd"},
-	}
 
 	extraAcquisitionsCm := map[string]string{}
 	extraAcquisitionsVolMounts := []corev1.VolumeMount{}
@@ -87,7 +83,7 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 		"decisions": []map[string]interface{}{
 			{"type": "ban-firewall", "duration": "24h"},
 		},
-		"notifications": []string{"telegram"},
+		"notifications": []string{"telegram_default", "slack_default"},
 		"on_success":    "break",
 	})
 	traefikBouncerProfile := infrahelpers.ToYamlString(map[string]interface{}{
@@ -99,7 +95,7 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 		"decisions": []map[string]interface{}{
 			{"type": "ban", "duration": "24h"},
 		},
-		"notifications": []string{"telegram"},
+		"notifications": []string{"telegram_default", "slack_default"},
 		// "duration_expr": `Sprintf('%dh', (GetDecisionsCount(Alert.GetValue()) + 1) * 4)`,
 		// # notifications:
 		// #   - slack_default  # Set the webhook in /etc/crowdsec/notifications/slack.yaml before enabling this.
@@ -130,9 +126,14 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 				},
 				ExtraEnvs: []corev1.EnvVar{
 					{Name: "TELEGRAM_BOT_TOKEN", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: "crowdsec"}, Key: "TELEGRAM_BOT_TOKEN"}}},
+					{Name: "SLACK_API_URL", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: "crowdsec"}, Key: "SLACK_API_URL"}}},
 				},
 				// Command: []string{"sh", "-c", "apk add --no-cache envsubst && envsubst < /config/notifications-telegram.yaml > /config-envsubst/notifications-telegram.yaml"},
-				Command: []string{"sh", "-c", `sed "s/\${TELEGRAM_BOT_TOKEN}/$TELEGRAM_BOT_TOKEN/g" /config/notifications-telegram.yaml > /config-envsubst/notifications-telegram.yaml`},
+				Command: []string{
+					"sh", "-c",
+					`sed "s#\${TELEGRAM_BOT_TOKEN}#$TELEGRAM_BOT_TOKEN#g" /config/notifications-telegram.yaml > /config-envsubst/notifications-telegram.yaml` + " && " +
+						`sed "s#\${SLACK_API_URL}#$SLACK_API_URL#g" /config/notifications-slack.yaml > /config-envsubst/notifications-slack.yaml`,
+				},
 				ExtraVolumeMounts: []corev1.VolumeMount{
 					// {Name: "config", MountPath: "/config"},
 					{Name: "config-envsubst", MountPath: "/config-envsubst"},
@@ -176,6 +177,7 @@ fi;
 					"COLLECTIONS":          strings.Join(collections, " "),
 					"PARSERS":              strings.Join(parsers, " "),
 					"SCEANRIOS":            strings.Join(scenarios, " "),
+					"AGENT_USERNAME":       props.InstanceName,
 					// "DISABLE_ONLINE_API":   "true", // If it's a test, we don't want to share signals with CrowdSec so disable the Online API.
 					// "PARSERS": "crowdsecurity/cri-logs",
 					// "DISABLE_PARSERS": "crowdsecurity/whitelists",
@@ -188,6 +190,7 @@ fi;
 					{Name: "container-logs", MountPath: "/var/log"},
 					{Name: "config", MountPath: "/etc/crowdsec/profiles.yaml", SubPath: "profiles.yaml", ReadOnly: true},
 					{Name: "config-envsubst", MountPath: "/etc/crowdsec/notifications/http.yaml", SubPath: "notifications-telegram.yaml"},
+					{Name: "config-envsubst", MountPath: "/etc/crowdsec/notifications/slack.yaml", SubPath: "notifications-slack.yaml"},
 				}),
 				EnvFromSecretRef: []string{"crowdsec"},
 			},
@@ -204,8 +207,8 @@ fi;
 					// https://docs.crowdsec.net/docs/profiles/captcha_profile
 					"profiles.yaml": strings.Join(profiles, "---\n"),
 					"notifications-telegram.yaml": infrahelpers.ToYamlString(map[string]interface{}{
-						"type": "http",     // Don't change
-						"name": "telegram", // Must match the registered plugin in the profile
+						"type": "http",             // Don't change
+						"name": "telegram_default", // Must match the registered plugin in the profile
 
 						// One of "trace", "debug", "info", "warn", "error", "off"
 						"log_level": "info",
@@ -271,6 +274,28 @@ fi;
 							"Content-Type": "application/json",
 						},
 					}),
+					"notifications-slack.yaml": infrahelpers.ToYamlString(map[string]interface{}{
+						"type": "slack",         // Don't change
+						"name": "slack_default", // Must match the registered plugin in the profile
+
+						// One of "trace", "debug", "info", "warn", "error", "off"
+						"log_level": "info",
+
+						// This template receives list of models.Alert objects. The message would be composed from this
+						"format": infrahelpers.YAMLRawMessage(`|
+  {{range . -}}
+  {{$alert := . -}}
+  {{range .Decisions -}}
+  {{if $alert.Source.Cn -}}
+  :flag-{{$alert.Source.Cn | lower}}: <https://www.whois.com/whois/{{.Value}}|{{.Value}}> will get {{.Type}} for next {{.Duration}} for triggering {{.Scenario}} on machine '{{$alert.MachineID}}'. <https://www.shodan.io/host/{{.Value}}|Shodan>{{end}}
+  {{if not $alert.Source.Cn -}}
+  :pirate_flag: <https://www.whois.com/whois/{{.Value}}|{{.Value}}> will get {{.Type}} for next {{.Duration}} for triggering {{.Scenario}} on machine '{{$alert.MachineID}}'.  <https://www.shodan.io/host/{{.Value}}|Shodan>{{end}}
+  {{end -}}
+  {{end -}}
+`),
+
+						"webhook": "${SLACK_API_URL}",
+					}),
 				}),
 				MountToContainers: []string{"envsubst"},
 				MountName:         "config",
@@ -285,6 +310,7 @@ fi;
 					"ENROLL_KEY":         "CROWDSEC_ENROLL_KEY",
 					"TELEGRAM_CHAT_ID":   "TELEGRAM_CHAT_ID",
 					"TELEGRAM_BOT_TOKEN": "TELEGRAM_BOT_TOKEN",
+					"SLACK_API_URL":      "SLACK_API_URL",
 				},
 			},
 		},
@@ -293,20 +319,24 @@ fi;
 			{Name: "crowdsec-config", RequestsStorage: "100Mi", MountPath: "/etc/crowdsec", MountName: "crowdsec-config"},
 		},
 	})
+	crowdsecBouncerPluginConfig := map[string]interface{}{
+		"Enabled": true,
+		// "LogLevel":           "DEBUG",
+		"CrowdsecMode":       "stream",
+		"CrowdsecLapiScheme": "http",
+		"CrowdsecLapiHost":   "crowdsec." + scope.Namespace() + ".svc.cluster.local:8080",
+		"CrowdsecLapiKey":    "mysecretkey12345",
+		// "clienttrustedips": "10.0.10.30/32",
+	}
+	if props.ForwardedHeadersTrustedIPs != nil {
+		crowdsecBouncerPluginConfig["forwardedHeadersTrustedIPs"] = props.ForwardedHeadersTrustedIPs
+	}
 	scope.AddApiObject(&traefikv1alpha1.Middleware{
 		ObjectMeta: metav1.ObjectMeta{Name: "crowdsec-traefik-bouncer"},
 		Spec: traefikv1alpha1.MiddlewareSpec{
 			Plugin: map[string]apiextensionv1.JSON{
 				"crowdsec-bouncer": {
-					Raw: []byte(infrahelpers.ToJSONString(map[string]interface{}{
-						"Enabled": true,
-						// "LogLevel":           "DEBUG",
-						"CrowdsecMode":       "stream",
-						"CrowdsecLapiScheme": "http",
-						"CrowdsecLapiHost":   "crowdsec." + scope.Namespace() + ".svc.cluster.local:8080",
-						"CrowdsecLapiKey":    "mysecretkey12345",
-						// "clienttrustedips": "10.0.10.30/32",
-					})),
+					Raw: []byte(infrahelpers.ToJSONString(crowdsecBouncerPluginConfig)),
 				},
 			},
 		},

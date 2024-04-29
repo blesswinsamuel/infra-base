@@ -34,13 +34,19 @@ func (props *TraefikProps) Render(scope kubegogen.Scope) {
 	}
 
 	values := map[string]interface{}{
-		// "deployment": map[string]any{
-		// 	"podAnnotations": map[string]any{
-		// 		"prometheus.io/port":   "8082",
-		// 		"prometheus.io/scrape": "true",
-		// 	},
-		// },
-		// above is already set in the helm chart
+		"deployment": map[string]any{
+			// 	"podAnnotations": map[string]any{
+			// 		"prometheus.io/port":   "8082",
+			// 		"prometheus.io/scrape": "true",
+			// 	},
+			"initContainers": []map[string]any{
+				{
+					"name":    "sleeper",
+					"image":   "alpine:3.12",
+					"command": []string{"sh", "-c", "sleep 1"}, // to wait for networking to be ready to download plugins
+				},
+			},
+		},
 		"providers": map[string]any{
 			"kubernetesCRD": map[string]any{
 				"allowCrossNamespace":       true,

@@ -17,10 +17,9 @@ import (
 type VectorProps struct {
 	ImageInfo    k8sapp.ImageInfo `json:"image"`
 	SyslogServer struct {
-		Enabled          bool   `json:"enabled"`
-		VrlDecoderSource string `json:"vrlDecoderSource"`
-		WriteToFile      bool   `json:"writeToFile"`
-		Debug            bool   `json:"debug"`
+		Enabled          bool              `json:"enabled"`
+		HostnameMappings map[string]string `json:"hostnameMappings"`
+		Debug            bool              `json:"debug"`
 	} `json:"syslogServer"`
 }
 
@@ -129,14 +128,50 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 			},
 		}),
 	}
-	extraVolumeMounts := []corev1.VolumeMount{}
 	if props.SyslogServer.Enabled {
 		// Sources
+		hostnameMappingStr := ""
+		for _, k := range infrahelpers.MapKeys(props.SyslogServer.HostnameMappings) {
+			v := props.SyslogServer.HostnameMappings[k]
+			hostnameMappingStr += `    .hostname = replace(.hostname, "` + k + `", "` + v + `") ?? .hostname` + "\n"
+		}
 		syslogOpts := map[string]any{
 			"decoding": map[string]any{
 				"codec": "vrl",
 				"vrl": map[string]any{
-					"source":   strings.TrimSpace(props.SyslogServer.VrlDecoderSource),
+					// https://vector.dev/docs/reference/configuration/sources/syslog/#examples-syslog-event
+					// https://vector.dev/docs/reference/vrl/functions/#parse_syslog
+					"source": strings.TrimSpace(`
+raw_message = .message
+parsed_message, err = parse_syslog(.message)
+if err != null {
+  .message = string!(.message)
+  # <XXXMODELNAMEXXX> - <13> syslog: Do not receive BRAS LCP-echo-request. Failure count: 1/3
+  # <XXXMODELNAMEXXX> - <4> kernel: 1714246742.659541: [mapd][wapp_wait_recv_parse_wapp_resp][1326][wapp_wait_recv_parse_wapp_resp]wait for event timeout
+  parsed_message, err = parse_regex(.message, r'<(?P<hostname>\w+)> - <(?P<priority>\d+)> (?P<appname>\w+): (?P<message>.*)')
+  if err != null {
+    log("Failed to parse message: " + err, level: "error")
+    .hostname = "unknown"
+    .facility = "unknown"
+    .severity = "unknown"
+    .appname = "unknown"
+  } else {
+    # https://gist.github.com/marvin/1017480?permalink_comment_id=584813#gistcomment-584813
+    parsed_message.priority = to_int!(parsed_message.priority)
+    . = parsed_message
+` + hostnameMappingStr + `
+    .facility = to_syslog_facility(to_int(.priority / 8)) ?? "invalid"
+    .severity = to_syslog_level(.priority - (to_int(.priority / 8) * 8)) ?? "invalid"
+  }
+} else {
+  . = parsed_message
+  # reset timestamp to current time because the timezone is wonky sometimes - this results in "400 Bad Request" from loki
+  .timestamp = format_timestamp!(now(), format: "%+")
+}
+.raw_message = raw_message
+# .level = .severity
+# del(.severity)
+`),
 					"timezone": "local",
 				},
 			},
@@ -153,12 +188,6 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 			"mode":       "udp",
 		}, syslogOpts)
 
-		// Transforms
-		// .level = .severity || "unknown"
-		// @timestamp = to_timestamp(.timestamp)
-		// .message = .message || .raw_message
-		// del(.raw_message)
-		// del(.severity)
 		transforms["syslog_transform"] = map[string]any{
 			"type":   "remap",
 			"inputs": []string{"syslog_server_tcp", "syslog_server_udp"},
@@ -190,55 +219,8 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 					"codec": "json",
 				},
 			}
-			// {"appname":"tailscaled","facility":"daemon","host":"10.42.0.1","hostname":"homelab-asdf","message":"portmapper: UPnP discovered root \"http://asdf:1900/gatedesc.xml\" does not match gateway IP 192.168.1.1; repointing at gateway which is assumed to be floating","port":40549,"procid":999,"raw_message":"<30>Apr 28 14:54:12 homelab-asdf tailscaled[999]: portmapper: UPnP discovered root \"http://192.168.0.254:1900/gatedesc.xml\" does not match gateway IP 192.168.1.1; repointing at gateway which is assumed to be floating","severity":"info","source_type":"socket","timestamp":"2024-04-28T09:24:12.012889488+00:00"}
-			// {"appname":"kernel","facility":"kern","host":"10.42.0.1","hostname":"isp-asdf","message":"1714296251.091441: [mapd][wapp_wait_recv_parse_wapp_resp][1326][wapp_wait_recv_parse_wapp_resp]wait for event timeout","port":1223,"priority":4,"raw_message":"<DSNW29D0D0C0> - <4> kernel: 1714296251.091441: [mapd][wapp_wait_recv_parse_wapp_resp][1326][wapp_wait_recv_parse_wapp_resp]wait for event timeout","severity":"warning","source_type":"socket","timestamp":"2024-04-28T09:24:11.144703156Z"}
-		}
-		if props.SyslogServer.WriteToFile {
-			// transforms["syslog_to_string_transform"] = map[string]any{
-			// 	"type":   "remap",
-			// 	"inputs": []string{"syslog_transform"},
-			// 	// https://github.com/vectordotdev/vector/issues/6863#issuecomment-2069259829
-			// 	"source": strings.TrimSpace(dedent.String(`
-			// 		., err = "<86>1 " + to_string(.timestamp) + " eks " + .kubernetes.container_name + " 0 - - " + decode_base16!("EFBBBF") + .message
-			// 		if err != null {
-			// 		  log(err, level: "error")
-			// 		}
-			// 		@timestamp = to_timestamp(.timestamp)
-			// 		.level = .severity || "unknown"
-			// 		.message = .message || .raw_message
-			// 		del(.raw_message)
-			// 		del(.severity)
-			// 	`)),
-			// }
-
-			transforms["syslog_to_string_transform"] = map[string]any{
-				"type":   "remap",
-				"inputs": []string{"syslog_transform"},
-				"source": strings.TrimSpace(dedent.String(`
-				  . = {"hostname": .hostname, "message": .raw_message}
-				`)),
-			}
-			// sinks["console_debug_syslog"] = map[string]any{
-			// 	"type":   "console",
-			// 	"inputs": []string{"syslog_to_string_transform"},
-			// 	"encoding": map[string]any{
-			// 		"codec": "json",
-			// 	},
-			// }
-
-			sinks["file_syslog"] = map[string]any{
-				"type":   "file",
-				"inputs": []string{"syslog_to_string_transform"},
-				"path":   "/var/log/vector-syslog/{{ hostname }}/%Y-%m-%d.log",
-				"encoding": map[string]any{
-					"codec": "text",
-				},
-				"framing": map[string]any{
-					"method": "newline_delimited",
-				},
-			}
-
-			extraVolumeMounts = append(extraVolumeMounts, corev1.VolumeMount{Name: "var-log", MountPath: "/var/log/vector-syslog/", SubPath: "vector-syslog"})
+			// {"appname":"sshd","facility":"daemon","host":"10.42.0.1","hostname":"homelab-asdf","message":"portmapper: UPnP discovered root \"http://asdf:1900/gatedesc.xml\" does not match gateway IP 192.168.1.1; repointing at gateway which is assumed to be floating","port":40549,"procid":999,"raw_message":"<30>Apr 28 14:54:12 homelab-asdf tailscaled[999]: portmapper: UPnP discovered root \"http://192.168.0.254:1900/gatedesc.xml\" does not match gateway IP 192.168.1.1; repointing at gateway which is assumed to be floating","severity":"info","source_type":"socket","timestamp":"2024-04-28T09:24:12.012889488+00:00"}
+			// {"appname":"kernel","facility":"kern","host":"10.42.0.1","hostname":"isp-asdf","message":"1714296252.091443: [mapd][wapp_wait_recv_parse_wapp_resp][1326][wapp_wait_recv_parse_wapp_resp]wait for event timeout","port":1223,"priority":4,"raw_message":"<XXXMODELNAMEXXX> - <4> kernel: 1714296251.091441: [mapd][wapp_wait_recv_parse_wapp_resp][1326][wapp_wait_recv_parse_wapp_resp]wait for event timeout","severity":"warning","source_type":"socket","timestamp":"2024-04-28T09:24:11.144703156Z"}
 		}
 	}
 
@@ -278,13 +260,13 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 					{Name: "VECTOR_SELF_POD_NAME", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}},
 					{Name: "VECTOR_SELF_POD_NAMESPACE", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.namespace"}}},
 				},
-				ExtraVolumeMounts: infrahelpers.MergeLists(extraVolumeMounts, []corev1.VolumeMount{
+				ExtraVolumeMounts: []corev1.VolumeMount{
 					{Name: "data", MountPath: "/vector-data-dir"},
 					{Name: "var-log", MountPath: "/var/log/", ReadOnly: true},
 					{Name: "var-lib", MountPath: "/var/lib", ReadOnly: true},
 					{Name: "procfs", MountPath: "/host/proc", ReadOnly: true},
 					{Name: "sysfs", MountPath: "/host/sys", ReadOnly: true},
-				}),
+				},
 			},
 		},
 		ExtraVolumes: []corev1.Volume{
