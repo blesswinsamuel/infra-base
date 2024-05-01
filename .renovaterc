@@ -1,13 +1,19 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "mergeConfidence:all-badges",
+    "config:recommended"
   ],
   "lockFileMaintenance": {
     "enabled": true
   },
-  "regexManagers": [
+  "postUpdateOptions": [
+    "gomodTidy",
+    "gomodUpdateImportPaths"
+  ],
+  "customManagers": [
     {
+      "customType": "regex",
       "fileMatch": [
         "^k8sbase/values-default\\.yaml$"
       ],
@@ -17,6 +23,7 @@
       "datasourceTemplate": "helm"
     },
     {
+      "customType": "regex",
       "fileMatch": [
         "^k8sbase/values-default\\.yaml$"
       ],
@@ -27,7 +34,7 @@
     }
   ],
   "enabledManagers": [
-    "regex",
+    "custom.regex",
     "gomod",
     "github-actions"
   ],
@@ -46,10 +53,20 @@
       "allowedVersions": "<=v1.0.0"
     },
     {
-      "packagePatterns": [
+      "matchPackagePatterns": [
         "^minio/"
       ],
       "versioning": "regex:^(RELEASE\\.)?(?<major>\\d{4})-(?<minor>\\d{2})-(?<patch>\\d{2})T\\S*?Z$"
+    },
+    {
+      "groupName": "all gomod dependencies",
+      "groupSlug": "all-gomod",
+      "matchPackagePatterns": [
+        "*"
+      ],
+      "matchManagers": [
+        "gomod"
+      ]
     },
     {
       "groupName": "all patch dependencies",
