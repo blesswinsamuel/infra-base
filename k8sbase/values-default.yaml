@@ -215,7 +215,7 @@ kube-state-metrics:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: kube-state-metrics
-    version: "5.18.1"
+    version: "5.19.0"
   _alerting_rules:
     kube-state-metrics:
       url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubeStateMetrics-prometheusRule.yaml
@@ -310,7 +310,7 @@ alerting-rules:
 vmagent:
   image:
     repository: victoriametrics/vmagent
-    tag: "v1.99.0"
+    tag: "v1.101.0"
   ingress:
     enabled: true
     subDomain: "vmagent"
@@ -330,7 +330,7 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.100.1
+    tag: v1.101.0
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
@@ -371,7 +371,7 @@ node-exporter:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: prometheus-node-exporter
-    version: "4.32.0"
+    version: "4.33.0"
   _grafana_dashboards:
     node-exporter:
       url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
