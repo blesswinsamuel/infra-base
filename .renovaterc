@@ -74,6 +74,9 @@
       "matchPackagePatterns": [
         "*"
       ],
+      "matchManagers": [
+        "custom.regex"
+      ],
       "matchUpdateTypes": [
         "digest",
         "lockFileMaintenance",
@@ -90,6 +93,9 @@
       "matchPackagePatterns": [
         "*"
       ],
+      "matchManagers": [
+        "custom.regex"
+      ],
       "matchUpdateTypes": [
         "replacement",
         "rollback",
@@ -101,6 +107,9 @@
       "groupSlug": "all-major",
       "matchPackagePatterns": [
         "*"
+      ],
+      "matchManagers": [
+        "custom.regex"
       ],
       "matchUpdateTypes": [
         "major"
