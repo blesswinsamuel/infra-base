@@ -25,6 +25,7 @@ type Crowdsec struct {
 	EnableSshRemediation       bool                      `json:"enableFirewallRemediation"`
 	BouncerKeys                map[string]string         `json:"bouncerKeys"`
 	ForwardedHeadersTrustedIPs []string                  `json:"forwardedHeadersTrustedIPs"`
+	Notifiers                  []string                  `json:"notifiers"`
 	// HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
@@ -74,6 +75,16 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 	extraAcquisitionsCm["acquis.yaml"] = ``
 	extraAcquisitionsVolMounts = append(extraAcquisitionsVolMounts, corev1.VolumeMount{Name: "config", MountPath: "/etc/crowdsec/acquis.yaml", SubPath: "acquis.yaml", ReadOnly: true})
 
+	notifications := []string{}
+	for _, notifier := range props.Notifiers {
+		switch notifier {
+		case "telegram":
+			notifications = append(notifications, "telegram_default")
+		case "slack":
+			notifications = append(notifications, "slack_default")
+		}
+	}
+
 	firewallBouncerProfile := infrahelpers.ToYamlString(map[string]interface{}{
 		"name": "firewall_ip_remediation",
 		// "debug": true,
@@ -83,7 +94,7 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 		"decisions": []map[string]interface{}{
 			{"type": "ban-firewall", "duration": "24h"},
 		},
-		"notifications": []string{"telegram_default", "slack_default"},
+		"notifications": notifications,
 		"on_success":    "break",
 	})
 	traefikBouncerProfile := infrahelpers.ToYamlString(map[string]interface{}{
@@ -95,7 +106,7 @@ func (props *Crowdsec) Render(scope kubegogen.Scope) {
 		"decisions": []map[string]interface{}{
 			{"type": "ban", "duration": "24h"},
 		},
-		"notifications": []string{"telegram_default", "slack_default"},
+		"notifications": notifications,
 		// "duration_expr": `Sprintf('%dh', (GetDecisionsCount(Alert.GetValue()) + 1) * 4)`,
 		// # notifications:
 		// #   - slack_default  # Set the webhook in /etc/crowdsec/notifications/slack.yaml before enabling this.
