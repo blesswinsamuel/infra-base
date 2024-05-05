@@ -5,6 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
@@ -208,4 +211,66 @@ func (m *YAMLRawMessage) unmarshal(data []byte) error {
 	}
 	*m = append((*m)[0:0], data...)
 	return nil
+}
+
+type YAMLAllowInclude[T any] struct{ V T }
+
+// // UnmarshalYAML is a custom unmarshaler for go-yaml.
+// func (m *YAMLAllowInclude[T]) UnmarshalYAML(ctx context.Context, unmarshal func(interface{}) error) error {
+// 	var raw string
+// 	if err := unmarshal(&raw); err != nil {
+// 		// not !include
+// 		// fmt.Println("err", err)
+// 	}
+// 	// fmt.Println("raw", raw)
+// 	if strings.HasPrefix(raw, "^include") {
+// 		// !include
+// 		filePath := strings.TrimSpace(strings.TrimPrefix(raw, "^include"))
+// 		fileBytes, err := os.Open(filePath)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		var v T
+// 		decoder := yaml.NewDecoder(fileBytes, yaml.Strict())
+// 		if err = decoder.Decode(&v); err != nil {
+// 			return err
+// 		}
+// 		m.value = v
+// 	} else {
+// 		// not !include
+// 		var v T
+// 		if err := unmarshal(&v); err != nil {
+// 			return err
+// 		}
+// 		m.value = v
+// 	}
+// 	return nil
+// }
+
+func (m *YAMLAllowInclude[T]) UnmarshalYAML(ctx context.Context, data []byte) error {
+	if m == nil {
+		return fmt.Errorf("UnmarshalYAML on nil pointer")
+	}
+	if bytes.HasPrefix(data, []byte("^include")) {
+		// !include
+		filePath := strings.TrimSpace(strings.TrimPrefix(string(data), "^include"))
+		fileBytes, err := os.ReadFile(filePath)
+		if err != nil {
+			return err
+		}
+		data = fileBytes
+	} else {
+		// not !include
+	}
+	var v T
+	decoder := yaml.NewDecoder(bytes.NewReader(data), yaml.Strict())
+	if err := decoder.DecodeContext(ctx, &v); err != nil {
+		return err
+	}
+	(*m).V = v
+	return nil
+}
+
+func (m YAMLAllowInclude[T]) MarshalYAML() (interface{}, error) {
+	return m.V, nil
 }

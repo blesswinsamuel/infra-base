@@ -61,11 +61,11 @@ type Authelia struct {
 	Ingress   struct {
 		SubDomain string `json:"subDomain"`
 	} `json:"ingress"`
-	AccessControl map[string]any `json:"accessControl"`
+	AccessControl infrahelpers.YAMLAllowInclude[map[string]any] `json:"accessControl"`
 	OIDC          struct {
-		Enabled                bool             `json:"enabled"`
-		IssuerCertificateChain string           `json:"issuer_certificate_chain"`
-		Clients                []AutheliaClient `json:"clients"`
+		Enabled                bool                                            `json:"enabled"`
+		IssuerCertificateChain string                                          `json:"issuer_certificate_chain"`
+		Clients                infrahelpers.YAMLAllowInclude[[]AutheliaClient] `json:"clients"`
 	} `json:"oidc"`
 	AuthMode string `json:"authMode"` // ldap or file
 	LDAP     struct {
@@ -150,8 +150,8 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 			props.CookieDomains[i]["authelia_url"] = "https://" + props.Ingress.SubDomain + "." + GetDomain(scope)
 		}
 	}
-	// https://github.com/authelia/chartrepo/blob/master/charts/authelia/templates/configMap.yaml
-	configMap := map[string]any{
+	// https://github.com/authelia/chartrepo/blob/master/charts/authelia/templates/autheliaConfig.yaml
+	autheliaConfig := map[string]any{
 		"theme": "light",
 		"server": map[string]any{
 			"address":    "tcp://0.0.0.0:9091/",
@@ -290,7 +290,7 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 			},
 		},
 	}
-	secrets := map[string]string{
+	externalSecretRefs := map[string]string{
 		"SMTP_PASSWORD":          "SMTP_PASSWORD",
 		"SMTP_HOST":              "SMTP_HOST",
 		"SMTP_PORT":              "SMTP_PORT",
@@ -302,16 +302,16 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 		"POSTGRES_USERNAME":      "POSTGRES_USERNAME",
 	}
 	if props.OIDC.Enabled {
-		for i, client := range props.OIDC.Clients {
+		for i, client := range props.OIDC.Clients.V {
 			client.FillDefaults()
-			props.OIDC.Clients[i] = client
+			props.OIDC.Clients.V[i] = client
 		}
-		secrets["OIDC_PRIVATE_KEY"] = "AUTHELIA_OIDC_PRIVATE_KEY"
-		secrets["OIDC_HMAC_SECRET"] = "AUTHELIA_OIDC_HMAC_SECRET"
-		if configMap["identity_providers"] == nil {
-			configMap["identity_providers"] = map[string]any{}
+		externalSecretRefs["OIDC_PRIVATE_KEY"] = "AUTHELIA_OIDC_PRIVATE_KEY"
+		externalSecretRefs["OIDC_HMAC_SECRET"] = "AUTHELIA_OIDC_HMAC_SECRET"
+		if autheliaConfig["identity_providers"] == nil {
+			autheliaConfig["identity_providers"] = map[string]any{}
 		}
-		configMap["identity_providers"].(map[string]any)["oidc"] = map[string]any{
+		autheliaConfig["identity_providers"].(map[string]any)["oidc"] = map[string]any{
 			"enforce_pkce":                 "public_clients_only",
 			"enable_pkce_plain_challenge":  false,
 			"enable_client_debug_messages": false,
@@ -336,7 +336,7 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 			},
 			"clients": props.OIDC.Clients,
 		}
-		configMap["identity_providers"].(map[string]any)["oidc"].(map[string]any)["jwks"] = []map[string]any{
+		autheliaConfig["identity_providers"].(map[string]any)["oidc"].(map[string]any)["jwks"] = []map[string]any{
 			{"key": "{{ .OIDC_PRIVATE_KEY }}", "certificate_chain": props.OIDC.IssuerCertificateChain},
 		}
 	}
@@ -353,11 +353,11 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 			},
 			ExtraVolumeMounts: []corev1.VolumeMount{{Name: "assets", MountPath: "/assets"}},
 		}}
-		configMap["server"].(map[string]any)["asset_path"] = "/assets"
+		autheliaConfig["server"].(map[string]any)["asset_path"] = "/assets"
 	}
 	if props.AuthMode == "file" {
 		// Note: this might be broken
-		configMap["authentication_backend"].(map[string]any)["file"] = map[string]any{
+		autheliaConfig["authentication_backend"].(map[string]any)["file"] = map[string]any{
 			"path": "/config/users_database.yml",
 		}
 		appProps.ExternalSecrets = append(appProps.ExternalSecrets, k8sapp.ApplicationExternalSecret{
@@ -369,7 +369,7 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 		})
 	}
 	if props.AuthMode == "ldap" {
-		configMap["authentication_backend"].(map[string]any)["ldap"] = map[string]any{
+		autheliaConfig["authentication_backend"].(map[string]any)["ldap"] = map[string]any{
 			"implementation":      "custom",
 			"address":             props.LDAP.URL,
 			"password":            "{{ .LDAP_PASSWORD }}",
@@ -398,16 +398,16 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 				"maximum_version": "TLS1.3",
 			},
 		}
-		secrets["LDAP_PASSWORD"] = props.LDAP.PasswordSecretKey
+		externalSecretRefs["LDAP_PASSWORD"] = props.LDAP.PasswordSecretKey
 	}
 
-	configMapString := infrahelpers.ToYamlString(configMap)
-	configMapString = strings.Replace(configMapString, `"{{ .OIDC_PRIVATE_KEY }}"`, "|\n{{ .OIDC_PRIVATE_KEY | nindent 8 }}", 1)
+	autheliaConfigStr := infrahelpers.ToYamlString(autheliaConfig)
+	autheliaConfigStr = strings.Replace(autheliaConfigStr, `"{{ .OIDC_PRIVATE_KEY }}"`, "|\n{{ .OIDC_PRIVATE_KEY | nindent 8 }}", 1)
 	appProps.ExternalSecrets = append(appProps.ExternalSecrets, k8sapp.ApplicationExternalSecret{
 		Name:       "authelia",
-		RemoteRefs: secrets,
+		RemoteRefs: externalSecretRefs,
 		Template: map[string]string{
-			"configuration.yaml": configMapString,
+			"configuration.yaml": autheliaConfigStr,
 		},
 		MountToContainers: []string{"authelia"},
 		MountName:         "config",
