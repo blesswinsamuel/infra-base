@@ -98,6 +98,9 @@ postgres:
         - PostgresqlNotEnoughConnections
         - PostgresqlCommitRateLow
         - PostgresqlConfigurationChanged # bad query
+        - PostgresqlHighRollbackRate # very annoying
+        - PostgresqlTableNotAutoVacuumed # idc
+        - PostgresqlTableNotAutoAnalyzed # idc
       alertReplacements:
         PostgresqlHighRollbackRate:
           "0.02": "0.07"
