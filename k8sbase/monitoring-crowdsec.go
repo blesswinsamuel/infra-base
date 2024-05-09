@@ -336,7 +336,7 @@ fi;
 		"CrowdsecMode":       "stream",
 		"CrowdsecLapiScheme": "http",
 		"CrowdsecLapiHost":   "crowdsec." + scope.Namespace() + ".svc.cluster.local:8080",
-		"CrowdsecLapiKey":    "mysecretkey12345",
+		"CrowdsecLapiKey":    props.BouncerKeys["TRAEFIK"],
 		// "clienttrustedips": "10.0.10.30/32",
 	}
 	if props.ForwardedHeadersTrustedIPs != nil {

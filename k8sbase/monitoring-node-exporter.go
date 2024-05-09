@@ -29,7 +29,7 @@ func (props *NodeExporterProps) Render(scope kubegogen.Scope) {
 				},
 			},
 			"extraArgs": []string{
-				"--collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|var/lib/kubelet/pods/.+|/run/containerd/runc/k8s.io/.+)($|/)",
+				"--collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|var/lib/kubelet/pods/.+|run/containerd/runc/k8s.io/.+)($|/)",
 				"--collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|tmpfs)$",
 			},
 		},

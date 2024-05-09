@@ -174,7 +174,7 @@ func (props *TraefikProps) Render(scope kubegogen.Scope) {
 		case "crowdsec-bouncer":
 			plugins[plugin] = map[string]any{
 				"moduleName": "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin",
-				"version":    "v1.2.1",
+				"version":    "v1.3.0",
 			}
 		}
 	}
