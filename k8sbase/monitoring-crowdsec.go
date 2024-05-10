@@ -294,15 +294,16 @@ fi;
 
 						// This template receives list of models.Alert objects. The message would be composed from this
 						"format": infrahelpers.YAMLRawMessage(`|
-  {{range . -}}
-  {{$alert := . -}}
-  {{range .Decisions -}}
-  {{if $alert.Source.Cn -}}
-  :flag-{{$alert.Source.Cn | lower}}: <https://www.whois.com/whois/{{.Value}}|{{.Value}}> will get {{.Type}} for next {{.Duration}} for triggering {{.Scenario}} on machine '{{$alert.MachineID}}'. <https://www.shodan.io/host/{{.Value}}|Shodan>{{end}}
-  {{if not $alert.Source.Cn -}}
-  :pirate_flag: <https://www.whois.com/whois/{{.Value}}|{{.Value}}> will get {{.Type}} for next {{.Duration}} for triggering {{.Scenario}} on machine '{{$alert.MachineID}}'.  <https://www.shodan.io/host/{{.Value}}|Shodan>{{end}}
-  {{end -}}
-  {{end -}}
+  {{- range . }}
+  {{- $alert := . }}
+  🕵️ {{$alert.Source.AsName}}
+  🌐 <https://app.crowdsec.net/cti/{{$alert.Source.IP}}|{{$alert.Source.IP}}> :flag-{{$alert.Source.Cn | lower}}: {{$alert.Source.Cn}}
+  📜 _{{$alert.Scenario}}_
+  🎯 Decisions:
+  {{- range .Decisions }}
+  ` + "`" + `{{.Value}}` + "`" + ` will get *{{.Type}}* for next _{{.Duration}}_ for triggering *{{.Scenario}}*.
+  {{- end }}
+  {{- end -}}
 `),
 
 						"webhook": "${SLACK_API_URL}",
