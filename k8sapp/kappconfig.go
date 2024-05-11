@@ -5,61 +5,46 @@ import "github.com/blesswinsamuel/infra-base/kubegogen"
 func NewKappConfig(scope kubegogen.Scope) kubegogen.Scope {
 	// https://carvel.dev/kapp/docs/v0.45.0/config/#rebaserules
 	scope = scope.CreateScope("kapp-config", kubegogen.ScopeProps{})
-	pvResourceMatchers := []any{
-		map[string]any{
-			"apiVersionKindMatcher": map[string]any{
-				"apiVersion": "v1",
-				"kind":       "PersistentVolume",
-			},
-		},
+	pvResourceMatchers := []map[string]any{
+		{"apiVersionKindMatcher": map[string]any{"apiVersion": "v1", "kind": "PersistentVolume"}},
+	}
+	// https://github.com/carvel-dev/kapp/blob/2d0b7edbcd49a58263a37c48c5a614704c0d091f/pkg/kapp/config/resource_matchers.go#L12
+	// https://carvel.dev/kapp/docs/v0.62.x/rebase-pvc/
+	clusterOwnedFields := func(paths [][]string, resourceMatchers []map[string]any) map[string]any {
+		return map[string]any{
+			"paths":            paths,
+			"type":             "copy",
+			"sources":          []any{"new", "existing"},
+			"resourceMatchers": resourceMatchers,
+		}
 	}
 	scope.AddApiObjectFromMap(map[string]interface{}{
 		"apiVersion":             "kapp.k14s.io/v1alpha1",
 		"kind":                   "Config",
 		"minimumRequiredVersion": "0.23.0",
 		"rebaseRules": []any{
-			map[string]any{
-				"path":    []string{"data"},
-				"type":    "copy",
-				"sources": []any{"new", "existing"},
-				"resourceMatchers": []any{
-					map[string]any{
-						"kindNamespaceNameMatcher": map[string]any{
-							"kind":      "Secret",
-							"namespace": "secrets",
-							"name":      "external-secrets-webhook",
-						},
-					},
-					map[string]any{
-						"kindNamespaceNameMatcher": map[string]any{
-							"kind":      "Secret",
-							"namespace": "system",
-							"name":      "kubernetes-dashboard-csrf",
-						},
-					},
-					map[string]any{
-						"kindNamespaceNameMatcher": map[string]any{
-							"kind":      "Secret",
-							"namespace": "system",
-							"name":      "kubernetes-dashboard-key-holder",
-						},
-					},
-				},
-			},
 			// https://github.com/carvel-dev/kapp/issues/49
 			// https://gist.github.com/cppforlife/149872f132d6afdc6f0240d70f598a16
-			map[string]any{
-				"paths": [][]string{
-					{"spec", "claimRef"},
-					{"spec", "claimRef", "resourceVersion"},
-					{"spec", "claimRef", "uid"},
-					{"spec", "claimRef", "apiVersion"},
-					{"spec", "claimRef", "kind"},
-				},
-				"type":             "copy",
-				"sources":          []string{"new", "existing"},
-				"resourceMatchers": pvResourceMatchers,
-			},
+			clusterOwnedFields([][]string{{"data"}}, []map[string]any{
+				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "secrets", "name": "external-secrets-webhook"}},
+				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "system", "name": "kubernetes-dashboard-csrf"}},
+				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "system", "name": "kubernetes-dashboard-key-holder"}},
+			}),
+			clusterOwnedFields([][]string{{"spec", "template", "metadata", "annotations", "reloader.stakater.com/last-reloaded-from"}}, []map[string]any{
+				{"apiVersionKindMatcher": map[string]any{"apiVersion": "apps/v1", "kind": "Deployment"}},
+				{"apiVersionKindMatcher": map[string]any{"apiVersion": "apps/v1", "kind": "StatefulSet"}},
+				{"apiVersionKindMatcher": map[string]any{"apiVersion": "apps/v1", "kind": "Daemonset"}},
+			}),
+			clusterOwnedFields([][]string{{"metadata", "annotations", "force-resync"}}, []map[string]any{
+				{"apiVersionKindMatcher": map[string]any{"apiVersion": "external-secrets.io/v1beta1", "kind": "ExternalSecret"}},
+			}),
+			clusterOwnedFields([][]string{
+				{"spec", "claimRef"},
+				{"spec", "claimRef", "resourceVersion"},
+				{"spec", "claimRef", "uid"},
+				{"spec", "claimRef", "apiVersion"},
+				{"spec", "claimRef", "kind"},
+			}, pvResourceMatchers),
 			// map[string]any{
 			// 	"path":             []string{"spec", "persistentVolumeReclaimPolicy"},
 			// 	"type":             "copy",
