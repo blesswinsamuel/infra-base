@@ -5,9 +5,7 @@ import "github.com/blesswinsamuel/infra-base/kubegogen"
 func NewKappConfig(scope kubegogen.Scope) kubegogen.Scope {
 	// https://carvel.dev/kapp/docs/v0.45.0/config/#rebaserules
 	scope = scope.CreateScope("kapp-config", kubegogen.ScopeProps{})
-	pvResourceMatchers := []map[string]any{
-		{"apiVersionKindMatcher": map[string]any{"apiVersion": "v1", "kind": "PersistentVolume"}},
-	}
+
 	// https://github.com/carvel-dev/kapp/blob/2d0b7edbcd49a58263a37c48c5a614704c0d091f/pkg/kapp/config/resource_matchers.go#L12
 	// https://carvel.dev/kapp/docs/v0.62.x/rebase-pvc/
 	clusterOwnedFields := func(paths [][]string, resourceMatchers []map[string]any) map[string]any {
@@ -39,12 +37,14 @@ func NewKappConfig(scope kubegogen.Scope) kubegogen.Scope {
 				{"apiVersionKindMatcher": map[string]any{"apiVersion": "external-secrets.io/v1beta1", "kind": "ExternalSecret"}},
 			}),
 			clusterOwnedFields([][]string{
-				{"spec", "claimRef"},
+				// {"spec", "claimRef"},
 				{"spec", "claimRef", "resourceVersion"},
 				{"spec", "claimRef", "uid"},
 				{"spec", "claimRef", "apiVersion"},
 				{"spec", "claimRef", "kind"},
-			}, pvResourceMatchers),
+			}, []map[string]any{
+				{"apiVersionKindMatcher": map[string]any{"apiVersion": "v1", "kind": "PersistentVolume"}},
+			}),
 			// map[string]any{
 			// 	"path":             []string{"spec", "persistentVolumeReclaimPolicy"},
 			// 	"type":             "copy",
