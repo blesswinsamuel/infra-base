@@ -66,6 +66,10 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 				    log("Failed to merge message into log: " + err, level: "error")
 				  }
 				  .level = .level || .severity || "unknown"
+				  # normalize msg and message
+				  if .message == null && .msg != null {
+				    .message = .msg
+				  }
 				} else {
 				  .level = "unknown"
 				}

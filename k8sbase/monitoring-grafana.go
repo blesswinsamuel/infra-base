@@ -105,7 +105,7 @@ func (props *Grafana) Render(scope kubegogen.Scope) {
 					"RESOURCE":          "configmap",
 					"REQ_URL":           "http://localhost:3000/api/admin/provisioning/dashboards/reload",
 					"REQ_METHOD":        "POST",
-					"LOG_LEVEL":         "DEBUG",
+					// "LOG_LEVEL":         "DEBUG",
 				},
 				ExtraEnvs: []corev1.EnvVar{
 					{Name: "REQ_USERNAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "username", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
@@ -130,7 +130,7 @@ func (props *Grafana) Render(scope kubegogen.Scope) {
 					"RESOURCE":    "configmap",
 					"REQ_URL":     "http://localhost:3000/api/admin/provisioning/datasources/reload",
 					"REQ_METHOD":  "POST",
-					"LOG_LEVEL":   "DEBUG",
+					// "LOG_LEVEL":   "DEBUG",
 				},
 				ExtraEnvs: []corev1.EnvVar{
 					{Name: "REQ_USERNAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "username", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
@@ -196,6 +196,8 @@ func (props *Grafana) Render(scope kubegogen.Scope) {
 					"grafana.ini": `
 [log]
 mode = console
+[log.console]
+format = json
 `,
 				},
 				MountToContainers: []string{"grafana"},

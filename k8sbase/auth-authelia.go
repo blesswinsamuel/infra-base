@@ -166,7 +166,7 @@ func (props *Authelia) Render(scope kubegogen.Scope) {
 		},
 		"log": map[string]any{
 			"level":       "info",
-			"format":      "text",
+			"format":      "json",
 			"file_path":   "",
 			"keep_stdout": true,
 		},
