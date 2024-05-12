@@ -127,6 +127,10 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 				"container_name": "{{ kubernetes.container_name }}",
 				"level":          "{{ level }}",
 			},
+			"encoding": map[string]any{
+				"codec":         "json",
+				"except_fields": []string{"source_type"},
+			},
 		}),
 	}
 	if props.SyslogServer.Enabled {

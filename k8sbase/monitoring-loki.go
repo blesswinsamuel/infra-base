@@ -45,6 +45,7 @@ func (props *LokiProps) Render(scope kubegogen.Scope) {
 		"server": map[string]any{
 			"grpc_listen_port": 9095,
 			"http_listen_port": 3100,
+			"log_format":       "json",
 		},
 		"analytics": map[string]any{
 			"reporting_enabled": false,
