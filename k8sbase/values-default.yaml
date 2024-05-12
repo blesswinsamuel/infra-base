@@ -427,7 +427,7 @@ victoriametrics:
 loki:
   image:
     repository: grafana/loki
-    tag: "2.9.6"
+    tag: "3.0.0"
   storage: local
   _alerting_rules:
     loki:

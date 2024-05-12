@@ -63,11 +63,11 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 				  del(.message)
 				  ., err = merge(., parsed_message)
 				  if err != null {
-					log("Failed to merge message into log: " + err, level: "error")
+				    log("Failed to merge message into log: " + err, level: "error")
 				  }
 				  .level = .level || .severity || "unknown"
 				} else {
-					.level = "unknown"
+				  .level = "unknown"
 				}
 			`)),
 		},
@@ -84,6 +84,7 @@ func (props *VectorProps) Render(scope kubegogen.Scope) {
 				del(.kubernetes.pod_uid)
 				del(.kubernetes.pod_ip)
 				del(.kubernetes.pod_ips)
+				del(.kubernetes.container_image_id)
 				del(.file)
 			`)),
 		},

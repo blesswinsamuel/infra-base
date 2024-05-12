@@ -42,6 +42,10 @@ func (props *LokiProps) Render(scope kubegogen.Scope) {
 		vcts = []k8sapp.ApplicationPersistentVolume{{Name: "storage", RequestsStorage: "16Gi", MountName: "storage", MountPath: "/var/loki"}}
 	}
 	lokiConfig := map[string]any{
+		"server": map[string]any{
+			"grpc_listen_port": 9095,
+			"http_listen_port": 3100,
+		},
 		"analytics": map[string]any{
 			"reporting_enabled": false,
 		},
@@ -50,12 +54,17 @@ func (props *LokiProps) Render(scope kubegogen.Scope) {
 			"compactor_address":  "http://loki:3100",
 			"path_prefix":        "/var/loki",
 			"replication_factor": 1,
+			"ring": map[string]any{
+				"kvstore": map[string]any{"store": "inmemory"},
+			},
 		},
 		"compactor": map[string]any{
-			"retention_enabled": true,
+			"retention_enabled":    true,
+			"delete_request_store": "filesystem", // ?
 		},
 		"frontend": map[string]any{
 			"scheduler_address": "",
+			// "encoding":          "protobuf",
 		},
 		"frontend_worker": map[string]any{
 			"scheduler_address": "",
@@ -76,6 +85,11 @@ func (props *LokiProps) Render(scope kubegogen.Scope) {
 		},
 		"query_range": map[string]any{
 			"align_queries_with_step": true,
+			"results_cache": map[string]any{
+				"cache": map[string]any{
+					"embedded_cache": map[string]any{"enabled": true, "max_size_mb": 100},
+				},
+			},
 		},
 		"ruler": map[string]any{
 			"alertmanager_url": "http://alertmanager:9093",
@@ -98,17 +112,27 @@ func (props *LokiProps) Render(scope kubegogen.Scope) {
 					"schema":       "v12",
 					"store":        "boltdb-shipper",
 				},
+				{
+					"from": "2024-05-13",
+					"index": map[string]any{
+						"period": "24h",
+						"prefix": "index_",
+					},
+					"object_store": "filesystem",
+					"schema":       "v13",
+					"store":        "tsdb",
+				},
 			},
-		},
-		"server": map[string]any{
-			"grpc_listen_port": 9095,
-			"http_listen_port": 3100,
 		},
 		"storage_config": map[string]any{
 			"hedging": map[string]any{
 				"at":             "250ms",
 				"max_per_second": 20,
 				"up_to":          3,
+			},
+			"tsdb_shipper": map[string]any{
+				"active_index_directory": "/var/loki/tsdb-index",
+				"cache_location":         "/var/loki/tsdb-cache",
 			},
 		},
 		"tracing": map[string]any{
@@ -166,6 +190,7 @@ func (props *LokiProps) Render(scope kubegogen.Scope) {
 			Args: []string{
 				"-config.file=/etc/loki/config/config.yaml",
 				"-target=all",
+				"-validation.allow-structured-metadata=false", // TODO temporary
 			},
 			ReadinessProbe: &corev1.Probe{InitialDelaySeconds: 30, TimeoutSeconds: 1, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http-metrics"), Path: "/ready"}}},
 			ExtraVolumeMounts: infrahelpers.MergeLists(volMnts, []corev1.VolumeMount{
