@@ -6,19 +6,17 @@ import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/infra-base/kubegogen"
-	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
+	v1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type LokiProps struct {
-	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
-	Storage       string           `json:"storage"`
-	Local         struct {
-		StorageClass *string `json:"storageClass"`
-		PVName       *string `json:"pvName"`
-	} `json:"local"`
-	S3 struct {
+	ImageInfo            k8sapp.ImageInfo `json:"image"`
+	Storage              string           `json:"storage"`
+	PersistentVolumeName string           `json:"persistentVolumeName"`
+	S3                   struct {
 		Endpoint        string `json:"endpoint"`
 		SecretAccessKey string `json:"secret_access_key"`
 		AccessKeyID     string `json:"access_key_id"`
@@ -27,121 +25,186 @@ type LokiProps struct {
 
 // https://github.com/grafana/loki/tree/main/production/helm/loki
 func (props *LokiProps) Render(scope kubegogen.Scope) {
-	patchResource := func(resource *unstructured.Unstructured) {
-		if props.Local.PVName == nil {
-			return
-		}
-		if resource.Object["kind"] == "StatefulSet" {
-			var statefulSet appsv1.StatefulSet
-			err := runtime.DefaultUnstructuredConverter.FromUnstructured(resource.UnstructuredContent(), &statefulSet)
-			if err != nil {
-				log.Fatalf("FromUnstructured: %v", err)
-			}
-			statefulSet.Spec.VolumeClaimTemplates[0].Spec.StorageClassName = infrahelpers.Ptr("") // fix issue
-			statefulSet.Spec.VolumeClaimTemplates[0].Spec.VolumeName = *props.Local.PVName
-			unstructuredObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&statefulSet)
-			if err != nil {
-				log.Fatalf("ToUnstructured: %v", err)
-			}
-			resource.Object = unstructuredObj
-		}
+	var vcts []k8sapp.ApplicationPersistentVolume
+	vols := []corev1.Volume{}
+	volMnts := []corev1.VolumeMount{}
+	if props.PersistentVolumeName != "" {
+		// k8sapp.NewPersistentVolumeClaim(scope, &k8sapp.PersistentVolumeClaim{
+		// 	Name:            "loki",
+		// 	StorageClass:    "-",
+		// 	RequestsStorage: "10Gi",
+		// 	VolumeName:      props.PersistentVolumeName,
+		// })
+		// vols = []corev1.Volume{{Name: "storage", VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "loki"}}}}
+		// volMnts = []corev1.VolumeMount{{Name: "storage", MountPath: "/var/loki"}}
+		vcts = []k8sapp.ApplicationPersistentVolume{{Name: "storage", StorageClass: "-", VolumeName: props.PersistentVolumeName, RequestsStorage: "10Gi", MountName: "storage", MountPath: "/var/loki"}}
+	} else {
+		vcts = []k8sapp.ApplicationPersistentVolume{{Name: "storage", RequestsStorage: "16Gi", MountName: "storage", MountPath: "/var/loki"}}
 	}
+	lokiConfig := map[string]any{
+		"analytics": map[string]any{
+			"reporting_enabled": false,
+		},
+		"auth_enabled": false,
+		"common": map[string]any{
+			"compactor_address":  "http://loki:3100",
+			"path_prefix":        "/var/loki",
+			"replication_factor": 1,
+		},
+		"compactor": map[string]any{
+			"retention_enabled": true,
+		},
+		"frontend": map[string]any{
+			"scheduler_address": "",
+		},
+		"frontend_worker": map[string]any{
+			"scheduler_address": "",
+		},
+		"index_gateway": map[string]any{
+			"mode": "ring",
+		},
+		"limits_config": map[string]any{
+			"max_cache_freshness_per_query": "10m",
+			"reject_old_samples":            true,
+			"reject_old_samples_max_age":    "168h",
+			"split_queries_by_interval":     "15m",
+		},
+		"memberlist": map[string]any{
+			"join_members": []string{
+				"loki-memberlist",
+			},
+		},
+		"query_range": map[string]any{
+			"align_queries_with_step": true,
+		},
+		"ruler": map[string]any{
+			"alertmanager_url": "http://alertmanager:9093",
+			"storage": map[string]any{
+				"type": "local",
+			},
+		},
+		"runtime_config": map[string]any{
+			"file": "/etc/loki/runtime-config/runtime-config.yaml",
+		},
+		"schema_config": map[string]any{
+			"configs": []map[string]any{
+				{
+					"from": "2022-01-11",
+					"index": map[string]any{
+						"period": "24h",
+						"prefix": "loki_index_",
+					},
+					"object_store": "filesystem",
+					"schema":       "v12",
+					"store":        "boltdb-shipper",
+				},
+			},
+		},
+		"server": map[string]any{
+			"grpc_listen_port": 9095,
+			"http_listen_port": 3100,
+		},
+		"storage_config": map[string]any{
+			"hedging": map[string]any{
+				"at":             "250ms",
+				"max_per_second": 20,
+				"up_to":          3,
+			},
+		},
+		"tracing": map[string]any{
+			"enabled": false,
+		},
+	}
+	switch props.Storage {
+	case "local":
+		lokiConfig["common"].(map[string]any)["storage"] = map[string]any{
+			"filesystem": map[string]any{
+				"chunks_directory": "/var/loki/chunks",
+				"rules_directory":  "/var/loki/rules",
+			},
+		}
+	case "s3":
+		log.Panic("s3 storage not implemented")
+		// lokiConfig["storage"] = map[string]any{
+		// 	"s3": map[string]any{
+		// 		"bucketNames": map[string]string{
+		// 			"chunks": "loki-chunks",
+		// 			"ruler":  "loki-ruler",
+		// 			"admin":  "loki-admin", // never used
+		// 		},
+		// 		"endpoint":         props.S3.Endpoint,
+		// 		"secretAccessKey":  props.S3.SecretAccessKey,
+		// 		"accessKeyId":      props.S3.AccessKeyID,
+		// 		"s3ForcePathStyle": true,
+		// 		// insecure: true,
+		// 	},
+		// }
+	}
+	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
+		Kind:                         "StatefulSet",
+		Name:                         "loki",
+		ServiceAccountName:           "loki",
+		CreateServiceAccount:         true,
+		AutomountServiceAccountToken: true,
+		CreateHeadlessService:        true,
+		EnableServiceLinks:           infrahelpers.Ptr(true),
+		StatefulSetServiceName:       "loki-headless",
+		StatefulSetUpdateStrategy:    v1.StatefulSetUpdateStrategy{RollingUpdate: &v1.RollingUpdateStatefulSetStrategy{Partition: infrahelpers.Ptr(int32(0))}},
+		PodSecurityContext: &corev1.PodSecurityContext{
+			FSGroup:      infrahelpers.Ptr(int64(10001)),
+			RunAsGroup:   infrahelpers.Ptr(int64(10001)),
+			RunAsUser:    infrahelpers.Ptr(int64(10001)),
+			RunAsNonRoot: infrahelpers.Ptr(true),
+		},
+		Containers: []k8sapp.ApplicationContainer{{
+			Name:  "loki",
+			Image: props.ImageInfo,
+			Ports: []k8sapp.ContainerPort{
+				{Name: "http-metrics", Port: 3100}, // loki-headless should have only this
+				{Name: "grpc", Port: 9095},
+			},
+			Args: []string{
+				"-config.file=/etc/loki/config/config.yaml",
+				"-target=all",
+			},
+			ReadinessProbe: &corev1.Probe{InitialDelaySeconds: 30, TimeoutSeconds: 1, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http-metrics"), Path: "/ready"}}},
+			ExtraVolumeMounts: infrahelpers.MergeLists(volMnts, []corev1.VolumeMount{
+				{Name: "tmp", MountPath: "/tmp"},
+			}),
+			SecurityContext: &corev1.SecurityContext{Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}}, AllowPrivilegeEscalation: infrahelpers.Ptr(false), ReadOnlyRootFilesystem: infrahelpers.Ptr(true)},
+		}},
+		ExtraVolumes: infrahelpers.MergeLists(vols, []corev1.Volume{
+			{Name: "tmp", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+		}),
+		StatefulSetVolumeClaimTemplates: vcts,
+		ConfigMaps: []k8sapp.ApplicationConfigMap{
+			{
+				Name: "loki",
+				Data: map[string]string{
+					"config.yaml": infrahelpers.ToYamlString(lokiConfig),
+				},
+				MountName: "config",
+				MountPath: "/etc/loki/config",
+				ReadOnly:  true,
+			},
+			{
+				Name: "loki-runtime",
+				Data: map[string]string{
+					"runtime-config.yaml": infrahelpers.ToYamlString(map[string]any{}),
+				},
+				MountName: "runtime-config",
+				MountPath: "/etc/loki/runtime-config",
+				ReadOnly:  true,
+			},
+		},
+	})
 
-	// TODO: remove helm dependency
-	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
-		ChartInfo:     props.HelmChartInfo,
-		ReleaseName:   "loki",
-		Namespace:     scope.Namespace(),
-		PatchResource: patchResource,
-		Values: map[string]any{
-			"singleBinary": map[string]any{
-				"replicas": 1,
-				"persistence": map[string]any{
-					"storageClass": props.Local.StorageClass,
-				},
-			},
-			"monitoring": map[string]any{
-				"dashboards": map[string]any{
-					"enabled": false,
-				},
-				"serviceMonitor": map[string]any{
-					"enabled": false,
-					"metricsInstance": map[string]any{
-						"enabled": false,
-					},
-				},
-				"alerts": map[string]any{
-					"enabled": false,
-				},
-				"rules": map[string]any{
-					"enabled":  false,
-					"alerting": false,
-				},
-				"selfMonitoring": map[string]any{
-					"enabled": false,
-					"grafanaAgent": map[string]any{
-						"installOperator": false,
-					},
-				},
-				"lokiCanary": map[string]any{
-					"enabled": false,
-				},
-			},
-			"test": map[string]any{
-				"enabled": false,
-			},
-			"gateway": map[string]any{
-				"enabled": false,
-			},
-			"memberlist": map[string]any{
-				"service": map[string]any{
-					// https://github.com/grafana/loki/issues/7907#issuecomment-1445336799
-					"publishNotReadyAddresses": true,
-				},
-			},
-			"loki": map[string]any{
-				"auth_enabled": false,
-				"commonConfig": map[string]any{
-					"replication_factor": 1,
-				},
-				"compactor": map[string]any{
-					"retention_enabled": true,
-				},
-				"rulerConfig": map[string]any{
-					"alertmanager_url": "http://alertmanager:9093",
-				},
-				"storage": infrahelpers.MergeMaps(
-					infrahelpers.Ternary(
-						props.Storage == "local",
-						map[string]any{
-							"type": "filesystem",
-						},
-						nil,
-					),
-					infrahelpers.Ternary(
-						props.Storage == "s3",
-						map[string]any{
-							"type": "s3",
-							"bucketNames": map[string]string{
-								"chunks": "loki-chunks",
-								"ruler":  "loki-ruler",
-								"admin":  "loki-admin", // never used
-							},
-							"s3": map[string]any{
-								"endpoint":         props.S3.Endpoint,
-								"secretAccessKey":  props.S3.SecretAccessKey,
-								"accessKeyId":      props.S3.AccessKeyID,
-								"s3ForcePathStyle": true,
-								// insecure: true,
-							},
-						},
-						nil,
-					),
-				),
-				"analytics": map[string]any{
-					"reporting_enabled": false,
-				},
-			},
+	scope.AddApiObject(&corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: "loki-memberlist"},
+		Spec: corev1.ServiceSpec{
+			Ports:                    []corev1.ServicePort{{Name: "http-memberlist", Port: 7946, TargetPort: intstr.FromInt(7946)}},
+			Selector:                 map[string]string{"app.kubernetes.io/name": "loki"},
+			PublishNotReadyAddresses: true,
 		},
 	})
 

@@ -425,10 +425,9 @@ victoriametrics:
     victoriametrics:
       url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/deployment/docker/alerts.yml
 loki:
-  helm:
-    repo: https://grafana.github.io/helm-charts
-    chart: loki
-    version: "5.48.0"
+  image:
+    repository: grafana/loki
+    tag: "2.9.6"
   storage: local
   _alerting_rules:
     loki:

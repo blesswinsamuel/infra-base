@@ -59,6 +59,7 @@ type ApplicationProps struct {
 	// IngressAnnotations              map[string]string
 
 	DeploymentUpdateStrategy        v1.DeploymentStrategy
+	StatefulSetUpdateStrategy       v1.StatefulSetUpdateStrategy
 	StatefulSetServiceName          string
 	StatefulSetVolumeClaimTemplates []ApplicationPersistentVolume
 }
@@ -451,8 +452,9 @@ func NewApplication(scope kubegogen.Scope, props *ApplicationProps) {
 				Annotations: appAnnotations,
 			},
 			Spec: v1.StatefulSetSpec{
-				Replicas:    props.Replicas,
-				ServiceName: infrahelpers.UseOrDefault(props.StatefulSetServiceName, props.Name),
+				Replicas:       props.Replicas,
+				UpdateStrategy: props.StatefulSetUpdateStrategy,
+				ServiceName:    infrahelpers.UseOrDefault(props.StatefulSetServiceName, props.Name),
 				Selector: &metav1.LabelSelector{
 					MatchLabels: commonLabels,
 				},
@@ -497,14 +499,14 @@ func NewApplication(scope kubegogen.Scope, props *ApplicationProps) {
 				},
 			})
 		}
-		if len(ingressHosts) > 0 {
-			NewIngress(scope, &IngressProps{
-				Name:                   props.Name,
-				Hosts:                  ingressHosts,
-				TraefikMiddlewareNames: props.IngressMiddlewares,
-				// Annotations:            props.IngressAnnotations,
-			})
-		}
+	}
+	if len(ingressHosts) > 0 {
+		NewIngress(scope, &IngressProps{
+			Name:                   props.Name,
+			Hosts:                  ingressHosts,
+			TraefikMiddlewareNames: props.IngressMiddlewares,
+			// Annotations:            props.IngressAnnotations,
+		})
 	}
 	if props.CreateServiceAccount {
 		scope.AddApiObject(&corev1.ServiceAccount{
