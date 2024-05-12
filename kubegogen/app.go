@@ -56,6 +56,10 @@ func patchObject(apiObject ApiObject) {
 		modifyObj(apiObject, func(statefulset *appsv1.StatefulSet) {
 			statefulset.Spec.Template.Spec.DNSConfig = dnsConfig
 		})
+	case "DaemonSet":
+		modifyObj(apiObject, func(statefulset *appsv1.DaemonSet) {
+			statefulset.Spec.Template.Spec.DNSConfig = dnsConfig
+		})
 	case "CronJob":
 		modifyObj(apiObject, func(cronjob *batchv1.CronJob) {
 			cronjob.Spec.JobTemplate.Spec.Template.Spec.DNSConfig = dnsConfig
