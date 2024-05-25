@@ -294,6 +294,7 @@ fi;
 
 						// This template receives list of models.Alert objects. The message would be composed from this
 						"format": infrahelpers.YAMLRawMessage(`|
+  🗄️ ` + GetGlobals(scope).ClusterName + `
   {{- range . }}
   {{- $alert := . }}
   🕵️ {{$alert.Source.AsName}}
@@ -306,7 +307,10 @@ fi;
   {{- end -}}
 `),
 
-						"webhook": "${SLACK_API_URL}",
+						"webhook":  "${SLACK_API_URL}",
+						"channel":  "#crowdsec",
+						"username": "CrowdSec",
+						"icon_url": "https://avatars.githubusercontent.com/u/63284097?s=200&v=4",
 					}),
 				}),
 				MountToContainers: []string{"envsubst"},

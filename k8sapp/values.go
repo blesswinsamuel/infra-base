@@ -24,8 +24,9 @@ type ValuesGlobalDefaults struct {
 }
 
 type ValuesGlobal struct {
-	Domain   string               `json:"domain"`
-	Defaults ValuesGlobalDefaults `json:"defaults"`
+	Domain      string               `json:"domain"`
+	ClusterName string               `json:"clusterName"`
+	Defaults    ValuesGlobalDefaults `json:"defaults"`
 }
 
 type Values struct {
