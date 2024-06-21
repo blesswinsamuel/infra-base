@@ -14,6 +14,7 @@ type Redis struct {
 // https://github.com/bitnami/charts/tree/main/bitnami/redis
 
 func (props *Redis) Render(scope kubegogen.Scope) {
+	// TODO: remove helm dependency
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "redis",

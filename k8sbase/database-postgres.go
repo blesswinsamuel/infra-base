@@ -37,6 +37,7 @@ type Postgres struct {
 }
 
 func (props *Postgres) Render(scope kubegogen.Scope) {
+	// TODO: remove helm dependency
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "postgres",

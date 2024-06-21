@@ -183,7 +183,7 @@ crowdsec-firewall-bouncer:
 crowdsec:
   image:
     repository: crowdsecurity/crowdsec
-    tag: v1.6.1-2
+    tag: v1.6.2
   notifiers:
     - slack
     # - telegram
