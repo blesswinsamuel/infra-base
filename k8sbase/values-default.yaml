@@ -7,9 +7,9 @@ external-secrets:
     version: "0.9.17"
 
 external-secrets-store:
-  dopplerTokenSecretName: doppler-token-auth-api
-  dopplerTokenSecretNamespace: ""
-  dopplerTokenSecretKey: dopplerToken
+  tokenSecretName: doppler-token-auth-api
+  tokenSecretNamespace: ""
+  tokenSecretKey: dopplerToken
 
 ### cert-manager ###
 

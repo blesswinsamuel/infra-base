@@ -14,21 +14,30 @@ import (
 	"golang.org/x/xerrors"
 )
 
-type ValuesGlobalDefaults struct {
-	SecretStoreName               string `json:"secretStoreName"`
-	SecretStoreKind               string `json:"secretStoreKind"`
-	ExternalSecretRefreshInterval string `json:"externalSecretRefreshInterval"`
-
+type ValuesGlobalCert struct {
 	CertIssuerName string `json:"certIssuerName"`
 	CertIssuerKind string `json:"certIssuerKind"`
 }
 
+type ValuesGlobalIngress struct {
+	DisableTls bool `json:"disableTls"`
+}
+
+type ValuesGlobalExternalSecret struct {
+	SecretsProvider string `json:"secretsProvider"`
+
+	SecretStoreName string `json:"secretStoreName"`
+	SecretStoreKind string `json:"secretStoreKind"`
+	RefreshInterval string `json:"refreshInterval"`
+}
+
 type ValuesGlobal struct {
-	Domain          string               `json:"domain"`
-	ClusterName     string               `json:"clusterName"`
-	DisableTls      bool                 `json:"disableTls"`
-	SecretsProvider string               `json:"secretsProvider"`
-	Defaults        ValuesGlobalDefaults `json:"defaults"`
+	Domain      string `json:"domain"`
+	ClusterName string `json:"clusterName"`
+
+	Cert           ValuesGlobalCert           `json:"cert"`
+	Ingress        ValuesGlobalIngress        `json:"ingress"`
+	ExternalSecret ValuesGlobalExternalSecret `json:"externalSecret"`
 }
 
 type Values struct {
@@ -44,14 +53,20 @@ func LoadValues(valuesFiles []string, templateMap map[string]any) Values {
 	var values Values
 	// default global values
 	values.Global = ValuesGlobal{
-		Domain:          "",
-		SecretsProvider: "doppler", // or 1password
-		Defaults: ValuesGlobalDefaults{
-			SecretStoreName:               "secretstore",
-			SecretStoreKind:               "ClusterSecretStore",
-			ExternalSecretRefreshInterval: "10m",
-			CertIssuerName:                "letsencrypt-prod",
-			CertIssuerKind:                "ClusterIssuer",
+		Domain:      "",
+		ClusterName: "",
+		ExternalSecret: ValuesGlobalExternalSecret{
+			SecretsProvider: "doppler",
+			SecretStoreName: "secretstore",
+			SecretStoreKind: "ClusterSecretStore",
+			RefreshInterval: "10m",
+		},
+		Cert: ValuesGlobalCert{
+			CertIssuerName: "letsencrypt-prod",
+			CertIssuerKind: "ClusterIssuer",
+		},
+		Ingress: ValuesGlobalIngress{
+			DisableTls: false,
 		},
 	}
 

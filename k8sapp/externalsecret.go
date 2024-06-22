@@ -34,7 +34,7 @@ func NewExternalSecret(scope kubegogen.Scope, props *ExternalSecretProps) kubego
 		var remoteRef externalsecretsv1beta1.ExternalSecretDataRemoteRef
 		var ref string = v
 		vParts := strings.Split(v, "/")
-		switch globals.SecretsProvider {
+		switch globals.ExternalSecret.SecretsProvider {
 		case "1password":
 			var clusternamespace string
 			if len(vParts) != 2 {
@@ -71,10 +71,10 @@ func NewExternalSecret(scope kubegogen.Scope, props *ExternalSecretProps) kubego
 	externalsecret := externalsecretsv1beta1.ExternalSecret{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name}, // , Namespace: infrahelpers.StrPtrIfNonEmpty(props.Namespace)
 		Spec: externalsecretsv1beta1.ExternalSecretSpec{
-			RefreshInterval: infrahelpers.ToDuration(infrahelpers.UseOrDefault(props.RefreshInterval, globals.Defaults.ExternalSecretRefreshInterval)),
+			RefreshInterval: infrahelpers.ToDuration(infrahelpers.UseOrDefault(props.RefreshInterval, globals.ExternalSecret.RefreshInterval)),
 			SecretStoreRef: externalsecretsv1beta1.SecretStoreRef{
-				Name: infrahelpers.UseOrDefault(props.SecretStore.Name, globals.Defaults.SecretStoreName),
-				Kind: infrahelpers.UseOrDefault(props.SecretStore.Kind, globals.Defaults.SecretStoreKind),
+				Name: infrahelpers.UseOrDefault(props.SecretStore.Name, globals.ExternalSecret.SecretStoreName),
+				Kind: infrahelpers.UseOrDefault(props.SecretStore.Kind, globals.ExternalSecret.SecretStoreKind),
 			},
 			Data: data,
 		},

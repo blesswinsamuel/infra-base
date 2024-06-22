@@ -47,7 +47,7 @@ func NewIngress(scope kubegogen.Scope, props *IngressProps) kubegogen.Scope {
 		props.IngressType = "kubernetes"
 	}
 	globals := GetGlobals(scope)
-	if globals.DisableTls {
+	if globals.Ingress.DisableTls {
 		for i, host := range props.Hosts {
 			host.Tls = false
 			props.Hosts[i] = host
@@ -109,7 +109,7 @@ func NewIngress(scope kubegogen.Scope, props *IngressProps) kubegogen.Scope {
 				Name: props.Name,
 			},
 			Spec: traefikv1alpha1.IngressRouteSpec{
-				EntryPoints: infrahelpers.If(globals.DisableTls, []string{"web"}, []string{"websecure"}),
+				EntryPoints: infrahelpers.If(globals.Ingress.DisableTls, []string{"web"}, []string{"websecure"}),
 				Routes:      ingressRules,
 				TLS: infrahelpers.If(len(tlsDomains) > 0, &traefikv1alpha1.TLS{
 					SecretName: fmt.Sprintf("%s-tls", props.Name),
@@ -158,8 +158,8 @@ func NewIngress(scope kubegogen.Scope, props *IngressProps) kubegogen.Scope {
 		clusterIssuerAnnotationKey := map[string]string{
 			"ClusterIssuer": "cert-manager.io/cluster-issuer",
 			"Issuer":        "cert-manager.io/issuer",
-		}[infrahelpers.UseOrDefault(props.CertIssuer.Kind, globals.Defaults.CertIssuerKind)]
-		annotations[clusterIssuerAnnotationKey] = infrahelpers.UseOrDefault(props.CertIssuer.Name, globals.Defaults.CertIssuerName)
+		}[infrahelpers.UseOrDefault(props.CertIssuer.Kind, globals.Cert.CertIssuerKind)]
+		annotations[clusterIssuerAnnotationKey] = infrahelpers.UseOrDefault(props.CertIssuer.Name, globals.Cert.CertIssuerName)
 		if len(traefikMiddlwareNames) > 0 {
 			annotations["traefik.ingress.kubernetes.io/router.middlewares"] = strings.Join(traefikMiddlwareNames, ",")
 		}

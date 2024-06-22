@@ -22,8 +22,8 @@ func NewCertificate(scope kubegogen.Scope, props *CertificateProps) {
 			DNSNames:   props.Hosts,
 			SecretName: props.Name + "-tls",
 			IssuerRef: certmanagermetav1.ObjectReference{
-				Name: infrahelpers.UseOrDefault(props.CertIssuer.Name, globals.Defaults.CertIssuerName),
-				Kind: infrahelpers.UseOrDefault(props.CertIssuer.Kind, globals.Defaults.CertIssuerKind),
+				Name: infrahelpers.UseOrDefault(props.CertIssuer.Name, globals.Cert.CertIssuerName),
+				Kind: infrahelpers.UseOrDefault(props.CertIssuer.Kind, globals.Cert.CertIssuerKind),
 			},
 		},
 	})
