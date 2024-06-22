@@ -17,36 +17,27 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"flag"
 	"fmt"
+	"html/template"
 	"os"
-	"path/filepath"
-	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 
-	storage "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	storagehelpers "k8s.io/component-helpers/storage/volume"
 	"sigs.k8s.io/sig-storage-lib-external-provisioner/v6/controller"
-)
-
-const (
-	provisionerNameKey = "PROVISIONER_NAME"
 )
 
 type nfsProvisioner struct {
 	client kubernetes.Interface
-	server string
-	path   string
 }
 
 type pvcMetadata struct {
@@ -55,27 +46,22 @@ type pvcMetadata struct {
 	annotations map[string]string
 }
 
-var pattern = regexp.MustCompile(`\${\.PVC\.((labels|annotations)\.(.*?)|.*?)}`)
-
-func (meta *pvcMetadata) stringParser(str string) string {
-	result := pattern.FindAllStringSubmatch(str, -1)
-	for _, r := range result {
-		switch r[2] {
-		case "labels":
-			str = strings.ReplaceAll(str, r[0], meta.labels[r[3]])
-		case "annotations":
-			str = strings.ReplaceAll(str, r[0], meta.annotations[r[3]])
-		default:
-			str = strings.ReplaceAll(str, r[0], meta.data[r[1]])
-		}
+func (meta *pvcMetadata) stringParser(str string) (string, error) {
+	tmpl, err := template.New("path").Parse(str)
+	if err != nil {
+		return "", err
 	}
-
-	return str
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, map[string]any{
+		"PVC":         meta.data,
+		"labels":      meta.labels,
+		"annotations": meta.annotations,
+	})
+	if err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
-
-const (
-	mountPath = "/persistentvolumes"
-)
 
 var _ controller.Provisioner = &nfsProvisioner{}
 
@@ -88,36 +74,28 @@ func (p *nfsProvisioner) Provision(ctx context.Context, options controller.Provi
 	pvcNamespace := options.PVC.Namespace
 	pvcName := options.PVC.Name
 
-	pvName := strings.Join([]string{pvcNamespace, pvcName, options.PVName}, "-")
-
 	metadata := &pvcMetadata{
 		data: map[string]string{
 			"name":      pvcName,
 			"namespace": pvcNamespace,
+			"pvname":    options.PVName,
 		},
 		labels:      options.PVC.Labels,
 		annotations: options.PVC.Annotations,
 	}
 
-	fullPath := filepath.Join(mountPath, pvName)
-	path := filepath.Join(p.path, pvName)
-
 	pathPattern, exists := options.StorageClass.Parameters["pathPattern"]
-	if exists {
-		customPath := metadata.stringParser(pathPattern)
-		if customPath != "" {
-			path = filepath.Join(p.path, customPath)
-			fullPath = filepath.Join(mountPath, customPath)
-		}
+	if !exists {
+		return nil, controller.ProvisioningFinished, errors.New("pathPattern parameter is required")
+	}
+	path, err := metadata.stringParser(pathPattern)
+	if err != nil {
+		return nil, controller.ProvisioningFinished, err
 	}
 
-	glog.V(4).Infof("creating path %s", fullPath)
-	if err := os.MkdirAll(fullPath, 0o777); err != nil {
-		return nil, controller.ProvisioningFinished, errors.New("unable to create directory to provision new pv: " + err.Error())
-	}
-	err := os.Chmod(fullPath, 0o777)
-	if err != nil {
-		return nil, "", err
+	nfsServer, exists := options.StorageClass.Parameters["nfsServer"]
+	if !exists {
+		return nil, controller.ProvisioningFinished, errors.New("nfsServer parameter is required")
 	}
 
 	pv := &v1.PersistentVolume{
@@ -133,7 +111,7 @@ func (p *nfsProvisioner) Provision(ctx context.Context, options controller.Provi
 			},
 			PersistentVolumeSource: v1.PersistentVolumeSource{
 				NFS: &v1.NFSVolumeSource{
-					Server:   p.server,
+					Server:   nfsServer,
 					Path:     path,
 					ReadOnly: false,
 				},
@@ -144,65 +122,7 @@ func (p *nfsProvisioner) Provision(ctx context.Context, options controller.Provi
 }
 
 func (p *nfsProvisioner) Delete(ctx context.Context, volume *v1.PersistentVolume) error {
-	path := volume.Spec.PersistentVolumeSource.NFS.Path
-	basePath := filepath.Base(path)
-	oldPath := strings.Replace(path, p.path, mountPath, 1)
-
-	if _, err := os.Stat(oldPath); os.IsNotExist(err) {
-		glog.Warningf("path %s does not exist, deletion skipped", oldPath)
-		return nil
-	}
-	// Get the storage class for this volume.
-	storageClass, err := p.getClassForVolume(ctx, volume)
-	if err != nil {
-		return err
-	}
-
-	// Determine if the "onDelete" parameter exists.
-	// If it exists and has a `delete` value, delete the directory.
-	// If it exists and has a `retain` value, safe the directory.
-	onDelete := storageClass.Parameters["onDelete"]
-	switch onDelete {
-	case "delete":
-		return os.RemoveAll(oldPath)
-	case "retain":
-		return nil
-	}
-
-	// Determine if the "archiveOnDelete" parameter exists.
-	// If it exists and has a false value, delete the directory.
-	// Otherwise, archive it.
-	archiveOnDelete, exists := storageClass.Parameters["archiveOnDelete"]
-	if exists {
-		archiveBool, err := strconv.ParseBool(archiveOnDelete)
-		if err != nil {
-			return err
-		}
-		if !archiveBool {
-			return os.RemoveAll(oldPath)
-		}
-	}
-
-	archivePath := filepath.Join(mountPath, "archived-"+basePath)
-	glog.V(4).Infof("archiving path %s to %s", oldPath, archivePath)
-	return os.Rename(oldPath, archivePath)
-}
-
-// getClassForVolume returns StorageClass.
-func (p *nfsProvisioner) getClassForVolume(ctx context.Context, pv *v1.PersistentVolume) (*storage.StorageClass, error) {
-	if p.client == nil {
-		return nil, fmt.Errorf("cannot get kube client")
-	}
-	className := storagehelpers.GetPersistentVolumeClass(pv)
-	if className == "" {
-		return nil, fmt.Errorf("volume has no storage class")
-	}
-	class, err := p.client.StorageV1().StorageClasses().Get(ctx, className, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return class, nil
+	return nil
 }
 
 func main() {
@@ -217,9 +137,9 @@ func main() {
 	if path == "" {
 		glog.Fatal("NFS_PATH not set")
 	}
-	provisionerName := os.Getenv(provisionerNameKey)
+	provisionerName := os.Getenv("PROVISIONER_NAME")
 	if provisionerName == "" {
-		glog.Fatalf("environment variable %s is not set! Please set it.", provisionerNameKey)
+		glog.Fatalf("environment variable %s is not set! Please set it.", "PROVISIONER_NAME")
 	}
 	kubeconfig := os.Getenv("KUBECONFIG")
 	var config *rest.Config
@@ -263,8 +183,6 @@ func main() {
 
 	clientNFSProvisioner := &nfsProvisioner{
 		client: clientset,
-		server: server,
-		path:   path,
 	}
 	// Start the provision controller which will dynamically provision efs NFS
 	// PVs
