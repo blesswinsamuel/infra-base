@@ -47,6 +47,12 @@ func NewIngress(scope kubegogen.Scope, props *IngressProps) kubegogen.Scope {
 		props.IngressType = "kubernetes"
 	}
 	globals := GetGlobals(scope)
+	if globals.DisableTls {
+		for i, host := range props.Hosts {
+			host.Tls = false
+			props.Hosts[i] = host
+		}
+	}
 	if props.IngressType == "traefik" {
 		ingressRules := []traefikv1alpha1.Route{}
 		tlsHosts := map[string]bool{}
@@ -103,12 +109,12 @@ func NewIngress(scope kubegogen.Scope, props *IngressProps) kubegogen.Scope {
 				Name: props.Name,
 			},
 			Spec: traefikv1alpha1.IngressRouteSpec{
-				EntryPoints: []string{"websecure"},
+				EntryPoints: infrahelpers.If(globals.DisableTls, []string{"web"}, []string{"websecure"}),
 				Routes:      ingressRules,
-				TLS: &traefikv1alpha1.TLS{
+				TLS: infrahelpers.If(len(tlsDomains) > 0, &traefikv1alpha1.TLS{
 					SecretName: fmt.Sprintf("%s-tls", props.Name),
 					Domains:    tlsDomains,
-				},
+				}, nil),
 			},
 		})
 	} else if props.IngressType == "kubernetes" {

@@ -24,9 +24,11 @@ type ValuesGlobalDefaults struct {
 }
 
 type ValuesGlobal struct {
-	Domain      string               `json:"domain"`
-	ClusterName string               `json:"clusterName"`
-	Defaults    ValuesGlobalDefaults `json:"defaults"`
+	Domain          string               `json:"domain"`
+	ClusterName     string               `json:"clusterName"`
+	DisableTls      bool                 `json:"disableTls"`
+	SecretsProvider string               `json:"secretsProvider"`
+	Defaults        ValuesGlobalDefaults `json:"defaults"`
 }
 
 type Values struct {
@@ -42,7 +44,8 @@ func LoadValues(valuesFiles []string, templateMap map[string]any) Values {
 	var values Values
 	// default global values
 	values.Global = ValuesGlobal{
-		Domain: "",
+		Domain:          "",
+		SecretsProvider: "doppler", // or 1password
 		Defaults: ValuesGlobalDefaults{
 			SecretStoreName:               "secretstore",
 			SecretStoreKind:               "ClusterSecretStore",

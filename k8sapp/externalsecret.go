@@ -29,16 +29,45 @@ type ExternalSecretProps struct {
 
 func NewExternalSecret(scope kubegogen.Scope, props *ExternalSecretProps) kubegogen.ApiObject {
 	var data []externalsecretsv1beta1.ExternalSecretData
+	globals := GetGlobals(scope)
 	for k, v := range props.RemoteRefs {
+		var remoteRef externalsecretsv1beta1.ExternalSecretDataRemoteRef
+		var ref string = v
+		vParts := strings.Split(v, "/")
+		switch globals.SecretsProvider {
+		case "1password":
+			var clusternamespace string
+			if len(vParts) != 2 {
+				panic("Invalid 1Password remote ref: " + v)
+			}
+			switch vParts[0] {
+			case "cluster":
+				clusternamespace = globals.ClusterName
+			case "commons":
+				clusternamespace = "commons"
+			default:
+				panic("Invalid 1Password remote ref: " + v)
+			}
+			ref = vParts[1]
+			remoteRef = externalsecretsv1beta1.ExternalSecretDataRemoteRef{Key: "Kubernetes " + clusternamespace, Property: ref}
+		case "doppler":
+			if len(vParts) == 1 {
+				ref = vParts[0]
+			} else if len(vParts) == 2 {
+				ref = vParts[1]
+			} else {
+				panic("Invalid Doppler remote ref: " + v)
+			}
+			remoteRef = externalsecretsv1beta1.ExternalSecretDataRemoteRef{Key: ref}
+		}
 		data = append(data, externalsecretsv1beta1.ExternalSecretData{
 			SecretKey: k,
-			RemoteRef: externalsecretsv1beta1.ExternalSecretDataRemoteRef{Key: v},
+			RemoteRef: remoteRef,
 		})
 	}
 	slices.SortFunc(data, func(a externalsecretsv1beta1.ExternalSecretData, b externalsecretsv1beta1.ExternalSecretData) int {
 		return strings.Compare(a.SecretKey, b.SecretKey)
 	})
-	globals := GetGlobals(scope)
 	externalsecret := externalsecretsv1beta1.ExternalSecret{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name}, // , Namespace: infrahelpers.StrPtrIfNonEmpty(props.Namespace)
 		Spec: externalsecretsv1beta1.ExternalSecretSpec{

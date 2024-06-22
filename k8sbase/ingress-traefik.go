@@ -22,8 +22,9 @@ type TraefikProps struct {
 			Enabled bool `json:"enabled"`
 		} `json:"stripPrefix"`
 	} `json:"createMiddlewares"`
-	DefaultMiddlewares []string `json:"defaultMiddlewares"`
-	Plugins            []string `json:"plugins"`
+	DefaultMiddlewares         []string `json:"defaultMiddlewares"`
+	Plugins                    []string `json:"plugins"`
+	DisableHttpToHttpsRedirect bool     `json:"disableHttpToHttpsRedirect"`
 	// HostPathMountForLogs bool     `json:"hostPathMountForLogs"`
 }
 
@@ -157,6 +158,10 @@ func (props *TraefikProps) Render(scope kubegogen.Scope) {
 		"logs": map[string]any{
 			"general": map[string]any{"format": "json"},
 		},
+	}
+	if props.DisableHttpToHttpsRedirect {
+		delete(values["ports"].(map[string]any)["web"].(map[string]any), "redirectTo")
+		delete(values["ports"].(map[string]any), "websecure")
 	}
 	values["logs"].(map[string]any)["access"] = map[string]any{
 		"enabled": true,
