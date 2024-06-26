@@ -7,10 +7,12 @@ type Config struct {
 	HelmKubeVersion string
 }
 
+var configContextKey = kgen.GenerateContextKey()
+
 func GetConfig(scope kgen.Scope) Config {
-	return scope.GetContext("config").(Config)
+	return scope.GetContext(configContextKey).(Config)
 }
 
 func SetConfig(scope kgen.Scope, props Config) {
-	scope.SetContext("config", props)
+	scope.SetContext(configContextKey, props)
 }
