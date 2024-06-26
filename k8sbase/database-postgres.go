@@ -6,7 +6,7 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,7 +36,7 @@ type Postgres struct {
 	Resources            *corev1.ResourceRequirements     `json:"resources"`
 }
 
-func (props *Postgres) Render(scope kubegogen.Scope) {
+func (props *Postgres) Render(scope kgen.Scope) {
 	// TODO: remove helm dependency
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	"golang.org/x/exp/slices"
 )
 
@@ -17,7 +17,7 @@ type AlertingRules struct {
 	AlertReplacements map[string]map[string]string `json:"alertReplacements"`
 }
 
-func NewAlertingRules(scope kubegogen.Scope, props map[string]AlertingRules) kubegogen.Scope {
+func NewAlertingRules(scope kgen.Scope, props map[string]AlertingRules) kgen.Scope {
 	for _, alertingRuleID := range infrahelpers.MapKeys(props) {
 		dashboardProps := props[alertingRuleID]
 		NewAlertingRule(scope, alertingRuleID, dashboardProps)
@@ -25,7 +25,7 @@ func NewAlertingRules(scope kubegogen.Scope, props map[string]AlertingRules) kub
 	return scope
 }
 
-func NewAlertingRule(scope kubegogen.Scope, alertingRuleID string, props AlertingRules) {
+func NewAlertingRule(scope kgen.Scope, alertingRuleID string, props AlertingRules) {
 	cacheDir := GetConfig(scope).CacheDir
 	groups := []any{}
 	data := GetCachedFile(props.URL, path.Join(cacheDir, "alerting-rules"))

@@ -3,14 +3,14 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 )
 
 type GrafanaDashboardsProps struct {
 	Dashboards infrahelpers.MergeableMap[string, k8sapp.GrafanaDashboard] `json:"dashboards"`
 }
 
-func (props *GrafanaDashboardsProps) Render(scope kubegogen.Scope) {
+func (props *GrafanaDashboardsProps) Render(scope kgen.Scope) {
 	k8sapp.NewGrafanaDashboards(scope, props.Dashboards)
 }
 

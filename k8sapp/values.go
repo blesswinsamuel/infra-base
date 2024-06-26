@@ -7,7 +7,7 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
 	"github.com/rs/zerolog/log"
@@ -45,7 +45,7 @@ type Values struct {
 	Services OrderedMap[string, OrderedMap[string, ast.Node]] `json:"services"`
 }
 
-func GetGlobals(scope kubegogen.Scope) ValuesGlobal {
+func GetGlobals(scope kgen.Scope) ValuesGlobal {
 	return scope.GetContext("global").(ValuesGlobal)
 }
 

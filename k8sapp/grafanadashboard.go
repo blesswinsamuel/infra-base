@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	"golang.org/x/exp/slices"
 )
 
@@ -28,14 +28,14 @@ func hash(s string) string {
 	return fmt.Sprintf("%v", h.Sum32())
 }
 
-func NewGrafanaDashboards(scope kubegogen.Scope, props map[string]GrafanaDashboard) kubegogen.Scope {
+func NewGrafanaDashboards(scope kgen.Scope, props map[string]GrafanaDashboard) kgen.Scope {
 	for _, dashboardID := range infrahelpers.MapKeys(props) {
 		NewGrafanaDashboard(scope, dashboardID, props[dashboardID])
 	}
 	return scope
 }
 
-func NewGrafanaDashboard(scope kubegogen.Scope, dashboardID string, props GrafanaDashboard) {
+func NewGrafanaDashboard(scope kgen.Scope, dashboardID string, props GrafanaDashboard) {
 	cacheDir := GetConfig(scope).CacheDir
 	dashboardContents := GetCachedFile(props.URL, path.Join(cacheDir, "dashboards"))
 	dashboard := infrahelpers.FromJSONString[map[string]any](string(dashboardContents))

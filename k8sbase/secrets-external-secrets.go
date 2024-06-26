@@ -2,7 +2,7 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 )
 
 type ExternalSecretsProps struct {
@@ -10,7 +10,7 @@ type ExternalSecretsProps struct {
 }
 
 // https://github.com/external-secrets/external-secrets/tree/main/deploy/charts/external-secrets
-func (props *ExternalSecretsProps) Render(scope kubegogen.Scope) {
+func (props *ExternalSecretsProps) Render(scope kgen.Scope) {
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "external-secrets",

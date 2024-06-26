@@ -5,7 +5,7 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,7 +26,7 @@ type VmagentProps struct {
 var vmagentConfig string
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-agent
-func (props *VmagentProps) Render(scope kubegogen.Scope) {
+func (props *VmagentProps) Render(scope kgen.Scope) {
 	vmagentConfig := infrahelpers.FromYamlString[map[string]any](vmagentConfig)
 
 	extraScrapeConfigs := []any{}

@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -20,7 +20,7 @@ type PgBackuper struct {
 	} `json:"persistentVolumeClaims"`
 }
 
-func (props *PgBackuper) Render(scope kubegogen.Scope) {
+func (props *PgBackuper) Render(scope kgen.Scope) {
 	config := map[string]any{
 		"backupDestinations": []map[string]any{
 			{"filesystem": map[string]any{"pathTemplate": "{{`/data/{{.Database}}/{{.Database}}.pgdump`}}"}},

@@ -5,7 +5,7 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,7 +24,7 @@ type LokiProps struct {
 }
 
 // https://github.com/grafana/loki/tree/main/production/helm/loki
-func (props *LokiProps) Render(scope kubegogen.Scope) {
+func (props *LokiProps) Render(scope kgen.Scope) {
 	var vcts []k8sapp.ApplicationPersistentVolume
 	vols := []corev1.Volume{}
 	volMnts := []corev1.VolumeMount{}

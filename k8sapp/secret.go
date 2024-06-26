@@ -1,7 +1,7 @@
 package k8sapp
 
 import (
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -15,7 +15,7 @@ type SecretProps struct {
 	Data        map[string][]byte
 }
 
-func NewSecret(scope kubegogen.Scope, props *SecretProps) kubegogen.ApiObject {
+func NewSecret(scope kgen.Scope, props *SecretProps) kgen.ApiObject {
 	configMap := v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        props.Name,

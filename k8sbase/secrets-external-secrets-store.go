@@ -2,7 +2,7 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	externalsecretsmetav1 "github.com/external-secrets/external-secrets/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,7 +22,7 @@ type ExternalSecretsStore struct {
 // https://external-secrets.io/v0.5.8/provider-kubernetes/
 // https://external-secrets.io/v0.5.8/spec/
 
-func (props *ExternalSecretsStore) Render(scope kubegogen.Scope) {
+func (props *ExternalSecretsStore) Render(scope kgen.Scope) {
 	var secretStoreSpec externalsecretsv1beta1.SecretStoreSpec
 	switch GetGlobals(scope).ExternalSecret.SecretsProvider {
 	case "doppler":

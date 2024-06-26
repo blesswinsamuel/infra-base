@@ -2,7 +2,7 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 )
 
 type NodeExporterProps struct {
@@ -11,7 +11,7 @@ type NodeExporterProps struct {
 }
 
 // https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-node-exporter/values.yaml
-func (props *NodeExporterProps) Render(scope kubegogen.Scope) {
+func (props *NodeExporterProps) Render(scope kgen.Scope) {
 	if props.Disable {
 		return
 	}

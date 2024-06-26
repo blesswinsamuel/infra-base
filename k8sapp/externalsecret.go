@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
@@ -27,7 +27,7 @@ type ExternalSecretProps struct {
 	SecretStore     ExternalSecretStoreProps
 }
 
-func NewExternalSecret(scope kubegogen.Scope, props *ExternalSecretProps) kubegogen.ApiObject {
+func NewExternalSecret(scope kgen.Scope, props *ExternalSecretProps) kgen.ApiObject {
 	var data []externalsecretsv1beta1.ExternalSecretData
 	globals := GetGlobals(scope)
 	for k, v := range props.RemoteRefs {

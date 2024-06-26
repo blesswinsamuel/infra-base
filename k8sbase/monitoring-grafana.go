@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,7 +24,7 @@ type Grafana struct {
 }
 
 // https://github.com/grafana/helm-charts/tree/main/charts/grafana
-func (props *Grafana) Render(scope kubegogen.Scope) {
+func (props *Grafana) Render(scope kgen.Scope) {
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Name: "grafana",
 		// AutomountServiceAccountToken: true,

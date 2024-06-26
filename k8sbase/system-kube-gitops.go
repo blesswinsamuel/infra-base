@@ -5,7 +5,7 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	"github.com/muesli/reflow/dedent"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -29,7 +29,7 @@ type KubeGitOpsProps struct {
 	} `json:"kapp"`
 }
 
-func (props *KubeGitOpsProps) Render(scope kubegogen.Scope) {
+func (props *KubeGitOpsProps) Render(scope kgen.Scope) {
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Name: "kube-gitops",
 		Containers: []k8sapp.ApplicationContainer{

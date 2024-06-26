@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -12,7 +12,7 @@ type CrowdsecFirewallBouncer struct {
 	Mode      string           `json:"mode"`
 }
 
-func (props *CrowdsecFirewallBouncer) Render(scope kubegogen.Scope) {
+func (props *CrowdsecFirewallBouncer) Render(scope kgen.Scope) {
 	// https://github.com/crowdsecurity/cs-firewall-bouncer/issues/32#issuecomment-1060890534
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Name:        "crowdsec-firewall-bouncer",

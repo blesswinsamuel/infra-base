@@ -1,7 +1,7 @@
 package k8sapp
 
 import (
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -13,7 +13,7 @@ type ConfigmapProps struct {
 	Data        map[string]string
 }
 
-func NewConfigMap(scope kubegogen.Scope, props *ConfigmapProps) kubegogen.ApiObject {
+func NewConfigMap(scope kgen.Scope, props *ConfigmapProps) kgen.ApiObject {
 	configMap := v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        props.Name,

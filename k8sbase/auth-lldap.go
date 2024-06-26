@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -15,7 +15,7 @@ type LLDAP struct {
 	EmailDomain string           `json:"email_domain"`
 }
 
-func (props *LLDAP) Render(scope kubegogen.Scope) {
+func (props *LLDAP) Render(scope kgen.Scope) {
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Name: "lldap",
 		Containers: []k8sapp.ApplicationContainer{{

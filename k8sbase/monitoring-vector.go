@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/muesli/reflow/dedent"
@@ -26,7 +26,7 @@ type VectorProps struct {
 // https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector
 // https://helm.vector.dev/index.yaml
 
-func (props *VectorProps) Render(scope kubegogen.Scope) {
+func (props *VectorProps) Render(scope kgen.Scope) {
 	sources := map[string]any{
 		"kubernetes_logs": map[string]any{
 			"type": "kubernetes_logs",

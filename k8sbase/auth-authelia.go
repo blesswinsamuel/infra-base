@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	"github.com/traefik/traefik/v3/pkg/config/dynamic"
 	traefikv1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	"golang.org/x/exp/slices"
@@ -105,7 +105,7 @@ type Authelia struct {
 
 // https://github.com/authelia/chartrepo/tree/master/charts/authelia
 
-func (props *Authelia) Render(scope kubegogen.Scope) {
+func (props *Authelia) Render(scope kgen.Scope) {
 	ingressMiddlewares := []k8sapp.NameNamespace{}
 	if props.IncludeForwardAuthMiddleware {
 		ingressMiddlewares = append(ingressMiddlewares, k8sapp.NameNamespace{Name: "forwardauth-authelia", Namespace: scope.Namespace()})

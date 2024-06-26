@@ -92,7 +92,7 @@ func main() {
 	// 	"values.yaml",
 	// }
 	// values := k8sapp.LoadValues(valuesFiles, nil)
-	// props := kubegogen.AppProps{
+	// props := kgen.AppProps{
 	// 	Outdir:       outputDir,
 	// 	DeleteOutDir: true,
 	// 	// https://pracucci.com/kubernetes-dns-resolution-ndots-options-and-why-it-may-affect-application-performances.html
@@ -112,7 +112,7 @@ func main() {
 	// log.Printf("values:\n%v", prettyPrint(values))
 
 	// outputDir := "k8s-generated"
-	// props := kubegogen.AppProps{
+	// props := kgen.AppProps{
 	// 	Outdir:       outputDir,
 	// 	DeleteOutDir: true,
 	// 	PatchNdots:   true,

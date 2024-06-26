@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	"golang.org/x/exp/slices"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -160,7 +160,7 @@ type ApplicationPrometheusScrape struct {
 	Path string // defaults to "/metrics"
 }
 
-func NewApplication(scope kubegogen.Scope, props *ApplicationProps) {
+func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 	if props.Kind == "" {
 		props.Kind = "Deployment"
 	}

@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -22,7 +22,7 @@ type VictoriaMetrics struct {
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single
-func (props *VictoriaMetrics) Render(scope kubegogen.Scope) {
+func (props *VictoriaMetrics) Render(scope kgen.Scope) {
 	vcts := []k8sapp.ApplicationPersistentVolume{}
 	vols := []corev1.Volume{}
 	volMnts := []corev1.VolumeMount{}

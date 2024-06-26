@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
 	"github.com/rs/zerolog"
@@ -15,8 +15,8 @@ func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.TimeOnly})
 }
 
-func NewApp(props kubegogen.AppProps) kubegogen.App {
-	app := kubegogen.NewApp(props)
+func NewApp(props kgen.AppProps) kgen.App {
+	app := kgen.NewApp(props)
 
 	var cacheDir = os.Getenv("CACHE_DIR")
 	if cacheDir == "" {
@@ -29,7 +29,7 @@ func NewApp(props kubegogen.AppProps) kubegogen.App {
 	return app
 }
 
-func Render(scope kubegogen.Scope, values Values) {
+func Render(scope kgen.Scope, values Values) {
 	startTime := time.Now()
 	log.Info().Msg("Starting render...")
 
@@ -52,7 +52,7 @@ func Render(scope kubegogen.Scope, values Values) {
 	for _, key := range values.Services.keyOrder {
 		namespace, services := key, values.Services.Map[key]
 		t := logModuleTiming(namespace, 0)
-		namespaceScope := scope.CreateScope(namespace, kubegogen.ScopeProps{})
+		namespaceScope := scope.CreateScope(namespace, kgen.ScopeProps{})
 		namespaceScope.SetContext("namespace", namespace)
 		if namespace != "default" {
 			NewNamespace(namespaceScope, namespace)
@@ -80,7 +80,7 @@ func Render(scope kubegogen.Scope, values Values) {
 				}
 			}
 			// unmarshal(module, service)
-			scopeProps := kubegogen.ScopeProps{}
+			scopeProps := kgen.ScopeProps{}
 			serviceScope := namespaceScope.CreateScope(serviceName, scopeProps)
 			serviceScope.SetContext("name", serviceName)
 			module.Render(serviceScope)
@@ -93,7 +93,7 @@ func Render(scope kubegogen.Scope, values Values) {
 	log.Info().Msgf("Render done in %s.", time.Since(startTime))
 }
 
-func Synth(app kubegogen.App) {
+func Synth(app kgen.App) {
 	startTime := time.Now()
 	log.Info().Msg("Starting synth (writing YAMLs to disk)...")
 	NewKappConfig(app)

@@ -1,10 +1,10 @@
 package k8sapp
 
-import "github.com/blesswinsamuel/infra-base/kubegogen"
+import "github.com/blesswinsamuel/kgen"
 
-func NewKappConfig(scope kubegogen.Scope) kubegogen.Scope {
+func NewKappConfig(scope kgen.Scope) kgen.Scope {
 	// https://carvel.dev/kapp/docs/v0.45.0/config/#rebaserules
-	scope = scope.CreateScope("kapp-config", kubegogen.ScopeProps{})
+	scope = scope.CreateScope("kapp-config", kgen.ScopeProps{})
 
 	// https://github.com/carvel-dev/kapp/blob/2d0b7edbcd49a58263a37c48c5a614704c0d091f/pkg/kapp/config/resource_matchers.go#L12
 	// https://carvel.dev/kapp/docs/v0.62.x/rebase-pvc/

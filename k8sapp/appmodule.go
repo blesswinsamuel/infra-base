@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 
 	_ "embed"
 )
@@ -34,7 +34,7 @@ func mergeMaps(a, b map[string]interface{}) map[string]interface{} {
 }
 
 type Module interface {
-	Render(scope kubegogen.Scope)
+	Render(scope kgen.Scope)
 }
 
 type ModuleWithMeta interface {
@@ -85,7 +85,7 @@ type ModuleCommons[T Module] struct {
 	Rest T `json:",inline"`
 }
 
-func (m ModuleCommons[T]) Render(scope kubegogen.Scope) {
+func (m ModuleCommons[T]) Render(scope kgen.Scope) {
 	m.Rest.Render(scope)
 }
 

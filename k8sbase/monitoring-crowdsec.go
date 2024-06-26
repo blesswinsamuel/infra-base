@@ -6,7 +6,7 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	traefikv1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -30,7 +30,7 @@ type Crowdsec struct {
 }
 
 // https://github.com/crowdsecurity/helm-charts/tree/main/charts/crowdsec
-func (props *Crowdsec) Render(scope kubegogen.Scope) {
+func (props *Crowdsec) Render(scope kgen.Scope) {
 	// https://github.com/crowdsecurity/example-docker-compose/blob/main/swag/docker-compose.yml
 	// https://docs.crowdsec.net/u/getting_started/installation/kubernetes/
 	// https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin/blob/main/examples/behind-proxy/docker-compose.cloudflare.yml

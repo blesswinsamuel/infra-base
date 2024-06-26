@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -31,7 +31,7 @@ type HelmProps struct {
 	PatchResource       func(resource *unstructured.Unstructured)
 }
 
-func NewHelm(scope kubegogen.Scope, props *HelmProps) {
+func NewHelm(scope kgen.Scope, props *HelmProps) {
 	globals := GetConfig(scope)
 	chartsCacheDir := fmt.Sprintf("%s/%s", globals.CacheDir, "charts")
 	if err := os.MkdirAll(chartsCacheDir, os.ModePerm); err != nil {

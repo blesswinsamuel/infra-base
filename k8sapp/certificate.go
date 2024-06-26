@@ -2,7 +2,7 @@ package k8sapp
 
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmanagermetav1 "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +14,7 @@ type CertificateProps struct {
 	CertIssuer CertIssuerRefProps
 }
 
-func NewCertificate(scope kubegogen.Scope, props *CertificateProps) {
+func NewCertificate(scope kgen.Scope, props *CertificateProps) {
 	globals := GetGlobals(scope)
 	scope.AddApiObject(&certmanagerv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name},

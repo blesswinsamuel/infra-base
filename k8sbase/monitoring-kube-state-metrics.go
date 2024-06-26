@@ -2,14 +2,14 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 )
 
 type KubeStateMetricsProps struct {
 	HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
-func (props *KubeStateMetricsProps) Render(scope kubegogen.Scope) {
+func (props *KubeStateMetricsProps) Render(scope kgen.Scope) {
 	// TODO: remove helm dependency
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

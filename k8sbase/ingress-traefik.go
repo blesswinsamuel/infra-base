@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	"github.com/traefik/traefik/v3/pkg/config/dynamic"
 	traefikv1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,7 +29,7 @@ type TraefikProps struct {
 }
 
 // https://github.com/traefik/traefik-helm-chart/tree/master/traefik
-func (props *TraefikProps) Render(scope kubegogen.Scope) {
+func (props *TraefikProps) Render(scope kgen.Scope) {
 	if props.ServiceType == "" {
 		props.ServiceType = "LoadBalancer"
 	}

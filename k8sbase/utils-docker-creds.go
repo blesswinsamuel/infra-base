@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	"github.com/muesli/reflow/dedent"
 )
 
@@ -12,7 +12,7 @@ type UtilsDockerCreds struct {
 	KeyPrefix string `json:"keyPrefix"`
 }
 
-func (props *UtilsDockerCreds) Render(scope kubegogen.Scope) {
+func (props *UtilsDockerCreds) Render(scope kgen.Scope) {
 	k8sapp.NewExternalSecret(scope, &k8sapp.ExternalSecretProps{
 		Name:       "regcred",
 		SecretType: "kubernetes.io/dockerconfigjson",

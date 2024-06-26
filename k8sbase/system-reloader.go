@@ -2,7 +2,7 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 )
 
 type ReloaderProps struct {
@@ -11,7 +11,7 @@ type ReloaderProps struct {
 
 // https://github.com/stakater/Reloader/blob/master/deployments/kubernetes/chart/reloader
 
-func (props *ReloaderProps) Render(scope kubegogen.Scope) {
+func (props *ReloaderProps) Render(scope kgen.Scope) {
 	// TODO: remove helm dependency
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

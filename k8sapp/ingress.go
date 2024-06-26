@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	traefikv1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	traefiktypes "github.com/traefik/traefik/v3/pkg/types"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -42,7 +42,7 @@ type CertIssuerRefProps struct {
 	Kind string
 }
 
-func NewIngress(scope kubegogen.Scope, props *IngressProps) kubegogen.Scope {
+func NewIngress(scope kgen.Scope, props *IngressProps) kgen.Scope {
 	if props.IngressType == "" {
 		props.IngressType = "kubernetes"
 	}

@@ -2,7 +2,7 @@ package k8sapp
 
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,7 +19,7 @@ type PersistentVolume struct {
 	NodeAffinity           *corev1.VolumeNodeAffinity
 }
 
-func NewPersistentVolume(scope kubegogen.Scope, props *PersistentVolume) kubegogen.ApiObject {
+func NewPersistentVolume(scope kgen.Scope, props *PersistentVolume) kgen.ApiObject {
 	return scope.AddApiObject(infrahelpers.Ptr(NewPersistentVolumeProps(props)))
 }
 

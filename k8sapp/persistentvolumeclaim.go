@@ -2,7 +2,7 @@ package k8sapp
 
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +17,7 @@ type PersistentVolumeClaim struct {
 	AccessModes     []corev1.PersistentVolumeAccessMode
 }
 
-func NewPersistentVolumeClaim(scope kubegogen.Scope, props *PersistentVolumeClaim) kubegogen.ApiObject {
+func NewPersistentVolumeClaim(scope kgen.Scope, props *PersistentVolumeClaim) kgen.ApiObject {
 	return scope.AddApiObject(infrahelpers.Ptr(NewPersistentVolumeClaimProps(props)))
 }
 

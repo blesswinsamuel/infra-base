@@ -3,7 +3,7 @@ package k8sbase
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	certmanageracmev1 "github.com/cert-manager/cert-manager/pkg/apis/acme/v1"
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmanagermetav1 "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
@@ -15,7 +15,7 @@ type CertIssuer struct {
 	Solver string `json:"solver"` // dns or http
 }
 
-func letsEncryptIssuer(scope kubegogen.Scope, props CertIssuer, name string, server string) {
+func letsEncryptIssuer(scope kgen.Scope, props CertIssuer, name string, server string) {
 	issuer := &certmanagerv1.ClusterIssuer{
 		ObjectMeta: v1.ObjectMeta{Name: name},
 		Spec: certmanagerv1.IssuerSpec{IssuerConfig: certmanagerv1.IssuerConfig{
@@ -58,7 +58,7 @@ func letsEncryptIssuer(scope kubegogen.Scope, props CertIssuer, name string, ser
 	scope.AddApiObject(issuer)
 }
 
-func (props *CertIssuer) Render(scope kubegogen.Scope) {
+func (props *CertIssuer) Render(scope kgen.Scope) {
 	// NewNamespace(chart, ("namespace"), &NamespaceProps{Name: "cert-manager"})
 	letsEncryptIssuer(scope, *props, "letsencrypt-prod", "https://acme-v02.api.letsencrypt.org/directory")
 	letsEncryptIssuer(scope, *props, "letsencrypt-staging", "https://acme-staging-v02.api.letsencrypt.org/directory")

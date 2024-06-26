@@ -2,7 +2,7 @@ package k8sbase
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -13,7 +13,7 @@ type Redis struct {
 
 // https://github.com/bitnami/charts/tree/main/bitnami/redis
 
-func (props *Redis) Render(scope kubegogen.Scope) {
+func (props *Redis) Render(scope kgen.Scope) {
 	// TODO: remove helm dependency
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,

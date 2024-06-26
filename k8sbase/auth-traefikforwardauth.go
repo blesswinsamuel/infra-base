@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
-	"github.com/blesswinsamuel/infra-base/kubegogen"
+	"github.com/blesswinsamuel/kgen"
 	traefikv1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,7 +27,7 @@ type TraefikForwardAuth struct {
 // https://github.com/k8s-at-home/charts/tree/master/charts/stable/traefik-forward-auth
 // https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common
 // https://github.com/thomseddon/traefik-forward-auth
-func (props *TraefikForwardAuth) Render(scope kubegogen.Scope) {
+func (props *TraefikForwardAuth) Render(scope kgen.Scope) {
 	if props.Provider == "" {
 		props.Provider = "google"
 	}
