@@ -3,7 +3,7 @@ module github.com/blesswinsamuel/infra-base
 go 1.22.3
 
 require (
-	github.com/blesswinsamuel/kgen v0.0.0-20240626012000-971e9e5a4495
+	github.com/blesswinsamuel/kgen v0.0.1
 	github.com/cert-manager/cert-manager v1.14.5
 	github.com/external-secrets/external-secrets v0.9.17
 	github.com/goccy/go-yaml v1.11.3

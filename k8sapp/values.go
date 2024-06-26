@@ -22,7 +22,7 @@ func LoadValues(valuesFiles []string, templateMap map[string]any) Values {
 	var values Values
 	values.Global = defaultValuesGlobal
 
-	valuesMerged := map[string]interface{}{}
+	valuesMerged := yaml.MapSlice{}
 	for _, valuesFile := range valuesFiles {
 		log.Info().Msgf("Loading values from %s", valuesFile)
 		valuesFileBytes, err := os.ReadFile(valuesFile)
@@ -40,8 +40,8 @@ func LoadValues(valuesFiles []string, templateMap map[string]any) Values {
 			}
 			valuesFileBytes = w.Bytes()
 		}
-		fileValues := map[string]interface{}{}
-		if err := yaml.UnmarshalWithOptions(valuesFileBytes, &fileValues, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
+		fileValues := yaml.MapSlice{}
+		if err := yaml.UnmarshalWithOptions(valuesFileBytes, &fileValues, yaml.Strict(), yaml.UseJSONUnmarshaler(), yaml.UseOrderedMap()); err != nil {
 			printErrIfPretty(err)
 			log.Panic().Err(err).Msg("Unmarshal")
 		}

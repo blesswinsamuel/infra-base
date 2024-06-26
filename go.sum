@@ -30,6 +30,8 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/blesswinsamuel/kgen v0.0.0-20240626012000-971e9e5a4495 h1:BFygyDD0c6cX6Bxui+pIY6Ape1dNGAqLwEmzo2YTQAs=
 github.com/blesswinsamuel/kgen v0.0.0-20240626012000-971e9e5a4495/go.mod h1:unpjSkO7ZARH87EuN/hCVWFz1tZ5d4TYmtzXPnxRgio=
+github.com/blesswinsamuel/kgen v0.0.1 h1:YDhjtIvQWM3tL3isj2/IRm9Kl6kVC2xrjgS2syVggY8=
+github.com/blesswinsamuel/kgen v0.0.1/go.mod h1:3FgV7hDcMtXisut7em3HSbcCO5LwJWeX6JDrrOAq1tM=
 github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n9yuLkIJQ=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/cenkalti/backoff/v4 v4.2.1 h1:y4OZtCnogmCPw98Zjyt5a6+QwPLGkiQsYW5oUqylYbM=

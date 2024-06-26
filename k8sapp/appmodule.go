@@ -14,21 +14,34 @@ import (
 	_ "embed"
 )
 
-func mergeMaps(a, b map[string]interface{}) map[string]interface{} {
-	out := make(map[string]interface{}, len(a))
-	for k, v := range a {
-		out[k] = v
+func mergeMaps(dst, src yaml.MapSlice) yaml.MapSlice {
+	out := make(yaml.MapSlice, len(dst))
+	outMap := make(map[string]any, len(dst))
+	outMapIdx := make(map[string]int, len(dst))
+	for i, mi := range dst {
+		out[i] = mi
+		outMap[mi.Key.(string)] = mi.Value
+		outMapIdx[mi.Key.(string)] = i
 	}
-	for k, v := range b {
-		if v, ok := v.(map[string]interface{}); ok {
-			if bv, ok := out[k]; ok {
-				if bv, ok := bv.(map[string]interface{}); ok {
-					out[k] = mergeMaps(bv, v)
+	for _, srcMi := range src {
+		srcK := srcMi.Key.(string)
+		srcV := srcMi.Value
+		if dstV, ok := outMap[srcK]; ok {
+			if dstV, ok := dstV.(yaml.MapSlice); ok {
+				if srcV, ok := srcV.(yaml.MapSlice); ok {
+					mapsMerged := mergeMaps(dstV, srcV)
+					out[outMapIdx[srcK]].Value = mapsMerged
+					outMap[srcK] = mapsMerged
 					continue
 				}
 			}
+			out[outMapIdx[srcK]].Value = srcV
+			outMap[srcK] = srcV
+			continue
 		}
-		out[k] = v
+		out = append(out, srcMi)
+		outMap[srcK] = srcV
+		outMapIdx[srcK] = len(out) - 1
 	}
 	return out
 }
