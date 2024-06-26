@@ -13,6 +13,7 @@ type PersistentVolumeClaim struct {
 	StorageClass    string
 	RequestsStorage string
 	VolumeName      string
+	Selector        *v1.LabelSelector
 	AccessModes     []corev1.PersistentVolumeAccessMode
 }
 
@@ -22,7 +23,7 @@ func NewPersistentVolumeClaim(scope kubegogen.Scope, props *PersistentVolumeClai
 
 func NewPersistentVolumeClaimProps(props *PersistentVolumeClaim) corev1.PersistentVolumeClaim {
 	var storageClassName *string
-	if props.StorageClass == "-" || props.StorageClass == "__none__" {
+	if props.VolumeName != "" || props.StorageClass == "-" || props.StorageClass == "__none__" {
 		storageClassName = infrahelpers.Ptr("")
 	} else if props.StorageClass == "" {
 		storageClassName = nil
@@ -45,6 +46,7 @@ func NewPersistentVolumeClaimProps(props *PersistentVolumeClaim) corev1.Persiste
 			AccessModes:      props.AccessModes,
 			Resources:        resources,
 			VolumeName:       props.VolumeName,
+			Selector:         props.Selector,
 			StorageClassName: storageClassName,
 		},
 	}

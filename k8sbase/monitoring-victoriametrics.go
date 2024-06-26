@@ -29,10 +29,10 @@ func (props *VictoriaMetrics) Render(scope kubegogen.Scope) {
 	if props.PersistentVolumeName != "" {
 		k8sapp.NewPersistentVolumeClaim(scope, &k8sapp.PersistentVolumeClaim{
 			Name:            "victoriametrics",
-			StorageClass:    "-",
-			RequestsStorage: "1Gi",
 			VolumeName:      props.PersistentVolumeName,
+			RequestsStorage: "1Gi",
 		})
+		// TODO: https://stackoverflow.com/questions/48270971/how-do-i-statically-provision-a-volume-for-a-statefulset
 		vols = []corev1.Volume{{Name: "server-volume", VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "victoriametrics"}}}}
 		volMnts = []corev1.VolumeMount{{Name: "server-volume", MountPath: "/storage"}}
 	} else {
