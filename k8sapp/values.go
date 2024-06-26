@@ -59,7 +59,7 @@ func LoadValues(valuesFiles []string, templateMap map[string]any) Values {
 			SecretsProvider: "doppler",
 			SecretStoreName: "secretstore",
 			SecretStoreKind: "ClusterSecretStore",
-			RefreshInterval: "10m",
+			RefreshInterval: "1m",
 		},
 		Cert: ValuesGlobalCert{
 			CertIssuerName: "letsencrypt-prod",
