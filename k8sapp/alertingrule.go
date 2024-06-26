@@ -18,7 +18,7 @@ type AlertingRules struct {
 }
 
 func NewAlertingRules(scope kgen.Scope, props map[string]AlertingRules) kgen.Scope {
-	for _, alertingRuleID := range infrahelpers.MapKeys(props) {
+	for _, alertingRuleID := range infrahelpers.MapKeysSorted(props) {
 		dashboardProps := props[alertingRuleID]
 		NewAlertingRule(scope, alertingRuleID, dashboardProps)
 	}

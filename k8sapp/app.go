@@ -1,32 +1,94 @@
 package k8sapp
 
 import (
+	"fmt"
 	"os"
 	"time"
 
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/kgen"
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.TimeOnly})
 }
 
-func NewApp(props kgen.AppProps) kgen.App {
-	app := kgen.NewApp(props)
+func modifyObj[T any](apiObject kgen.ApiObject, f func(*T)) error {
+	var res T
+	statefulsetUnstructured := apiObject.GetObject().(*unstructured.Unstructured)
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(statefulsetUnstructured.UnstructuredContent(), &res)
+	if err != nil {
+		return fmt.Errorf("FromUnstructured: %w", err)
+	}
+	f(&res)
+	unstructuredObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&res)
+	if err != nil {
+		return fmt.Errorf("ToUnstructured: %w", err)
+	}
+	apiObject.SetObject(&unstructured.Unstructured{Object: unstructuredObj})
+	return nil
+}
+
+func patchObject(apiObject kgen.ApiObject) error {
+	dnsConfig := &corev1.PodDNSConfig{
+		Options: []corev1.PodDNSConfigOption{
+			{Name: "ndots", Value: infrahelpers.Ptr("1")},
+		},
+	}
+	switch apiObject.GetKind() {
+	case "Deployment":
+		if err := modifyObj(apiObject, func(deployment *appsv1.Deployment) {
+			deployment.Spec.Template.Spec.DNSConfig = dnsConfig
+		}); err != nil {
+			return err
+		}
+	case "StatefulSet":
+		if err := modifyObj(apiObject, func(statefulset *appsv1.StatefulSet) {
+			statefulset.Spec.Template.Spec.DNSConfig = dnsConfig
+		}); err != nil {
+			return err
+		}
+	case "DaemonSet":
+		if err := modifyObj(apiObject, func(statefulset *appsv1.DaemonSet) {
+			statefulset.Spec.Template.Spec.DNSConfig = dnsConfig
+		}); err != nil {
+			return err
+		}
+	case "CronJob":
+		if err := modifyObj(apiObject, func(cronjob *batchv1.CronJob) {
+			cronjob.Spec.JobTemplate.Spec.Template.Spec.DNSConfig = dnsConfig
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type AppProps struct {
+	kgen.BuilderOptions
+}
+
+func NewApp(props AppProps) kgen.Builder {
+	builder := kgen.NewBuilder(props.BuilderOptions)
 
 	var cacheDir = os.Getenv("CACHE_DIR")
 	if cacheDir == "" {
 		cacheDir = "./cache"
 	}
 
-	SetConfig(app, Config{
+	SetConfig(builder, Config{
 		CacheDir: cacheDir,
 	})
-	return app
+	return builder
 }
 
 func Render(scope kgen.Scope, values Values) {
@@ -93,12 +155,16 @@ func Render(scope kgen.Scope, values Values) {
 	log.Info().Msgf("Render done in %s.", time.Since(startTime))
 }
 
-func Synth(app kgen.App) {
+func Synth(app kgen.Builder, patchNdots bool, opts kgen.WriteOpts) {
 	startTime := time.Now()
 	log.Info().Msg("Starting synth (writing YAMLs to disk)...")
 	NewKappConfig(app)
 
-	app.WriteYAMLsToDisk()
+	if patchNdots {
+		opts.PatchObject = patchObject
+	}
+
+	app.WriteYAMLsToDisk(opts)
 
 	log.Info().Msgf("Synth done in %s.", time.Since(startTime))
 }

@@ -95,11 +95,11 @@ func NewIngress(scope kgen.Scope, props *IngressProps) kgen.Scope {
 		if len(tlsHosts) > 0 {
 			NewCertificate(scope, &CertificateProps{
 				Name:       props.Name,
-				Hosts:      infrahelpers.MapKeys(tlsHosts),
+				Hosts:      infrahelpers.MapKeysSorted(tlsHosts),
 				CertIssuer: props.CertIssuer,
 			})
 		}
-		for _, host := range infrahelpers.MapKeys(tlsHosts) {
+		for _, host := range infrahelpers.MapKeysSorted(tlsHosts) {
 			tlsDomains = append(tlsDomains, traefiktypes.Domain{
 				Main: host,
 			})
@@ -176,7 +176,7 @@ func NewIngress(scope kgen.Scope, props *IngressProps) kgen.Scope {
 				Rules: ingressRules,
 				TLS: infrahelpers.If(len(tlsHosts) == 0, nil, []networkingv1.IngressTLS{
 					{
-						Hosts:      infrahelpers.MapKeys(tlsHosts),
+						Hosts:      infrahelpers.MapKeysSorted(tlsHosts),
 						SecretName: fmt.Sprintf("%s-tls", props.Name),
 					},
 				}),

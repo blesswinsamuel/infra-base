@@ -71,7 +71,7 @@ func NewExternalSecret(scope kgen.Scope, props *ExternalSecretProps) kgen.ApiObj
 	externalsecret := externalsecretsv1beta1.ExternalSecret{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name}, // , Namespace: infrahelpers.StrPtrIfNonEmpty(props.Namespace)
 		Spec: externalsecretsv1beta1.ExternalSecretSpec{
-			RefreshInterval: infrahelpers.ToDuration(infrahelpers.UseOrDefault(props.RefreshInterval, globals.ExternalSecret.RefreshInterval)),
+			RefreshInterval: infrahelpers.ToK8sDuration(infrahelpers.UseOrDefault(props.RefreshInterval, globals.ExternalSecret.RefreshInterval)),
 			SecretStoreRef: externalsecretsv1beta1.SecretStoreRef{
 				Name: infrahelpers.UseOrDefault(props.SecretStore.Name, globals.ExternalSecret.SecretStoreName),
 				Kind: infrahelpers.UseOrDefault(props.SecretStore.Kind, globals.ExternalSecret.SecretStoreKind),

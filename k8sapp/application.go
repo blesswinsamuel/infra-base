@@ -211,7 +211,7 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 			},
 		})
 		addVolumeMount(configmap.MountToContainers, configmap.MountName, configmap.MountPath, configmap.SubPath, configmap.ReadOnly)
-		for _, key := range infrahelpers.MapKeys(configmap.Data) {
+		for _, key := range infrahelpers.MapKeysSorted(configmap.Data) {
 			configmapHash.Write([]byte(configmap.Data[key]))
 			addConfigMapHash = true
 		}

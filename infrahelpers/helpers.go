@@ -63,7 +63,7 @@ func UseOrDefault[V comparable](val V, def V) V {
 	return val
 }
 
-func MapKeys[K constraints.Ordered, V any](m map[K]V) []K {
+func MapKeysSorted[K constraints.Ordered, V any](m map[K]V) []K {
 	keys := make([]K, 0)
 	for k := range m {
 		keys = append(keys, k)

@@ -3,6 +3,7 @@ module github.com/blesswinsamuel/infra-base
 go 1.22.3
 
 require (
+	github.com/blesswinsamuel/kgen v0.0.0-20240626012000-971e9e5a4495
 	github.com/cert-manager/cert-manager v1.14.5
 	github.com/external-secrets/external-secrets v0.9.17
 	github.com/goccy/go-yaml v1.11.3
@@ -15,13 +16,11 @@ require (
 	k8s.io/api v0.30.2
 	k8s.io/apiextensions-apiserver v0.30.0
 	k8s.io/apimachinery v0.30.2
-	k8s.io/client-go v0.30.0
 )
 
 require (
 	github.com/aws/aws-sdk-go v1.51.30 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/blesswinsamuel/kgen v0.0.0-20240626012000-971e9e5a4495 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -78,6 +77,7 @@ require (
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	k8s.io/client-go v0.30.0 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240423202451-8948a665c108 // indirect
 	k8s.io/utils v0.0.0-20240423183400-0849a56e8f22 // indirect

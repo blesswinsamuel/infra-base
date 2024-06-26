@@ -29,7 +29,7 @@ func hash(s string) string {
 }
 
 func NewGrafanaDashboards(scope kgen.Scope, props map[string]GrafanaDashboard) kgen.Scope {
-	for _, dashboardID := range infrahelpers.MapKeys(props) {
+	for _, dashboardID := range infrahelpers.MapKeysSorted(props) {
 		NewGrafanaDashboard(scope, dashboardID, props[dashboardID])
 	}
 	return scope

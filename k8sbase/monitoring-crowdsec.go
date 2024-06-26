@@ -61,7 +61,7 @@ func (props *Crowdsec) Render(scope kgen.Scope) {
 
 	extraAcquisitionsCm := map[string]string{}
 	extraAcquisitionsVolMounts := []corev1.VolumeMount{}
-	for _, k := range infrahelpers.MapKeys(props.ExtraAcquisitions) {
+	for _, k := range infrahelpers.MapKeysSorted(props.ExtraAcquisitions) {
 		v := props.ExtraAcquisitions[k]
 		if v["filenames"] != nil {
 			// to fix the error "file is a symlink, but inotify polling is enabled. Crowdsec will not be able to detect rotation. Consider setting poll_without_inotify to true in your configuration"

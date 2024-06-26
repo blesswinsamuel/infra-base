@@ -140,7 +140,7 @@ func (props *VectorProps) Render(scope kgen.Scope) {
 	if props.SyslogServer.Enabled {
 		// Sources
 		hostnameMappingStr := ""
-		for _, k := range infrahelpers.MapKeys(props.SyslogServer.HostnameMappings) {
+		for _, k := range infrahelpers.MapKeysSorted(props.SyslogServer.HostnameMappings) {
 			v := props.SyslogServer.HostnameMappings[k]
 			hostnameMappingStr += `    .hostname = replace(.hostname, "` + k + `", "` + v + `") ?? .hostname` + "\n"
 		}
