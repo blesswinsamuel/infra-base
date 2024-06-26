@@ -18,7 +18,6 @@ func (props *Redis) Render(scope kgen.Scope) {
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "redis",
-		Namespace:   scope.Namespace(),
 		Values: map[string]interface{}{
 			"architecture": "standalone",
 			"auth": map[string]interface{}{

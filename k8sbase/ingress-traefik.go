@@ -203,7 +203,6 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: "traefik",
-		Namespace:   scope.Namespace(),
 		Values:      values,
 	})
 

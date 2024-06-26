@@ -22,19 +22,15 @@ func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.TimeOnly})
 }
 
-func modifyObj[T any](apiObject kgen.ApiObject, f func(*T)) error {
+func modifyObj[T runtime.Object](apiObject kgen.ApiObject, f func(T)) error {
 	var res T
 	statefulsetUnstructured := apiObject.GetObject().(*unstructured.Unstructured)
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(statefulsetUnstructured.UnstructuredContent(), &res)
 	if err != nil {
 		return fmt.Errorf("FromUnstructured: %w", err)
 	}
-	f(&res)
-	unstructuredObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&res)
-	if err != nil {
-		return fmt.Errorf("ToUnstructured: %w", err)
-	}
-	apiObject.SetObject(&unstructured.Unstructured{Object: unstructuredObj})
+	f(res)
+	apiObject.ReplaceObject(res)
 	return nil
 }
 
@@ -86,7 +82,8 @@ func NewApp(props AppProps) kgen.Builder {
 	}
 
 	SetConfig(builder, Config{
-		CacheDir: cacheDir,
+		CacheDir:        cacheDir,
+		HelmKubeVersion: "v1.30.2",
 	})
 	return builder
 }
@@ -114,8 +111,7 @@ func Render(scope kgen.Scope, values Values) {
 	for _, key := range values.Services.keyOrder {
 		namespace, services := key, values.Services.Map[key]
 		t := logModuleTiming(namespace, 0)
-		namespaceScope := scope.CreateScope(namespace, kgen.ScopeProps{})
-		namespaceScope.SetContext("namespace", namespace)
+		namespaceScope := scope.CreateScope(namespace, kgen.ScopeProps{Namespace: namespace})
 		if namespace != "default" {
 			NewNamespace(namespaceScope, namespace)
 		}

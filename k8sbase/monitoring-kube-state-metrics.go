@@ -14,7 +14,6 @@ func (props *KubeStateMetricsProps) Render(scope kgen.Scope) {
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "kube-state-metrics",
-		Namespace:   scope.Namespace(),
 		Values: map[string]interface{}{
 			"fullnameOverride": "kube-state-metrics",
 			"service": map[string]interface{}{

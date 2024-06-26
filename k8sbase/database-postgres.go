@@ -41,7 +41,6 @@ func (props *Postgres) Render(scope kgen.Scope) {
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "postgres",
-		Namespace:   scope.Namespace(),
 		Values: map[string]interface{}{
 			"postgresqlSharedPreloadLibraries": infrahelpers.If(props.SharedPreloadLibraries != nil, strings.Join(props.SharedPreloadLibraries, ","), ""),
 			"nameOverride":                     "postgres",

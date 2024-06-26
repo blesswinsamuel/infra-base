@@ -3,7 +3,8 @@ package k8sapp
 import "github.com/blesswinsamuel/kgen"
 
 type Config struct {
-	CacheDir string
+	CacheDir        string
+	HelmKubeVersion string
 }
 
 func GetConfig(scope kgen.Scope) Config {

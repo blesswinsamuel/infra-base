@@ -14,7 +14,6 @@ func (props *ExternalSecretsProps) Render(scope kgen.Scope) {
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "external-secrets",
-		Namespace:   scope.Namespace(),
 		Values: map[string]interface{}{
 			"installCRDs": "true",
 			"metrics": map[string]interface{}{
