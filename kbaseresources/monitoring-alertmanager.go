@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	_ "embed"
@@ -56,12 +56,12 @@ func (props *AlertmanagerProps) Render(scope kgen.Scope) {
 			Args: []string{
 				"--storage.path=/alertmanager",
 				"--config.file=/etc/alertmanager/alertmanager.yml",
-				"--web.external-url=https://" + props.Ingress.SubDomain + "." + GetDomain(scope),
+				"--web.external-url=https://" + props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope),
 				// "--log.level=debug",
 			},
 			ExtraEnvs: []corev1.EnvVar{{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{APIVersion: "v1", FieldPath: "status.podIP"}}}},
 			Ports: []k8sapp.ContainerPort{
-				{Name: "http", Port: 9093, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}},
+				{Name: "http", Port: 9093, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}},
 			},
 			LivenessProbe:  &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/"}}},
 			ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/"}}},

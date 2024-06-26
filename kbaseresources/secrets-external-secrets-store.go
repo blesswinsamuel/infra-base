@@ -1,7 +1,8 @@
-package k8sbase
+package kbaseresources
 
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/kgen"
 	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	externalsecretsmetav1 "github.com/external-secrets/external-secrets/apis/meta/v1"
@@ -24,7 +25,7 @@ type ExternalSecretsStore struct {
 
 func (props *ExternalSecretsStore) Render(scope kgen.Scope) {
 	var secretStoreSpec externalsecretsv1beta1.SecretStoreSpec
-	switch GetGlobals(scope).ExternalSecret.SecretsProvider {
+	switch k8sapp.GetGlobals(scope).ExternalSecret.SecretsProvider {
 	case "doppler":
 		secretStoreSpec = externalsecretsv1beta1.SecretStoreSpec{
 			Controller:      "",
@@ -64,15 +65,15 @@ func (props *ExternalSecretsStore) Render(scope kgen.Scope) {
 			},
 		}
 	}
-	switch GetGlobals(scope).ExternalSecret.SecretStoreKind {
+	switch k8sapp.GetGlobals(scope).ExternalSecret.SecretStoreKind {
 	case "ClusterSecretStore":
 		scope.AddApiObject(&externalsecretsv1beta1.ClusterSecretStore{
-			ObjectMeta: metav1.ObjectMeta{Name: GetGlobals(scope).ExternalSecret.SecretStoreName},
+			ObjectMeta: metav1.ObjectMeta{Name: k8sapp.GetGlobals(scope).ExternalSecret.SecretStoreName},
 			Spec:       secretStoreSpec,
 		})
 	case "SecretStore":
 		scope.AddApiObject(&externalsecretsv1beta1.SecretStore{
-			ObjectMeta: metav1.ObjectMeta{Name: GetGlobals(scope).ExternalSecret.SecretStoreName},
+			ObjectMeta: metav1.ObjectMeta{Name: k8sapp.GetGlobals(scope).ExternalSecret.SecretStoreName},
 			Spec:       secretStoreSpec,
 		})
 	}

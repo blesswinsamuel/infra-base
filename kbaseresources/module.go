@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	_ "embed"

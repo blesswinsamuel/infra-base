@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"

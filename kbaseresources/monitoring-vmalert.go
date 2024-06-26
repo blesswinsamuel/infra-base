@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
@@ -41,14 +41,14 @@ func (props *VmalertProps) Render(scope kgen.Scope) {
 					// # external.alert.source: {{ `explore?orgId=1&left=["now-1h","now","VictoriaMetrics",{"expr":"{{$expr|quotesEscape|pathEscape}}"}]` }}
 					// https://github.com/VictoriaMetrics/VictoriaMetrics/blob/8edb390e215cbffe9bb267eea8337dbf1df1c76f/deployment/docker/docker-compose.yml#L75
 					`-external.alert.source=explore?orgId=1&left={"datasource":"VictoriaMetrics","queries":[{"expr":"{{$expr|quotesEscape|crlfEscape|queryEscape}}","refId":"A"}],"range":{"from":"now-1h","to":"now"}}`,
-					`-external.url=https://grafana.` + GetDomain(scope),
+					`-external.url=https://grafana.` + k8sapp.GetDomain(scope),
 					`-loggerFormat=json`,
 					`-rule="/config/*.yaml"`,
 					// # - "-external.label=env=${ENV_NAME}"
 					// # - "-evaluationInterval=30s"
 					// # - "-rule=/config/alert_rules.yml"
 				},
-				Ports: []k8sapp.ContainerPort{{Name: "http", Port: 8880, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}}},
+				Ports: []k8sapp.ContainerPort{{Name: "http", Port: 8880, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}}},
 				LivenessProbe: &corev1.Probe{
 					InitialDelaySeconds: int32(5),
 					PeriodSeconds:       int32(15),

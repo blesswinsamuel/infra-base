@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	"sort"
@@ -294,7 +294,7 @@ fi;
 
 						// This template receives list of models.Alert objects. The message would be composed from this
 						"format": infrahelpers.YAMLRawMessage(`|
-  🗄️ ` + GetGlobals(scope).ClusterName + `
+  🗄️ ` + k8sapp.GetGlobals(scope).ClusterName + `
   {{- range . }}
   {{- $alert := . }}
   🕵️ {{$alert.Source.AsName}}

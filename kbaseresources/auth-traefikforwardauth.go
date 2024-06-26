@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	"fmt"
@@ -36,8 +36,8 @@ func (props *TraefikForwardAuth) Render(scope kgen.Scope) {
 		"TZ":            "UTC",
 		"LOG_FORMAT":    "json",
 		"LOG_LEVEL":     "info",
-		"AUTH_HOST":     props.Ingress.SubDomain + "." + GetDomain(scope),
-		"COOKIE_DOMAIN": GetDomain(scope),
+		"AUTH_HOST":     props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope),
+		"COOKIE_DOMAIN": k8sapp.GetDomain(scope),
 		// "PROVIDERS_GOOGLE_PROMPT": "select_account",
 	}
 	externalSecretRemoteRefs := map[string]string{
@@ -67,7 +67,7 @@ func (props *TraefikForwardAuth) Render(scope kgen.Scope) {
 			{
 				Name:             "traefik-forward-auth",
 				Image:            props.ImageInfo,
-				Ports:            []k8sapp.ContainerPort{{Name: "http", Port: 4181, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}}},
+				Ports:            []k8sapp.ContainerPort{{Name: "http", Port: 4181, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}}},
 				Args:             props.Args,
 				Env:              env,
 				EnvFromSecretRef: []string{"traefik-forward-auth"},

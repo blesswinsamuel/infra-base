@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
@@ -210,7 +210,7 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 		k8sapp.NewIngress(scope, &k8sapp.IngressProps{
 			Name: "traefik-dashboard",
 			Hosts: []k8sapp.IngressHost{
-				{Host: props.DashboardIngress.SubDomain + "." + GetDomain(scope), Paths: []k8sapp.IngressHostPath{{Path: "/", ServiceName: "api@internal"}}, Tls: true},
+				{Host: props.DashboardIngress.SubDomain + "." + k8sapp.GetDomain(scope), Paths: []k8sapp.IngressHostPath{{Path: "/", ServiceName: "api@internal"}}, Tls: true},
 			},
 			IngressType: "traefik",
 		})

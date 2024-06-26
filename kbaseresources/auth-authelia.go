@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	"fmt"
@@ -118,7 +118,7 @@ func (props *Authelia) Render(scope kgen.Scope) {
 			Name:  "authelia",
 			Image: props.ImageInfo,
 			Ports: []k8sapp.ContainerPort{
-				{Name: "http", Port: 9091, ServicePort: 80, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}},
+				{Name: "http", Port: 9091, ServicePort: 80, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}},
 				{Name: "metrics", Port: 9959, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{Path: "/metrics"}},
 			},
 			Args: []string{
@@ -136,10 +136,10 @@ func (props *Authelia) Render(scope kgen.Scope) {
 		ExternalSecrets:    []k8sapp.ApplicationExternalSecret{},
 		EnableServiceLinks: infrahelpers.Ptr(false),
 	}
-	redirectionURL := "https://" + infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") + GetDomain(scope)
+	redirectionURL := "https://" + infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") + k8sapp.GetDomain(scope)
 	if len(props.CookieDomains) == 0 {
 		props.CookieDomains = append(props.CookieDomains, map[string]any{
-			"domain": GetDomain(scope),
+			"domain": k8sapp.GetDomain(scope),
 		})
 	}
 	for i := range props.CookieDomains {
@@ -147,7 +147,7 @@ func (props *Authelia) Render(scope kgen.Scope) {
 			props.CookieDomains[i]["default_redirection_url"] = redirectionURL
 		}
 		if props.CookieDomains[i]["authelia_url"] == nil {
-			props.CookieDomains[i]["authelia_url"] = "https://" + props.Ingress.SubDomain + "." + GetDomain(scope)
+			props.CookieDomains[i]["authelia_url"] = "https://" + props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)
 		}
 	}
 	// https://github.com/authelia/chartrepo/blob/master/charts/authelia/templates/autheliaConfig.yaml
@@ -179,7 +179,7 @@ func (props *Authelia) Render(scope kgen.Scope) {
 		},
 		"totp": map[string]any{
 			"disable":     false,
-			"issuer":      GetDomain(scope),
+			"issuer":      k8sapp.GetDomain(scope),
 			"algorithm":   "sha1",
 			"digits":      6,
 			"period":      30,
@@ -422,7 +422,7 @@ func (props *Authelia) Render(scope kgen.Scope) {
 		ObjectMeta: metav1.ObjectMeta{Name: "forwardauth-authelia"},
 		Spec: traefikv1alpha1.MiddlewareSpec{
 			ForwardAuth: &traefikv1alpha1.ForwardAuth{
-				Address: "http://authelia." + scope.Namespace() + ".svc.cluster.local/api/verify?rd=https://" + props.Ingress.SubDomain + "." + GetDomain(scope) + "/",
+				Address: "http://authelia." + scope.Namespace() + ".svc.cluster.local/api/verify?rd=https://" + props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope) + "/",
 				AuthResponseHeaders: []string{
 					"Remote-User",
 					"Remote-Name",

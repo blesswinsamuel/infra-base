@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
@@ -41,7 +41,7 @@ func (props *Grafana) Render(scope kgen.Scope) {
 						"GF_PATHS_LOGS":         "/var/log/grafana",
 						"GF_PATHS_PLUGINS":      "/var/lib/grafana/plugins",
 						"GF_PATHS_PROVISIONING": "/etc/grafana/provisioning",
-						"GF_SERVER_DOMAIN":      props.Ingress.SubDomain + "." + GetDomain(scope),
+						"GF_SERVER_DOMAIN":      props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope),
 
 						"GF_SERVER_ENABLE_GZIP":                 "true",
 						"GF_PANELS_DISABLE_SANITIZE_HTML":       infrahelpers.Ternary(props.DisableSanitizeHTML, "true", "false"),
@@ -76,7 +76,7 @@ func (props *Grafana) Render(scope kgen.Scope) {
 				SecurityContext: &corev1.SecurityContext{
 					AllowPrivilegeEscalation: infrahelpers.Ptr(false), Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}}, SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
 				},
-				Ports: []k8sapp.ContainerPort{{Name: "http", Port: 3000, ServicePort: 80, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}}},
+				Ports: []k8sapp.ContainerPort{{Name: "http", Port: 3000, ServicePort: 80, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}}},
 				LivenessProbe: &corev1.Probe{
 					InitialDelaySeconds: int32(60),
 					ProbeHandler:        corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/api/health"}},

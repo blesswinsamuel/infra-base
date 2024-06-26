@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	_ "embed"
@@ -42,7 +42,7 @@ func (props *VmagentProps) Render(scope kgen.Scope) {
 			Name:  "vmagent",
 			Image: props.ImageInfo,
 			Ports: []k8sapp.ContainerPort{
-				{Name: "http", Port: 8429, Ingress: infrahelpers.If(props.Ingress.Enabled, &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}, nil)},
+				{Name: "http", Port: 8429, Ingress: infrahelpers.If(props.Ingress.Enabled, &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}, nil)},
 			},
 			Args: []string{
 				"-promscrape.config=/config/scrape.yml",

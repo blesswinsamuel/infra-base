@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	"fmt"
@@ -26,7 +26,7 @@ func (props *LLDAP) Render(scope kgen.Scope) {
 				`echo -n "$LLDAP_PRIVATE_KEY" | base64 -d  > "$LLDAP_KEY_FILE"  && /app/lldap run --config-file /app/lldap_config.docker_template.toml`,
 			},
 			Ports: []k8sapp.ContainerPort{
-				{Name: "web", Port: 17170, Ingress: &k8sapp.ApplicationIngress{Host: fmt.Sprintf("lldap.%s", GetDomain(scope))}},
+				{Name: "web", Port: 17170, Ingress: &k8sapp.ApplicationIngress{Host: fmt.Sprintf("lldap.%s", k8sapp.GetDomain(scope))}},
 				{Name: "ldap", Port: 3890},
 			},
 			Env: map[string]string{
@@ -39,7 +39,7 @@ func (props *LLDAP) Render(scope kgen.Scope) {
 				"LLDAP_LDAP_USER_DN":                        "admin",
 				"LLDAP_LDAP_USER_EMAIL":                     fmt.Sprintf("admin@%s", props.EmailDomain),
 				"LLDAP_KEY_FILE":                            "/data/private_key",
-				"LLDAP_HTTP_URL":                            "https://lldap." + GetDomain(scope),
+				"LLDAP_HTTP_URL":                            "https://lldap." + k8sapp.GetDomain(scope),
 			},
 			EnvFromSecretRef: []string{
 				"lldap", "lldap-postgres",

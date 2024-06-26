@@ -7,68 +7,20 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/blesswinsamuel/kgen"
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/xerrors"
 )
 
-type ValuesGlobalCert struct {
-	CertIssuerName string `json:"certIssuerName"`
-	CertIssuerKind string `json:"certIssuerKind"`
-}
-
-type ValuesGlobalIngress struct {
-	DisableTls bool `json:"disableTls"`
-}
-
-type ValuesGlobalExternalSecret struct {
-	SecretsProvider string `json:"secretsProvider"`
-
-	SecretStoreName string `json:"secretStoreName"`
-	SecretStoreKind string `json:"secretStoreKind"`
-	RefreshInterval string `json:"refreshInterval"`
-}
-
-type ValuesGlobal struct {
-	Domain      string `json:"domain"`
-	ClusterName string `json:"clusterName"`
-
-	Cert           ValuesGlobalCert           `json:"cert"`
-	Ingress        ValuesGlobalIngress        `json:"ingress"`
-	ExternalSecret ValuesGlobalExternalSecret `json:"externalSecret"`
-}
-
 type Values struct {
 	Global   ValuesGlobal                                     `json:"global"`
 	Services OrderedMap[string, OrderedMap[string, ast.Node]] `json:"services"`
 }
 
-func GetGlobals(scope kgen.Scope) ValuesGlobal {
-	return scope.GetContext("global").(ValuesGlobal)
-}
-
 func LoadValues(valuesFiles []string, templateMap map[string]any) Values {
 	var values Values
-	// default global values
-	values.Global = ValuesGlobal{
-		Domain:      "",
-		ClusterName: "",
-		ExternalSecret: ValuesGlobalExternalSecret{
-			SecretsProvider: "doppler",
-			SecretStoreName: "secretstore",
-			SecretStoreKind: "ClusterSecretStore",
-			RefreshInterval: "1m",
-		},
-		Cert: ValuesGlobalCert{
-			CertIssuerName: "letsencrypt-prod",
-			CertIssuerKind: "ClusterIssuer",
-		},
-		Ingress: ValuesGlobalIngress{
-			DisableTls: false,
-		},
-	}
+	values.Global = defaultValuesGlobal
 
 	valuesMerged := map[string]interface{}{}
 	for _, valuesFile := range valuesFiles {

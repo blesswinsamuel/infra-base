@@ -1,4 +1,4 @@
-package k8sbase
+package kbaseresources
 
 import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
@@ -45,7 +45,7 @@ func (props *VictoriaMetrics) Render(scope kgen.Scope) {
 			Name:  "victoriametrics",
 			Image: props.ImageInfo,
 			Ports: []k8sapp.ContainerPort{
-				{Name: "http", Port: 8428, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}},
+				{Name: "http", Port: 8428, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}},
 			},
 			Args: []string{
 				"--retentionPeriod=" + props.RetentionPeriod,
