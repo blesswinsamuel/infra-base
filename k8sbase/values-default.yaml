@@ -4,7 +4,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.9.17"
+    version: "0.9.19"
 
 external-secrets-store:
   tokenSecretName: doppler-token-auth-api
@@ -129,7 +129,7 @@ redis:
 authelia:
   image:
     repository: ghcr.io/authelia/authelia
-    tag: "4.38.8"
+    tag: "4.38.9"
   ingress:
     subDomain: authelia
   ldap:
@@ -455,7 +455,7 @@ reloader:
   helm:
     repo: https://stakater.github.io/stakater-charts
     chart: reloader
-    version: "1.0.95"
+    version: "1.0.115"
 kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
