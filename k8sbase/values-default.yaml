@@ -17,7 +17,7 @@ cert-manager:
   helm:
     repo: https://charts.jetstack.io
     chart: cert-manager
-    version: "v1.14.5"
+    version: "v1.15.0"
   _grafana_dashboards:
     cert-manager:
       url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/cert-manager.json
@@ -33,7 +33,7 @@ traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "28.0.0"
+    version: "28.3.0"
   dashboardIngress:
     enabled: false
     subDomain: traefik
@@ -66,7 +66,7 @@ postgres:
   helm:
     repo: https://charts.bitnami.com/bitnami
     chart: postgresql
-    version: "15.2.12"
+    version: "15.5.11"
   image:
     # not straightforward to upgrade to postgres 15
     # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
@@ -110,7 +110,7 @@ redis:
   helm:
     repo: https://charts.bitnami.com/bitnami
     chart: redis
-    version: "19.3.0"
+    version: "19.5.5"
   resources:
     limits:
       cpu: 500m
@@ -166,7 +166,7 @@ traefik-forward-auth:
 vector:
   image:
     repository: timberio/vector
-    tag: 0.38.0-distroless-libc
+    tag: 0.39.0-distroless-libc
   syslogServer:
     enabled: false
   _grafana_dashboards:
@@ -221,18 +221,18 @@ kube-state-metrics:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: kube-state-metrics
-    version: "5.19.0"
+    version: "5.20.1"
   _alerting_rules:
     kube-state-metrics:
       url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubeStateMetrics-prometheusRule.yaml
 grafana:
   image:
     repository: grafana/grafana
-    tag: 11.0.0
+    tag: 11.1.0
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.26.2
+      tag: 1.27.4
   authProxyEnabled: true
   anonymousAuthEnabled: false
   ingress:
@@ -340,7 +340,7 @@ vmalert:
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.26.2
+      tag: 1.27.4
   ingress:
     enabled: true
     subDomain: "vmalert"
@@ -377,7 +377,7 @@ node-exporter:
   helm:
     repo: https://prometheus-community.github.io/helm-charts
     chart: prometheus-node-exporter
-    version: "4.34.0"
+    version: "4.36.0"
   _grafana_dashboards:
     node-exporter:
       url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
@@ -460,7 +460,7 @@ kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
     chart: kubernetes-dashboard
-    version: "7.4.0"
+    version: "7.5.0"
   ingress:
     enabled: true
     subDomain: kubernetes-dashboard
