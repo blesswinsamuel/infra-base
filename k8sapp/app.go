@@ -7,6 +7,7 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/kgen"
+	"github.com/blesswinsamuel/kgen/kaddons"
 	"github.com/goccy/go-yaml"
 	"github.com/goccy/go-yaml/ast"
 	"github.com/rs/zerolog"
@@ -74,6 +75,7 @@ type AppProps struct {
 }
 
 func NewApp(props AppProps) kgen.Builder {
+	props.BuilderOptions.Logger = kgen.NewCustomLogger(&kgen.CustomLoggerOptions{InfofFn: log.Info().Msgf, WarnfFn: log.Warn().Msgf, PanicfFn: log.Panic().Msgf})
 	builder := kgen.NewBuilder(props.BuilderOptions)
 
 	var cacheDir = os.Getenv("CACHE_DIR")
@@ -82,6 +84,10 @@ func NewApp(props AppProps) kgen.Builder {
 	}
 
 	SetConfig(builder, Config{
+		CacheDir:        cacheDir,
+		HelmKubeVersion: "v1.30.2",
+	})
+	kaddons.SetOptions(builder, kaddons.Options{
 		CacheDir:        cacheDir,
 		HelmKubeVersion: "v1.30.2",
 	})
@@ -151,16 +157,24 @@ func Render(scope kgen.Scope, values Values) {
 	log.Info().Msgf("Render done in %s.", time.Since(startTime))
 }
 
-func Synth(app kgen.Builder, patchNdots bool, opts kgen.WriteOpts) {
+func Synth(app kgen.Builder, patchNdots bool, outDir string) {
 	startTime := time.Now()
 	log.Info().Msg("Starting synth (writing YAMLs to disk)...")
 	NewKappConfig(app)
 
-	if patchNdots {
-		opts.PatchObject = patchObject
+	patchObject := patchObject
+	if !patchNdots {
+		patchObject = nil
 	}
 
-	app.WriteYAMLsToDisk(opts)
+	app.RenderManifests(kgen.RenderManifestsOptions{
+		Outdir:                   outDir,
+		DeleteOutDir:             true,
+		PatchObject:              patchObject,
+		YamlOutputType:           kgen.YamlOutputTypeFilePerScope,
+		IncludeNumberInFilenames: true,
+		// TODO: YamlOutputType: kgen.YamlOutputTypeFolderPerScopeFilePerLeafScope,
+	})
 
 	log.Info().Msgf("Synth done in %s.", time.Since(startTime))
 }
