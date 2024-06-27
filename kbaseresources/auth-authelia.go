@@ -12,6 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 )
@@ -101,6 +102,7 @@ type Authelia struct {
 	RedirectionSubDomain         string           `json:"redirectionSubDomain"`
 	CookieDomains                []map[string]any `json:"cookieDomains"`
 	IncludeForwardAuthMiddleware bool             `json:"includeForwardAuthMiddleware"`
+	IngressUseDefaultCert        *bool            `json:"ingressUseDefaultCert"`
 }
 
 // https://github.com/authelia/chartrepo/tree/master/charts/authelia
@@ -133,8 +135,9 @@ func (props *Authelia) Render(scope kgen.Scope) {
 			ReadinessProbe: &corev1.Probe{FailureThreshold: 5, PeriodSeconds: 5, SuccessThreshold: 1, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/api/health", Port: intstr.FromString("http"), Scheme: "HTTP"}}},
 			StartupProbe:   &corev1.Probe{FailureThreshold: 6, InitialDelaySeconds: 10, PeriodSeconds: 5, SuccessThreshold: 1, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/api/health", Port: intstr.FromString("http"), Scheme: "HTTP"}}},
 		}},
-		ExternalSecrets:    []k8sapp.ApplicationExternalSecret{},
-		EnableServiceLinks: infrahelpers.Ptr(false),
+		ExternalSecrets:       []k8sapp.ApplicationExternalSecret{},
+		EnableServiceLinks:    ptr.To(false),
+		IngressUseDefaultCert: props.IngressUseDefaultCert,
 	}
 	redirectionURL := "https://" + infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") + k8sapp.GetDomain(scope)
 	if len(props.CookieDomains) == 0 {

@@ -28,7 +28,8 @@ func RegisterModules() {
 		"cert-issuer":  &k8sapp.ModuleCommons[*CertIssuer]{},
 		"cert-manager": &k8sapp.ModuleCommons[*CertManagerProps]{},
 
-		"traefik": &k8sapp.ModuleCommons[*TraefikProps]{},
+		"traefik":               &k8sapp.ModuleCommons[*TraefikProps]{},
+		"default-wildcard-cert": &k8sapp.ModuleCommons[*DefaultWildcardCertificateProps]{},
 
 		"alerting-rules":            &k8sapp.ModuleCommons[*AlertingRulesProps]{},
 		"alertmanager":              &k8sapp.ModuleCommons[*AlertmanagerProps]{},

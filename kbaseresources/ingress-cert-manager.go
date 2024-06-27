@@ -17,6 +17,9 @@ func (props *CertManagerProps) Render(scope kgen.Scope) {
 		ReleaseName: "cert-manager",
 		Values: map[string]interface{}{
 			"installCRDs": "true",
+			"extraArgs": []string{
+				"--enable-certificate-owner-ref=true",
+			},
 		},
 	})
 }

@@ -25,6 +25,7 @@ type TraefikProps struct {
 	DefaultMiddlewares         []string `json:"defaultMiddlewares"`
 	Plugins                    []string `json:"plugins"`
 	DisableHttpToHttpsRedirect bool     `json:"disableHttpToHttpsRedirect"`
+	DefaultTlsStore            string   `json:"defaultTlsStore"`
 	// HostPathMountForLogs bool     `json:"hostPathMountForLogs"`
 }
 
@@ -159,6 +160,15 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 			"general": map[string]any{"format": "json"},
 		},
 	}
+	if props.DefaultTlsStore != "" {
+		values["tlsStore"] = map[string]any{
+			"default": map[string]any{
+				"defaultCertificate": map[string]any{
+					"secretName": props.DefaultTlsStore,
+				},
+			},
+		}
+	}
 	if props.DisableHttpToHttpsRedirect {
 		delete(values["ports"].(map[string]any)["web"].(map[string]any), "redirectTo")
 		delete(values["ports"].(map[string]any), "websecure")
@@ -212,7 +222,8 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 			Hosts: []k8sapp.IngressHost{
 				{Host: props.DashboardIngress.SubDomain + "." + k8sapp.GetDomain(scope), Paths: []k8sapp.IngressHostPath{{Path: "/", ServiceName: "api@internal"}}, Tls: true},
 			},
-			IngressType: "traefik",
+			IngressType:    "traefik",
+			UseDefaultCert: true,
 		})
 	}
 

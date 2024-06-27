@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 type ImageInfo struct {
@@ -56,6 +57,7 @@ type ApplicationProps struct {
 	DNSPolicy                    corev1.DNSPolicy
 	DNSConfig                    *corev1.PodDNSConfig
 	IngressMiddlewares           []NameNamespace
+	IngressUseDefaultCert        *bool
 	// IngressAnnotations              map[string]string
 
 	DeploymentUpdateStrategy        v1.DeploymentStrategy
@@ -501,10 +503,14 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 		}
 	}
 	if len(ingressHosts) > 0 {
+		if props.IngressUseDefaultCert == nil {
+			props.IngressUseDefaultCert = ptr.To(true)
+		}
 		NewIngress(scope, &IngressProps{
 			Name:                   props.Name,
 			Hosts:                  ingressHosts,
 			TraefikMiddlewareNames: props.IngressMiddlewares,
+			UseDefaultCert:         *props.IngressUseDefaultCert,
 			// Annotations:            props.IngressAnnotations,
 		})
 	}

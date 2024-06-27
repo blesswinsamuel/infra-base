@@ -35,6 +35,7 @@ type IngressProps struct {
 	Hosts                  []IngressHost      `json:"hosts"`
 	IngressType            string             `json:"ingressType"`
 	CertIssuer             CertIssuerRefProps `json:"certIssuer"`
+	UseDefaultCert         bool               `json:"useDefaultCert"`
 }
 
 type CertIssuerRefProps struct {
@@ -92,7 +93,7 @@ func NewIngress(scope kgen.Scope, props *IngressProps) kgen.Scope {
 			})
 		}
 		tlsDomains := []traefiktypes.Domain{}
-		if len(tlsHosts) > 0 {
+		if len(tlsHosts) > 0 && !props.UseDefaultCert {
 			NewCertificate(scope, &CertificateProps{
 				Name:       props.Name,
 				Hosts:      infrahelpers.MapKeysSorted(tlsHosts),
@@ -112,7 +113,7 @@ func NewIngress(scope kgen.Scope, props *IngressProps) kgen.Scope {
 				EntryPoints: infrahelpers.If(globals.Ingress.DisableTls, []string{"web"}, []string{"websecure"}),
 				Routes:      ingressRules,
 				TLS: infrahelpers.If(len(tlsDomains) > 0, &traefikv1alpha1.TLS{
-					SecretName: fmt.Sprintf("%s-tls", props.Name),
+					SecretName: infrahelpers.If(props.UseDefaultCert, "", fmt.Sprintf("%s-tls", props.Name)),
 					Domains:    tlsDomains,
 				}, nil),
 			},
@@ -157,7 +158,7 @@ func NewIngress(scope kgen.Scope, props *IngressProps) kgen.Scope {
 			traefikMiddlwareNames = append(traefikMiddlwareNames, fmt.Sprintf("%s-%s@kubernetescrd", traefikMiddleware.Namespace, traefikMiddleware.Name))
 		}
 		annotations := map[string]string{}
-		if len(tlsHosts) > 0 {
+		if len(tlsHosts) > 0 && !props.UseDefaultCert {
 			clusterIssuerAnnotationKey := map[string]string{
 				"ClusterIssuer": "cert-manager.io/cluster-issuer",
 				"Issuer":        "cert-manager.io/issuer",
@@ -177,7 +178,7 @@ func NewIngress(scope kgen.Scope, props *IngressProps) kgen.Scope {
 				TLS: infrahelpers.If(len(tlsHosts) == 0, nil, []networkingv1.IngressTLS{
 					{
 						Hosts:      infrahelpers.MapKeysSorted(tlsHosts),
-						SecretName: fmt.Sprintf("%s-tls", props.Name),
+						SecretName: infrahelpers.If(props.UseDefaultCert, "", fmt.Sprintf("%s-tls", props.Name)),
 					},
 				}),
 			},
