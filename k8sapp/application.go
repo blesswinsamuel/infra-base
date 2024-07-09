@@ -77,6 +77,7 @@ type ApplicationPersistentVolume struct {
 	MountPath         string
 	SubPath           string
 	ReadOnly          bool
+	AccessModes       []corev1.PersistentVolumeAccessMode
 }
 
 type ApplicationConfigMap struct {
@@ -139,6 +140,7 @@ type ContainerPort struct {
 	Name             string
 	Port             int
 	ServicePort      int
+	DisableService   bool
 	Protocol         corev1.Protocol
 	Ingress          *ApplicationIngress
 	Ingresses        []ApplicationIngress
@@ -269,6 +271,7 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 			StorageClass:    pv.StorageClass,
 			VolumeName:      pv.VolumeName,
 			RequestsStorage: pv.RequestsStorage,
+			AccessModes:     pv.AccessModes,
 		})
 	}
 	statefulSetVolumeClaimTemplates := []corev1.PersistentVolumeClaim{}
@@ -281,6 +284,7 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 			StorageClass:    pv.StorageClass,
 			VolumeName:      pv.VolumeName,
 			RequestsStorage: pv.RequestsStorage,
+			AccessModes:     pv.AccessModes,
 		}))
 	}
 	containers := []corev1.Container{}
@@ -350,6 +354,9 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 		}
 
 		for _, port := range container.Ports {
+			if port.DisableService {
+				continue
+			}
 			servicePorts = append(servicePorts, corev1.ServicePort{
 				Name:       port.Name,
 				Port:       port.GetServicePort(),

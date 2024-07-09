@@ -48,7 +48,9 @@ func (props *VmalertProps) Render(scope kgen.Scope) {
 					// # - "-evaluationInterval=30s"
 					// # - "-rule=/config/alert_rules.yml"
 				},
-				Ports: []k8sapp.ContainerPort{{Name: "http", Port: 8880, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}}},
+				Ports: []k8sapp.ContainerPort{
+					{Name: "http", Port: 8880, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}},
+				},
 				LivenessProbe: &corev1.Probe{
 					InitialDelaySeconds: int32(5),
 					PeriodSeconds:       int32(15),
