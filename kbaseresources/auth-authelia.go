@@ -31,11 +31,15 @@ type AutheliaClient struct {
 	ClientSecret                 string   `json:"client_secret,omitempty"`
 	SectorIdentifier             string   `json:"sector_identifier,omitempty"`
 	UserinfoSignedResponseAlg    string   `json:"userinfo_signed_response_alg"`
+	TokenEndpointAuthMethod      string   `json:"token_endpoint_auth_method"`
 }
 
 func (c *AutheliaClient) FillDefaults() {
 	if c.ConsentMode == "" {
 		c.ConsentMode = "auto"
+	}
+	if c.PreConfiguredConsentDuration == "" {
+		c.PreConfiguredConsentDuration = "30d"
 	}
 	if c.GrantTypes == nil {
 		if slices.Contains(c.Scopes, "offline_access") {
