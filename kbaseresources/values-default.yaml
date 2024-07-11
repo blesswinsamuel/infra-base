@@ -458,10 +458,9 @@ kube-git-ops:
     namespace: ""
 
 reloader:
-  helm:
-    repo: https://stakater.github.io/stakater-charts
-    chart: reloader
-    version: "1.0.95"
+  image:
+    repository: ghcr.io/stakater/reloader
+    tag: "v1.0.95"
 kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
