@@ -29,6 +29,12 @@ cert-issuer:
 
 ### ingress ###
 
+cilium:
+  helm:
+    repo: https://helm.cilium.io
+    chart: cilium
+    version: "1.15.6"
+
 traefik:
   helm:
     repo: https://traefik.github.io/charts

@@ -1,22 +1,10 @@
 package kbaseresources
 
 import (
-	_ "embed"
-
 	"github.com/blesswinsamuel/infra-base/k8sapp"
-	"github.com/goccy/go-yaml"
-	"github.com/goccy/go-yaml/ast"
-	"github.com/rs/zerolog/log"
 )
 
-//go:embed values-default.yaml
-var defaultValuesBytes []byte
-
 func RegisterModules() {
-	var defaultValues map[string]ast.Node
-	if err := yaml.UnmarshalWithOptions(defaultValuesBytes, &defaultValues, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
-		log.Panic().Err(err).Msg("Unmarshal default values")
-	}
 	newModules := map[string]k8sapp.ModuleWithMeta{
 		"postgres": &k8sapp.ModuleCommons[*Postgres]{},
 		"redis":    &k8sapp.ModuleCommons[*Redis]{},
@@ -55,4 +43,8 @@ func RegisterModules() {
 		"docker-creds": &k8sapp.ModuleCommons[*UtilsDockerCreds]{},
 	}
 	k8sapp.RegisterModules(newModules, defaultValues)
+}
+
+func RegisterModule[T k8sapp.Module](name string, module T) {
+	k8sapp.RegisterModule(name, &k8sapp.ModuleCommons[T]{}, defaultValues[name])
 }
