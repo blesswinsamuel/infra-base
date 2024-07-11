@@ -26,7 +26,6 @@ func RegisterModules() {
 		"grafana-dashboards":        &k8sapp.ModuleCommons[*GrafanaDashboardsProps]{},
 		"grafana":                   &k8sapp.ModuleCommons[*Grafana]{},
 		"loki":                      &k8sapp.ModuleCommons[*LokiProps]{},
-		"node-exporter":             &k8sapp.ModuleCommons[*NodeExporterProps]{},
 		"vector":                    &k8sapp.ModuleCommons[*VectorProps]{},
 		"victoriametrics":           &k8sapp.ModuleCommons[*VictoriaMetrics]{},
 		"vmagent":                   &k8sapp.ModuleCommons[*VmagentProps]{},

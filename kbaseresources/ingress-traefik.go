@@ -237,6 +237,19 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 			},
 		})
 	}
+
+	// scope.AddApiObject(&networkingv1.NetworkPolicy{
+	// 	ObjectMeta: v1.ObjectMeta{
+	// 		Name: "allow-all-svclbtraefik-ingress",
+	// 	},
+	// 	Spec: networkingv1.NetworkPolicySpec{
+	// 		PodSelector: v1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "traefik"}},
+	// 		Ingress: []networkingv1.NetworkPolicyIngressRule{
+	// 			{},
+	// 		},
+	// 		PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeIngress},
+	// 	},
+	// })
 }
 
 // # # https://github.com/traefik/traefik/issues/5571#issuecomment-539393453 - affects wss in goatcounter

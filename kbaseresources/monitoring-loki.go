@@ -10,6 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 type LokiProps struct {
@@ -170,7 +171,7 @@ func (props *LokiProps) Render(scope kgen.Scope) {
 		Name:                         "loki",
 		ServiceAccountName:           "loki",
 		CreateServiceAccount:         true,
-		AutomountServiceAccountToken: true,
+		AutomountServiceAccountToken: ptr.To(true),
 		CreateHeadlessService:        true,
 		EnableServiceLinks:           infrahelpers.Ptr(true),
 		StatefulSetServiceName:       "loki-headless",

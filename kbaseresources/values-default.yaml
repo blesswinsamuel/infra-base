@@ -379,10 +379,9 @@ alertmanager:
       replacements:
         'job="alertmanager-main"': 'job="alertmanager"'
 node-exporter:
-  helm:
-    repo: https://prometheus-community.github.io/helm-charts
-    chart: prometheus-node-exporter
-    version: "4.34.0"
+  image:
+    repository: quay.io/prometheus/node-exporter
+    tag: v1.8.0
   _grafana_dashboards:
     node-exporter:
       url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json

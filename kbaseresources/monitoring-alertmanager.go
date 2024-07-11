@@ -11,6 +11,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 //go:embed alertmanager-templates.tpl
@@ -43,7 +44,7 @@ func (props *AlertmanagerProps) Render(scope kgen.Scope) {
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Kind:                         "StatefulSet",
 		Name:                         "alertmanager",
-		AutomountServiceAccountToken: true,
+		AutomountServiceAccountToken: ptr.To(true),
 		PodSecurityContext: &corev1.PodSecurityContext{
 			FSGroup: infrahelpers.Ptr(int64(65534)),
 		},

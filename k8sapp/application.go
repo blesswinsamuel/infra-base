@@ -41,7 +41,7 @@ type ApplicationProps struct {
 	Hostname                     string
 	CreateHeadlessService        bool
 	EnableServiceLinks           *bool
-	AutomountServiceAccountToken bool
+	AutomountServiceAccountToken *bool
 	AppAnnotations               map[string]string
 	PodAnnotations               map[string]string
 	PodSecurityContext           *corev1.PodSecurityContext
@@ -54,6 +54,9 @@ type ApplicationProps struct {
 	PersistentVolumes            []ApplicationPersistentVolume // TODO: change to PersistentVolumeClaims
 	ExtraVolumes                 []corev1.Volume
 	HostNetwork                  bool
+	HostPID                      bool
+	NodeSelector                 map[string]string
+	Tolerations                  []corev1.Toleration
 	DNSPolicy                    corev1.DNSPolicy
 	DNSConfig                    *corev1.PodDNSConfig
 	IngressMiddlewares           []NameNamespace
@@ -62,6 +65,7 @@ type ApplicationProps struct {
 
 	DeploymentUpdateStrategy        v1.DeploymentStrategy
 	StatefulSetUpdateStrategy       v1.StatefulSetUpdateStrategy
+	DaemonSetUpdateStrategy         v1.DaemonSetUpdateStrategy
 	StatefulSetServiceName          string
 	StatefulSetVolumeClaimTemplates []ApplicationPersistentVolume
 }
@@ -420,7 +424,7 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 		},
 		Spec: corev1.PodSpec{
 			ServiceAccountName:           props.ServiceAccountName,
-			AutomountServiceAccountToken: infrahelpers.PtrIfNonEmpty(props.AutomountServiceAccountToken),
+			AutomountServiceAccountToken: props.AutomountServiceAccountToken,
 			Hostname:                     props.Hostname,
 			EnableServiceLinks:           props.EnableServiceLinks,
 			SecurityContext:              props.PodSecurityContext,
@@ -431,6 +435,9 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 			InitContainers: initContainers,
 			Volumes:        volumes,
 			HostNetwork:    props.HostNetwork,
+			HostPID:        props.HostPID,
+			NodeSelector:   props.NodeSelector,
+			Tolerations:    props.Tolerations,
 			DNSPolicy:      props.DNSPolicy,
 			DNSConfig:      props.DNSConfig,
 		},
@@ -478,6 +485,7 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 				Annotations: appAnnotations,
 			},
 			Spec: v1.DaemonSetSpec{
+				UpdateStrategy: props.DaemonSetUpdateStrategy,
 				Selector: &metav1.LabelSelector{
 					MatchLabels: commonLabels,
 				},
