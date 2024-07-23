@@ -314,6 +314,9 @@ alerting-rules:
       url: https://etcd.io/docs/v3.4/op-guide/etcd3_alert.rules.yml
     kubestate-exporter:
       url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/kubernetes/kubestate-exporter.yml
+      alertReplacements:
+        KubernetesApiClientErrors:
+          "for: 2m": "for: 10m" # to fix noisy alerts
     etcd:
       url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/etcd/embedded-exporter.yml
     coredns:
