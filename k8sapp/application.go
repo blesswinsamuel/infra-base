@@ -61,6 +61,7 @@ type ApplicationProps struct {
 	DNSConfig                    *corev1.PodDNSConfig
 	IngressMiddlewares           []NameNamespace
 	IngressUseDefaultCert        *bool
+	Affinity                     *corev1.Affinity
 	// IngressAnnotations              map[string]string
 
 	DeploymentUpdateStrategy        v1.DeploymentStrategy
@@ -440,6 +441,7 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 			Tolerations:    props.Tolerations,
 			DNSPolicy:      props.DNSPolicy,
 			DNSConfig:      props.DNSConfig,
+			Affinity:       props.Affinity,
 		},
 	}
 	if props.Replicas == nil {
