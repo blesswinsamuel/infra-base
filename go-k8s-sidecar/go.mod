@@ -3,10 +3,10 @@ module github.com/blesswinsamuel/go-k8s-sidecar
 go 1.22.2
 
 require (
-	github.com/rs/zerolog v1.32.0
-	k8s.io/api v0.30.0
-	k8s.io/apimachinery v0.30.0
-	k8s.io/client-go v0.30.0
+	github.com/rs/zerolog v1.33.0
+	k8s.io/api v0.30.3
+	k8s.io/apimachinery v0.30.3
+	k8s.io/client-go v0.30.3
 )
 
 require (
