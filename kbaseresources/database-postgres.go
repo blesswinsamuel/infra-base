@@ -7,10 +7,13 @@ import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/kgen"
+	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 // https://github.com/bitnami/charts/tree/main/bitnami/postgresql
@@ -20,9 +23,11 @@ type PostgresGrafanaDatasourceProps struct {
 }
 
 type Postgres struct {
-	HelmChartInfo          k8sapp.ChartInfo  `json:"helm"`
-	ImagePullSecrets       []string          `json:"imagePullSecrets"`
-	ImageInfo              k8sapp.ImageInfo  `json:"image"`
+	ImagePullSecrets string           `json:"imagePullSecrets"`
+	ImageInfo        k8sapp.ImageInfo `json:"image"`
+	Metrics          struct {
+		ImageInfo k8sapp.ImageInfo `json:"image"`
+	}
 	ImagePullPolicy        corev1.PullPolicy `json:"imagePullPolicy"`
 	Database               string            `json:"database"`
 	Username               string            `json:"username"`
@@ -34,29 +39,79 @@ type Postgres struct {
 	PersistentVolumeName string                           `json:"persistentVolumeName"`
 	GrafanaDatasources   []PostgresGrafanaDatasourceProps `json:"grafana_datasources"`
 	Resources            *corev1.ResourceRequirements     `json:"resources"`
+	Tolerations          []corev1.Toleration              `json:"tolerations"`
 }
 
 func (props *Postgres) Render(scope kgen.Scope) {
-	// TODO: remove helm dependency
-	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
-		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: "postgres",
-		Values: map[string]interface{}{
-			"postgresqlSharedPreloadLibraries": infrahelpers.If(props.SharedPreloadLibraries != nil, strings.Join(props.SharedPreloadLibraries, ","), ""),
-			"nameOverride":                     "postgres",
-			"image": infrahelpers.MergeMaps(props.ImageInfo.ToMap(), map[string]any{
-				"registry":    "",
-				"pullPolicy":  infrahelpers.PtrIfNonEmpty(props.ImagePullPolicy),
-				"pullSecrets": props.ImagePullSecrets,
-			}),
-			"auth": map[string]interface{}{
-				"database":       props.Database,
-				"username":       props.Username,
-				"existingSecret": "postgres-passwords",
+	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
+		Name:                 "postgres",
+		Kind:                 "StatefulSet",
+		HeadlessServiceNames: []string{"postgres-hl"},
+		Tolerations:          props.Tolerations,
+		Containers: []k8sapp.ApplicationContainer{
+			{
+				Name:            "postgresql",
+				Image:           props.ImageInfo,
+				ImagePullPolicy: corev1.PullPolicy(props.ImagePullPolicy),
+				Ports: []k8sapp.ContainerPort{
+					{Name: "tcp-postgresql", Port: 5432},
+				},
+				Env: map[string]string{
+					"BITNAMI_DEBUG":                       "false",
+					"POSTGRESQL_PORT_NUMBER":              "5432",
+					"POSTGRESQL_VOLUME_DIR":               "/bitnami/postgresql",
+					"PGDATA":                              "/bitnami/postgresql/data",
+					"POSTGRES_USER":                       props.Username,
+					"POSTGRES_DATABASE":                   props.Database,
+					"POSTGRESQL_ENABLE_LDAP":              "no",
+					"POSTGRESQL_ENABLE_TLS":               "no",
+					"POSTGRESQL_LOG_HOSTNAME":             "false",
+					"POSTGRESQL_LOG_CONNECTIONS":          "false",
+					"POSTGRESQL_LOG_DISCONNECTIONS":       "false",
+					"POSTGRESQL_PGAUDIT_LOG_CATALOG":      "off",
+					"POSTGRESQL_CLIENT_MIN_MESSAGES":      "error",
+					"POSTGRESQL_SHARED_PRELOAD_LIBRARIES": infrahelpers.If(props.SharedPreloadLibraries != nil, strings.Join(props.SharedPreloadLibraries, ","), ""),
+				},
+				EnvFromSecretRef: []string{"postgres-passwords"},
+				LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{
+					"/bin/sh", "-c", fmt.Sprintf(`exec pg_isready -U "%s" -d "dbname=%s" -h 127.0.0.1 -p 5432`, props.Username, props.Database),
+				}}}, FailureThreshold: 6, InitialDelaySeconds: 30, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
+				ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{
+					"/bin/sh", "-c", "-e", fmt.Sprintf(`exec pg_isready -U "%s" -d "dbname=%s" -h 127.0.0.1 -p 5432`, props.Username, props.Database),
+				}}}, FailureThreshold: 6, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
+				Resources: *props.Resources,
+				SecurityContext: &corev1.SecurityContext{
+					AllowPrivilegeEscalation: ptr.To(false),
+					Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+					Privileged:               ptr.To(false),
+					ReadOnlyRootFilesystem:   ptr.To(true),
+					RunAsGroup:               ptr.To(int64(1001)),
+					RunAsNonRoot:             ptr.To(true),
+					RunAsUser:                ptr.To(int64(1001)),
+					SELinuxOptions:           &corev1.SELinuxOptions{},
+					SeccompProfile:           &corev1.SeccompProfile{Type: "RuntimeDefault"},
+				},
+				ExtraVolumeMounts: []corev1.VolumeMount{
+					{Name: "empty-dir", MountPath: "/tmp", SubPath: "tmp-dir"},
+					{Name: "empty-dir", MountPath: "/opt/bitnami/postgresql/conf", SubPath: "app-conf-dir"},
+					{Name: "empty-dir", MountPath: "/opt/bitnami/postgresql/tmp", SubPath: "app-tmp-dir"},
+					{Name: "dshm", MountPath: "/dev/shm"},
+				},
 			},
-			"metrics": map[string]interface{}{
-				"enabled": true,
-				"resources": corev1.ResourceRequirements{
+			{
+				Name:  "metrics",
+				Image: props.Metrics.ImageInfo,
+				Ports: []k8sapp.ContainerPort{{Name: "http-metrics", Port: 9187, ServiceName: "postgres-metrics", PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}}},
+				Env: map[string]string{
+					"DATA_SOURCE_URI":  fmt.Sprintf("127.0.0.1:5432/%s?sslmode=disable", props.Database),
+					"DATA_SOURCE_USER": props.Username,
+				},
+				ExtraEnvs: []corev1.EnvVar{
+					{Name: "DATA_SOURCE_PASS", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "POSTGRES_PASSWORD", LocalObjectReference: corev1.LocalObjectReference{Name: "postgres-passwords"}}}},
+				},
+				LivenessProbe:  &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/", Port: intstr.FromString("http-metrics")}}, FailureThreshold: 6, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
+				ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/", Port: intstr.FromString("http-metrics")}}, FailureThreshold: 6, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
+				Resources: corev1.ResourceRequirements{
 					Limits: corev1.ResourceList{
 						"cpu":    resource.MustParse("300m"),
 						"memory": resource.MustParse("200Mi"),
@@ -66,31 +121,90 @@ func (props *Postgres) Render(scope kgen.Scope) {
 						"memory": resource.MustParse("128Mi"),
 					},
 				},
-			},
-			"primary": map[string]interface{}{
-				"persistence": map[string]interface{}{
-					"existingClaim": infrahelpers.Ternary(props.PersistentVolumeName != "", "postgres", ""),
-					"storageClass":  infrahelpers.Ternary(props.PersistentVolumeName != "", "-", ""),
+				SecurityContext: &corev1.SecurityContext{
+					AllowPrivilegeEscalation: ptr.To(false),
+					Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+					Privileged:               ptr.To(false),
+					ReadOnlyRootFilesystem:   ptr.To(true),
+					RunAsGroup:               ptr.To(int64(1001)),
+					RunAsNonRoot:             ptr.To(true),
+					RunAsUser:                ptr.To(int64(1001)),
+					SELinuxOptions:           &corev1.SELinuxOptions{},
+					SeccompProfile:           &corev1.SeccompProfile{Type: "RuntimeDefault"},
 				},
-				"resources": props.Resources,
+				ExtraVolumeMounts: []corev1.VolumeMount{
+					{Name: "empty-dir", MountPath: "/tmp", SubPath: "tmp-dir"},
+				},
 			},
 		},
+		PodSecurityContext: &corev1.PodSecurityContext{
+			FSGroup:             ptr.To[int64](1001),
+			FSGroupChangePolicy: ptr.To(corev1.FSGroupChangeAlways),
+		},
+		ExtraVolumes: []corev1.Volume{
+			{Name: "empty-dir", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+			{Name: "dshm", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{Medium: corev1.StorageMediumMemory}}},
+		},
+		StatefulSetUpdateStrategy:    v1.StatefulSetUpdateStrategy{Type: v1.RollingUpdateStatefulSetStrategyType, RollingUpdate: &v1.RollingUpdateStatefulSetStrategy{}},
+		CreateServiceAccount:         true,
+		AutomountServiceAccountToken: ptr.To(false),
+		ServiceAccountName:           "postgres",
+		StatefulSetServiceName:       "postgres-hl",
+		Affinity: &corev1.Affinity{
+			PodAntiAffinity: &corev1.PodAntiAffinity{
+				PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
+					{
+						PodAffinityTerm: corev1.PodAffinityTerm{
+							LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "postgres"}},
+							TopologyKey:   "kubernetes.io/hostname",
+						},
+						Weight: 1,
+					},
+				},
+			},
+		},
+		PersistentVolumes: []k8sapp.ApplicationPersistentVolume{
+			{Name: "postgres", VolumeName: props.PersistentVolumeName, RequestsStorage: "8Gi", MountName: "data", MountPath: "/bitnami/postgresql"},
+		},
+		ExternalSecrets: []k8sapp.ApplicationExternalSecret{
+			{
+				Name: "postgres-passwords",
+				RemoteRefs: map[string]string{
+					"POSTGRES_POSTGRES_PASSWORD": "POSTGRES_ADMIN_PASSWORD",
+					"POSTGRES_PASSWORD":          "POSTGRES_USER_PASSWORD",
+				},
+			},
+		},
+		ImagePullSecrets: props.ImagePullSecrets,
 	})
-	if props.PersistentVolumeName != "" {
-		k8sapp.NewPersistentVolumeClaim(scope, &k8sapp.PersistentVolumeClaim{
-			Name:            "postgres",
-			StorageClass:    infrahelpers.Ternary(props.PersistentVolumeName != "", "-", ""),
-			RequestsStorage: "8Gi",
-			VolumeName:      props.PersistentVolumeName,
-		})
-	}
-
-	k8sapp.NewExternalSecret(scope, &k8sapp.ExternalSecretProps{
-		Name: "postgres-passwords",
-		RemoteRefs: map[string]string{
-			"postgres-password":    "POSTGRES_ADMIN_PASSWORD",
-			"password":             "POSTGRES_USER_PASSWORD",
-			"replication-password": "POSTGRES_REPLICATION_PASSWORD",
+	scope.AddApiObject(&networkingv1.NetworkPolicy{
+		ObjectMeta: metav1.ObjectMeta{Name: "postgres"},
+		Spec: networkingv1.NetworkPolicySpec{
+			Egress: []networkingv1.NetworkPolicyEgressRule{{}},
+			Ingress: []networkingv1.NetworkPolicyIngressRule{
+				{Ports: []networkingv1.NetworkPolicyPort{
+					{Port: ptr.To(intstr.FromInt(5432))},
+					{Port: ptr.To(intstr.FromInt(9187))},
+				}},
+			},
+			PolicyTypes: []networkingv1.PolicyType{"Ingress", "Egress"},
+			PodSelector: metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "postgres"}},
+		},
+	})
+	scope.AddApiObject(&corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        "postgres-hl",
+			Annotations: map[string]string{"service.alpha.kubernetes.io/tolerate-unready-endpoints": "true"},
+		},
+		Spec: corev1.ServiceSpec{
+			PublishNotReadyAddresses: true,
+			Ports: []corev1.ServicePort{
+				{Name: "tcp-postgresql", Port: 5432, Protocol: "TCP", TargetPort: intstr.FromString("tcp-postgresql")},
+			},
+			Selector: map[string]string{
+				"app.kubernetes.io/name": "postgres",
+			},
+			ClusterIP: corev1.ClusterIPNone,
 		},
 	})
 
