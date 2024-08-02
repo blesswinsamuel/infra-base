@@ -24,6 +24,7 @@ func NewKappConfig(scope kgen.Scope) kgen.Scope {
 			// https://github.com/carvel-dev/kapp/issues/49
 			// https://gist.github.com/cppforlife/149872f132d6afdc6f0240d70f598a16
 			clusterOwnedFields([][]string{{"data"}}, []map[string]any{
+				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "external-secrets", "name": "external-secrets-webhook"}},
 				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "secrets", "name": "external-secrets-webhook"}},
 				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "system", "name": "kubernetes-dashboard-csrf"}},
 				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "system", "name": "kubernetes-dashboard-key-holder"}},

@@ -22,6 +22,7 @@ type LokiProps struct {
 		SecretAccessKey string `json:"secret_access_key"`
 		AccessKeyID     string `json:"access_key_id"`
 	} `json:"s3"`
+	Tolerations []corev1.Toleration `json:"tolerations"`
 }
 
 // https://github.com/grafana/loki/tree/main/production/helm/loki
@@ -172,7 +173,7 @@ func (props *LokiProps) Render(scope kgen.Scope) {
 		ServiceAccountName:           "loki",
 		CreateServiceAccount:         true,
 		AutomountServiceAccountToken: ptr.To(true),
-		CreateHeadlessService:        true,
+		HeadlessServiceNames:         []string{"loki-headless"},
 		EnableServiceLinks:           infrahelpers.Ptr(true),
 		StatefulSetServiceName:       "loki-headless",
 		StatefulSetUpdateStrategy:    v1.StatefulSetUpdateStrategy{RollingUpdate: &v1.RollingUpdateStatefulSetStrategy{Partition: infrahelpers.Ptr(int32(0))}},
@@ -186,8 +187,9 @@ func (props *LokiProps) Render(scope kgen.Scope) {
 			Name:  "loki",
 			Image: props.ImageInfo,
 			Ports: []k8sapp.ContainerPort{
-				{Name: "http-metrics", Port: 3100}, // loki-headless should have only this
+				{Name: "http-metrics", Port: 3100},
 				{Name: "grpc", Port: 9095},
+				{Name: "http-metrics", Port: 3100, ServiceName: "loki-headless", DisableContainerPort: true},
 			},
 			Args: []string{
 				"-config.file=/etc/loki/config/config.yaml",
@@ -224,6 +226,7 @@ func (props *LokiProps) Render(scope kgen.Scope) {
 				ReadOnly:  true,
 			},
 		},
+		Tolerations: props.Tolerations,
 	})
 
 	scope.AddApiObject(&corev1.Service{

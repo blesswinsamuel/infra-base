@@ -35,6 +35,7 @@ type AlertmanagerProps struct {
 			ParseMode string `json:"parseMode"`
 		} `json:"telegram"`
 	} `json:"config"`
+	Tolerations []corev1.Toleration `json:"tolerations"`
 }
 
 // https://github.com/prometheus-community/helm-charts/blob/main/charts/alertmanager
@@ -49,7 +50,7 @@ func (props *AlertmanagerProps) Render(scope kgen.Scope) {
 			FSGroup: infrahelpers.Ptr(int64(65534)),
 		},
 		ServiceAccountName:     "alertmanager",
-		CreateHeadlessService:  true,
+		HeadlessServiceNames:   []string{"alertmanager-headless"},
 		StatefulSetServiceName: "alertmanager-headless",
 		Containers: []k8sapp.ApplicationContainer{{
 			Name:  "alertmanager",
@@ -63,6 +64,7 @@ func (props *AlertmanagerProps) Render(scope kgen.Scope) {
 			ExtraEnvs: []corev1.EnvVar{{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{APIVersion: "v1", FieldPath: "status.podIP"}}}},
 			Ports: []k8sapp.ContainerPort{
 				{Name: "http", Port: 9093, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}},
+				{Name: "http", Port: 9093, ServiceName: "alertmanager-headless", DisableContainerPort: true},
 			},
 			LivenessProbe:  &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/"}}},
 			ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/"}}},
@@ -155,6 +157,7 @@ func (props *AlertmanagerProps) Render(scope kgen.Scope) {
 			StorageClass:    props.Persistence.StorageClass,
 			VolumeName:      props.Persistence.VolumeName,
 		}},
+		Tolerations: props.Tolerations,
 	})
 
 	scope.AddApiObject(&corev1.ServiceAccount{

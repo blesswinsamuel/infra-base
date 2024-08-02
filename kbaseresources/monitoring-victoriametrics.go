@@ -16,9 +16,10 @@ type VictoriaMetrics struct {
 		Enabled   bool   `json:"enabled"`
 		SubDomain string `json:"subDomain"`
 	} `json:"ingress"`
-	RetentionPeriod        string `json:"retentionPeriod"`
-	PersistentVolumeName   string `json:"persistentVolumeName"`
-	NodePortServiceEnabled bool   `json:"nodePortServiceEnabled"`
+	RetentionPeriod        string              `json:"retentionPeriod"`
+	PersistentVolumeName   string              `json:"persistentVolumeName"`
+	NodePortServiceEnabled bool                `json:"nodePortServiceEnabled"`
+	Tolerations            []corev1.Toleration `json:"tolerations"`
 }
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single
@@ -62,6 +63,7 @@ func (props *VictoriaMetrics) Render(scope kgen.Scope) {
 		}},
 		ExtraVolumes:                    vols,
 		StatefulSetVolumeClaimTemplates: vcts,
+		Tolerations:                     props.Tolerations,
 	})
 
 	if props.NodePortServiceEnabled {

@@ -20,6 +20,8 @@ type VmagentProps struct {
 		Enabled   bool   `json:"enabled"`
 		SubDomain string `json:"subDomain"`
 	} `json:"ingress"`
+	PersistentVolumeName string              `json:"persistentVolumeName"`
+	Tolerations          []corev1.Toleration `json:"tolerations"`
 }
 
 //go:embed vmagent-config.yaml
@@ -46,7 +48,7 @@ func (props *VmagentProps) Render(scope kgen.Scope) {
 			},
 			Args: []string{
 				"-promscrape.config=/config/scrape.yml",
-				"-remoteWrite.tmpDataPath=/tmpData",
+				"-remoteWrite.tmpDataPath=/tmpdata",
 				"-remoteWrite.url=http://victoriametrics:8428/api/v1/write",
 				"-envflag.enable=true",
 				"-envflag.prefix=VM_",
@@ -56,16 +58,14 @@ func (props *VmagentProps) Render(scope kgen.Scope) {
 			LivenessProbe:  &corev1.Probe{InitialDelaySeconds: 5, PeriodSeconds: 15, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromString("http")}}},
 			ReadinessProbe: &corev1.Probe{InitialDelaySeconds: 5, PeriodSeconds: 15, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/health", Port: intstr.FromString("http")}}},
 			Resources:      props.Resources,
-			ExtraVolumeMounts: []corev1.VolumeMount{
-				{Name: "tmpdata", MountPath: "/tmpdata"},
-			},
 		}},
 		ConfigMaps: []k8sapp.ApplicationConfigMap{
 			{Name: "vmagent", Data: map[string]string{"scrape.yml": infrahelpers.ToYamlString(vmagentConfig)}, MountPath: "/config", MountName: "config"},
 		},
-		ExtraVolumes: []corev1.Volume{
-			{Name: "tmpdata", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+		PersistentVolumes: []k8sapp.ApplicationPersistentVolume{
+			{Name: "vmagent-tmpdata", RequestsStorage: "1Gi", MountName: "tmpdata", MountPath: "/tmpdata", VolumeName: props.PersistentVolumeName},
 		},
+		Tolerations: props.Tolerations,
 	})
 	scope.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: v1.ObjectMeta{Name: "vmagent"},

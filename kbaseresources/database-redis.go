@@ -7,30 +7,42 @@ import (
 )
 
 type Redis struct {
-	HelmChartInfo k8sapp.ChartInfo            `json:"helm"`
-	Resources     corev1.ResourceRequirements `json:"resources"`
+	HelmChartInfo        k8sapp.ChartInfo            `json:"helm"`
+	Resources            corev1.ResourceRequirements `json:"resources"`
+	PersistentVolumeName string                      `json:"persistentVolumeName"`
+	Tolerations          []corev1.Toleration         `json:"tolerations"`
 }
 
 // https://github.com/bitnami/charts/tree/main/bitnami/redis
 
 func (props *Redis) Render(scope kgen.Scope) {
 	// TODO: remove helm dependency
+	values := map[string]interface{}{
+		"architecture": "standalone",
+		"auth": map[string]interface{}{
+			"enabled": false,
+		},
+		"metrics": map[string]interface{}{
+			"enabled":   true,
+			"resources": props.Resources,
+		},
+		"master": map[string]interface{}{
+			"resources":   props.Resources,
+			"tolerations": props.Tolerations,
+		},
+	}
+	if props.PersistentVolumeName != "" {
+		k8sapp.NewPersistentVolumeClaim(scope, &k8sapp.PersistentVolumeClaim{
+			Name: "redis", RequestsStorage: "1Gi", VolumeName: props.PersistentVolumeName, AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce}},
+		)
+		values["master"].(map[string]interface{})["persistence"] = map[string]interface{}{
+			"existingClaim": "redis",
+		}
+	}
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "redis",
-		Values: map[string]interface{}{
-			"architecture": "standalone",
-			"auth": map[string]interface{}{
-				"enabled": false,
-			},
-			"metrics": map[string]interface{}{
-				"enabled":   true,
-				"resources": props.Resources,
-			},
-			"master": map[string]interface{}{
-				"resources": props.Resources,
-			},
-		},
+		Values:      values,
 	})
 	// k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 	// 	Kind: "StatefulSet",

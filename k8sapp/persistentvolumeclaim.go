@@ -24,7 +24,7 @@ func NewPersistentVolumeClaim(scope kgen.Scope, props *PersistentVolumeClaim) kg
 func NewPersistentVolumeClaimProps(props *PersistentVolumeClaim) corev1.PersistentVolumeClaim {
 	var storageClassName *string
 	if props.VolumeName != "" || props.StorageClass == "-" || props.StorageClass == "__none__" {
-		storageClassName = infrahelpers.Ptr("")
+		storageClassName = infrahelpers.Ptr("no-provisioner")
 	} else if props.StorageClass == "" {
 		storageClassName = nil
 	} else {

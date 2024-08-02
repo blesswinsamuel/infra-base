@@ -39,7 +39,7 @@ type ApplicationProps struct {
 	Replicas                     *int32
 	CreateServiceAccount         bool
 	Hostname                     string
-	CreateHeadlessService        bool
+	HeadlessServiceNames         []string
 	EnableServiceLinks           *bool
 	AutomountServiceAccountToken *bool
 	AppAnnotations               map[string]string
@@ -127,6 +127,7 @@ type ApplicationSecret struct {
 type ApplicationContainer struct {
 	Name              string
 	Image             ImageInfo
+	ImagePullPolicy   corev1.PullPolicy
 	Command           []string
 	Env               map[string]string
 	EnvFromSecretRef  []string
@@ -142,14 +143,16 @@ type ApplicationContainer struct {
 }
 
 type ContainerPort struct {
-	Name             string
-	Port             int
-	ServicePort      int
-	DisableService   bool
-	Protocol         corev1.Protocol
-	Ingress          *ApplicationIngress
-	Ingresses        []ApplicationIngress
-	PrometheusScrape *ApplicationPrometheusScrape
+	Name                 string
+	Port                 int
+	ServicePort          int
+	ServiceName          string
+	DisableService       bool
+	DisableContainerPort bool
+	Protocol             corev1.Protocol
+	Ingress              *ApplicationIngress
+	Ingresses            []ApplicationIngress
+	PrometheusScrape     *ApplicationPrometheusScrape
 }
 
 func (p ContainerPort) GetServicePort() int32 {
@@ -294,9 +297,9 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 	}
 	containers := []corev1.Container{}
 	initContainers := []corev1.Container{}
-	servicePorts := []corev1.ServicePort{}
+	servicePorts := map[string][]corev1.ServicePort{}
 	ingressHosts := []IngressHost{}
-	serviceAnnotations := map[string]string{}
+	serviceAnnotations := map[string]map[string]string{}
 	for _, container := range props.InitContainers {
 		var containerVolumeMounts []corev1.VolumeMount
 		containerVolumeMounts = append(containerVolumeMounts, containerVolumeMountsMap[container.Name]...)
@@ -313,10 +316,10 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 			})
 		}
 		initContainers = append(initContainers, corev1.Container{
-			Name:    container.Name,
-			Image:   container.Image.String(),
-			Command: container.Command,
-			// ImagePullPolicy: ("IfNotPresent"),
+			Name:                     container.Name,
+			Image:                    container.Image.String(),
+			Command:                  container.Command,
+			ImagePullPolicy:          container.ImagePullPolicy,
 			Env:                      env,
 			EnvFrom:                  envFrom,
 			Args:                     container.Args,
@@ -351,6 +354,9 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 		}
 		var ports []corev1.ContainerPort
 		for _, port := range container.Ports {
+			if port.DisableContainerPort {
+				continue
+			}
 			ports = append(ports, corev1.ContainerPort{
 				Name:          port.Name,
 				ContainerPort: int32(port.Port),
@@ -362,7 +368,11 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 			if port.DisableService {
 				continue
 			}
-			servicePorts = append(servicePorts, corev1.ServicePort{
+			serviceName := props.Name
+			if port.ServiceName != "" {
+				serviceName = port.ServiceName
+			}
+			servicePorts[serviceName] = append(servicePorts[serviceName], corev1.ServicePort{
 				Name:       port.Name,
 				Port:       port.GetServicePort(),
 				TargetPort: intstr.FromString(port.Name),
@@ -382,19 +392,22 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 				})
 			}
 			if prometheusScrape := port.PrometheusScrape; prometheusScrape != nil {
-				serviceAnnotations["prometheus.io/scrape"] = "true"
-				serviceAnnotations["prometheus.io/port"] = fmt.Sprint(port.GetServicePort())
+				if serviceAnnotations[serviceName] == nil {
+					serviceAnnotations[serviceName] = map[string]string{}
+				}
+				serviceAnnotations[serviceName]["prometheus.io/scrape"] = "true"
+				serviceAnnotations[serviceName]["prometheus.io/port"] = fmt.Sprint(port.GetServicePort())
 				if prometheusScrape.Path != "" {
-					serviceAnnotations["prometheus.io/path"] = prometheusScrape.Path
+					serviceAnnotations[serviceName]["prometheus.io/path"] = prometheusScrape.Path
 				}
 			}
 		}
 
 		containers = append(containers, corev1.Container{
-			Name:    container.Name,
-			Image:   container.Image.String(),
-			Command: container.Command,
-			// ImagePullPolicy: ("IfNotPresent"),
+			Name:                     container.Name,
+			Image:                    container.Image.String(),
+			Command:                  container.Command,
+			ImagePullPolicy:          container.ImagePullPolicy,
 			Env:                      env,
 			EnvFrom:                  envFrom,
 			Args:                     container.Args,
@@ -496,25 +509,20 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 		})
 	}
 	if len(servicePorts) > 0 {
-		scope.AddApiObject(&corev1.Service{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:        props.Name,
-				Annotations: serviceAnnotations,
-			},
-			Spec: corev1.ServiceSpec{
-				Selector: commonLabels,
-				Ports:    servicePorts,
-			},
-		})
-		if props.CreateHeadlessService {
+		for _, serviceName := range infrahelpers.MapKeysSorted(servicePorts) {
+			clusterIP := ""
+			if slices.Contains(props.HeadlessServiceNames, serviceName) {
+				clusterIP = "None"
+			}
 			scope.AddApiObject(&corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: props.Name + "-headless",
+					Name:        serviceName,
+					Annotations: serviceAnnotations[serviceName],
 				},
 				Spec: corev1.ServiceSpec{
-					ClusterIP: "None",
+					ClusterIP: clusterIP,
 					Selector:  commonLabels,
-					Ports:     servicePorts,
+					Ports:     servicePorts[serviceName],
 				},
 			})
 		}

@@ -26,6 +26,8 @@ type Crowdsec struct {
 	BouncerKeys                map[string]string         `json:"bouncerKeys"`
 	ForwardedHeadersTrustedIPs []string                  `json:"forwardedHeadersTrustedIPs"`
 	Notifiers                  []string                  `json:"notifiers"`
+	PersistentVolumeName       string                    `json:"persistentVolumeName"`
+	Tolerations                []corev1.Toleration       `json:"tolerations"`
 	// HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
@@ -198,6 +200,8 @@ fi;
 					Privileged:               infrahelpers.Ptr(false),
 				},
 				ExtraVolumeMounts: infrahelpers.MergeLists(extraAcquisitionsVolMounts, []corev1.VolumeMount{
+					{Name: "crowdsec-pv", MountPath: "/etc/crowdsec", SubPath: "config"},
+					{Name: "crowdsec-pv", MountPath: "/var/lib/crowdsec/data", SubPath: "data"},
 					{Name: "container-logs", MountPath: "/var/log"},
 					{Name: "config", MountPath: "/etc/crowdsec/profiles.yaml", SubPath: "profiles.yaml", ReadOnly: true},
 					{Name: "config-envsubst", MountPath: "/etc/crowdsec/notifications/http.yaml", SubPath: "notifications-telegram.yaml"},
@@ -210,7 +214,9 @@ fi;
 			{Name: "container-logs", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/var/log"}}},
 			// {Name: "config", VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "crowdsec-config"}}}},
 			{Name: "config-envsubst", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+			{Name: "crowdsec-pv", VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "crowdsec"}}},
 		},
+		Tolerations: props.Tolerations,
 		ConfigMaps: []k8sapp.ApplicationConfigMap{
 			{
 				Name: "crowdsec-config",
@@ -331,8 +337,7 @@ fi;
 			},
 		},
 		PersistentVolumes: []k8sapp.ApplicationPersistentVolume{
-			{Name: "crowdsec-db", RequestsStorage: "1Gi", MountPath: "/var/lib/crowdsec/data", MountName: "crowdsec-db"},
-			{Name: "crowdsec-config", RequestsStorage: "100Mi", MountPath: "/etc/crowdsec", MountName: "crowdsec-config"},
+			{Name: "crowdsec", VolumeName: props.PersistentVolumeName, RequestsStorage: "200M"},
 		},
 	})
 	crowdsecBouncerPluginConfig := map[string]interface{}{
