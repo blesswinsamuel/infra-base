@@ -39,7 +39,7 @@ traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "28.0.0"
+    version: "30.0.2"
   dashboardIngress:
     enabled: false
     subDomain: traefik
