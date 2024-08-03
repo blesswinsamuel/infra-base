@@ -40,13 +40,14 @@ type Postgres struct {
 	GrafanaDatasources   []PostgresGrafanaDatasourceProps `json:"grafana_datasources"`
 	Resources            *corev1.ResourceRequirements     `json:"resources"`
 	Tolerations          []corev1.Toleration              `json:"tolerations"`
+	CreateService        string                           `json:"serviceName"`
 }
 
 func (props *Postgres) Render(scope kgen.Scope) {
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
-		Name:                 "postgres",
+		Name:                 scope.ID(),
 		Kind:                 "StatefulSet",
-		HeadlessServiceNames: []string{"postgres-hl"},
+		HeadlessServiceNames: []string{scope.ID() + "-hl"},
 		Tolerations:          props.Tolerations,
 		Containers: []k8sapp.ApplicationContainer{
 			{
@@ -57,22 +58,11 @@ func (props *Postgres) Render(scope kgen.Scope) {
 					{Name: "tcp-postgresql", Port: 5432},
 				},
 				Env: map[string]string{
-					"BITNAMI_DEBUG":                       "false",
-					"POSTGRESQL_PORT_NUMBER":              "5432",
 					"POSTGRESQL_VOLUME_DIR":               "/bitnami/postgresql",
 					"PGDATA":                              "/bitnami/postgresql/data",
-					"POSTGRES_USER":                       props.Username,
-					"POSTGRES_DATABASE":                   props.Database,
-					"POSTGRESQL_ENABLE_LDAP":              "no",
-					"POSTGRESQL_ENABLE_TLS":               "no",
-					"POSTGRESQL_LOG_HOSTNAME":             "false",
-					"POSTGRESQL_LOG_CONNECTIONS":          "false",
-					"POSTGRESQL_LOG_DISCONNECTIONS":       "false",
-					"POSTGRESQL_PGAUDIT_LOG_CATALOG":      "off",
-					"POSTGRESQL_CLIENT_MIN_MESSAGES":      "error",
 					"POSTGRESQL_SHARED_PRELOAD_LIBRARIES": infrahelpers.If(props.SharedPreloadLibraries != nil, strings.Join(props.SharedPreloadLibraries, ","), ""),
 				},
-				EnvFromSecretRef: []string{"postgres-passwords"},
+				EnvFromSecretRef: []string{scope.ID() + "-passwords"},
 				LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{
 					"/bin/sh", "-c", fmt.Sprintf(`exec pg_isready -U "%s" -d "dbname=%s" -h 127.0.0.1 -p 5432`, props.Username, props.Database),
 				}}}, FailureThreshold: 6, InitialDelaySeconds: 30, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
@@ -101,13 +91,13 @@ func (props *Postgres) Render(scope kgen.Scope) {
 			{
 				Name:  "metrics",
 				Image: props.Metrics.ImageInfo,
-				Ports: []k8sapp.ContainerPort{{Name: "http-metrics", Port: 9187, ServiceName: "postgres-metrics", PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}}},
+				Ports: []k8sapp.ContainerPort{{Name: "http-metrics", Port: 9187, ServiceName: scope.ID() + "-metrics", PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}}},
 				Env: map[string]string{
-					"DATA_SOURCE_URI":  fmt.Sprintf("127.0.0.1:5432/%s?sslmode=disable", props.Database),
-					"DATA_SOURCE_USER": props.Username,
+					"DATA_SOURCE_URI":  "127.0.0.1:5432/postgres?sslmode=disable",
+					"DATA_SOURCE_USER": "postgres-exporter",
 				},
 				ExtraEnvs: []corev1.EnvVar{
-					{Name: "DATA_SOURCE_PASS", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "POSTGRES_PASSWORD", LocalObjectReference: corev1.LocalObjectReference{Name: "postgres-passwords"}}}},
+					{Name: "DATA_SOURCE_PASS", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "POSTGRES_PASSWORD_POSTGRES_EXPORTER", LocalObjectReference: corev1.LocalObjectReference{Name: scope.ID() + "-passwords"}}}},
 				},
 				LivenessProbe:  &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/", Port: intstr.FromString("http-metrics")}}, FailureThreshold: 6, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
 				ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/", Port: intstr.FromString("http-metrics")}}, FailureThreshold: 6, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
@@ -148,14 +138,14 @@ func (props *Postgres) Render(scope kgen.Scope) {
 		StatefulSetUpdateStrategy:    v1.StatefulSetUpdateStrategy{Type: v1.RollingUpdateStatefulSetStrategyType, RollingUpdate: &v1.RollingUpdateStatefulSetStrategy{}},
 		CreateServiceAccount:         true,
 		AutomountServiceAccountToken: ptr.To(false),
-		ServiceAccountName:           "postgres",
-		StatefulSetServiceName:       "postgres-hl",
+		ServiceAccountName:           scope.ID(),
+		StatefulSetServiceName:       scope.ID() + "-hl",
 		Affinity: &corev1.Affinity{
 			PodAntiAffinity: &corev1.PodAntiAffinity{
 				PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
 					{
 						PodAffinityTerm: corev1.PodAffinityTerm{
-							LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "postgres"}},
+							LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": scope.ID()}},
 							TopologyKey:   "kubernetes.io/hostname",
 						},
 						Weight: 1,
@@ -164,21 +154,22 @@ func (props *Postgres) Render(scope kgen.Scope) {
 			},
 		},
 		PersistentVolumes: []k8sapp.ApplicationPersistentVolume{
-			{Name: "postgres", VolumeName: props.PersistentVolumeName, RequestsStorage: "8Gi", MountName: "data", MountPath: "/bitnami/postgresql"},
+			{Name: scope.ID(), VolumeName: props.PersistentVolumeName, RequestsStorage: "8Gi", MountName: "data", MountPath: "/bitnami/postgresql"},
 		},
 		ExternalSecrets: []k8sapp.ApplicationExternalSecret{
 			{
-				Name: "postgres-passwords",
+				Name: scope.ID() + "-passwords",
 				RemoteRefs: map[string]string{
-					"POSTGRES_POSTGRES_PASSWORD": "POSTGRES_ADMIN_PASSWORD",
-					"POSTGRES_PASSWORD":          "POSTGRES_USER_PASSWORD",
+					"POSTGRES_PASSWORD_POSTGRES_EXPORTER": "POSTGRES_PASSWORD_POSTGRES_EXPORTER",
+					"POSTGRESQL_PASSWORD":                 "POSTGRES_PASSWORD_POSTGRES",
 				},
 			},
 		},
 		ImagePullSecrets: props.ImagePullSecrets,
+		// TerminationGracePeriodSeconds: ptr.To(int64(300)),
 	})
 	scope.AddApiObject(&networkingv1.NetworkPolicy{
-		ObjectMeta: metav1.ObjectMeta{Name: "postgres"},
+		ObjectMeta: metav1.ObjectMeta{Name: scope.ID()},
 		Spec: networkingv1.NetworkPolicySpec{
 			Egress: []networkingv1.NetworkPolicyEgressRule{{}},
 			Ingress: []networkingv1.NetworkPolicyIngressRule{
@@ -188,12 +179,12 @@ func (props *Postgres) Render(scope kgen.Scope) {
 				}},
 			},
 			PolicyTypes: []networkingv1.PolicyType{"Ingress", "Egress"},
-			PodSelector: metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "postgres"}},
+			PodSelector: metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": scope.ID()}},
 		},
 	})
 	scope.AddApiObject(&corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        "postgres-hl",
+			Name:        scope.ID() + "-hl",
 			Annotations: map[string]string{"service.alpha.kubernetes.io/tolerate-unready-endpoints": "true"},
 		},
 		Spec: corev1.ServiceSpec{
@@ -202,27 +193,34 @@ func (props *Postgres) Render(scope kgen.Scope) {
 				{Name: "tcp-postgresql", Port: 5432, Protocol: "TCP", TargetPort: intstr.FromString("tcp-postgresql")},
 			},
 			Selector: map[string]string{
-				"app.kubernetes.io/name": "postgres",
+				"app.kubernetes.io/name": scope.ID(),
 			},
 			ClusterIP: corev1.ClusterIPNone,
 		},
 	})
+	if props.CreateService != "" {
+		scope.AddApiObject(&corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{Name: props.CreateService},
+			Spec: corev1.ServiceSpec{
+				Ports: []corev1.ServicePort{
+					{Name: "tcp-postgresql", Port: 5432, Protocol: "TCP", TargetPort: intstr.FromString("tcp-postgresql")},
+				},
+				Selector: map[string]string{"app.kubernetes.io/name": scope.ID()},
+			},
+		})
+	}
 
 	if props.LoadBalancer.Enabled {
 		scope.AddApiObject(&corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "postgres-lb",
+				Name: scope.ID() + "-lb",
 			},
 			Spec: corev1.ServiceSpec{
 				Type: corev1.ServiceTypeLoadBalancer,
 				Ports: []corev1.ServicePort{
 					{Name: "tcp-postgresql", Port: 5432, Protocol: "TCP", TargetPort: intstr.FromString("tcp-postgresql")},
 				},
-				Selector: map[string]string{
-					"app.kubernetes.io/component": "primary",
-					"app.kubernetes.io/instance":  "postgres",
-					"app.kubernetes.io/name":      "postgres",
-				},
+				Selector: map[string]string{"app.kubernetes.io/name": scope.ID()},
 			},
 		})
 	}

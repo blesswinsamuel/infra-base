@@ -33,35 +33,36 @@ func (i *ImageInfo) ToMap() map[string]interface{} {
 }
 
 type ApplicationProps struct {
-	Kind                         string
-	Name                         string
-	ServiceAccountName           string
-	Replicas                     *int32
-	CreateServiceAccount         bool
-	Hostname                     string
-	HeadlessServiceNames         []string
-	EnableServiceLinks           *bool
-	AutomountServiceAccountToken *bool
-	AppAnnotations               map[string]string
-	PodAnnotations               map[string]string
-	PodSecurityContext           *corev1.PodSecurityContext
-	ImagePullSecrets             string
-	InitContainers               []ApplicationContainer
-	Containers                   []ApplicationContainer
-	ConfigMaps                   []ApplicationConfigMap
-	ExternalSecrets              []ApplicationExternalSecret
-	Secrets                      []ApplicationSecret
-	PersistentVolumes            []ApplicationPersistentVolume // TODO: change to PersistentVolumeClaims
-	ExtraVolumes                 []corev1.Volume
-	HostNetwork                  bool
-	HostPID                      bool
-	NodeSelector                 map[string]string
-	Tolerations                  []corev1.Toleration
-	DNSPolicy                    corev1.DNSPolicy
-	DNSConfig                    *corev1.PodDNSConfig
-	IngressMiddlewares           []NameNamespace
-	IngressUseDefaultCert        *bool
-	Affinity                     *corev1.Affinity
+	Kind                          string
+	Name                          string
+	ServiceAccountName            string
+	Replicas                      *int32
+	CreateServiceAccount          bool
+	Hostname                      string
+	HeadlessServiceNames          []string
+	EnableServiceLinks            *bool
+	AutomountServiceAccountToken  *bool
+	AppAnnotations                map[string]string
+	PodAnnotations                map[string]string
+	PodSecurityContext            *corev1.PodSecurityContext
+	ImagePullSecrets              string
+	InitContainers                []ApplicationContainer
+	Containers                    []ApplicationContainer
+	ConfigMaps                    []ApplicationConfigMap
+	ExternalSecrets               []ApplicationExternalSecret
+	Secrets                       []ApplicationSecret
+	PersistentVolumes             []ApplicationPersistentVolume // TODO: change to PersistentVolumeClaims
+	ExtraVolumes                  []corev1.Volume
+	HostNetwork                   bool
+	HostPID                       bool
+	NodeSelector                  map[string]string
+	Tolerations                   []corev1.Toleration
+	DNSPolicy                     corev1.DNSPolicy
+	DNSConfig                     *corev1.PodDNSConfig
+	IngressMiddlewares            []NameNamespace
+	IngressUseDefaultCert         *bool
+	Affinity                      *corev1.Affinity
+	TerminationGracePeriodSeconds *int64
 	// IngressAnnotations              map[string]string
 
 	DeploymentUpdateStrategy        v1.DeploymentStrategy
@@ -445,16 +446,17 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 			ImagePullSecrets: infrahelpers.If(props.ImagePullSecrets != "", []corev1.LocalObjectReference{
 				{Name: props.ImagePullSecrets},
 			}, nil),
-			Containers:     containers,
-			InitContainers: initContainers,
-			Volumes:        volumes,
-			HostNetwork:    props.HostNetwork,
-			HostPID:        props.HostPID,
-			NodeSelector:   props.NodeSelector,
-			Tolerations:    props.Tolerations,
-			DNSPolicy:      props.DNSPolicy,
-			DNSConfig:      props.DNSConfig,
-			Affinity:       props.Affinity,
+			Containers:                    containers,
+			InitContainers:                initContainers,
+			Volumes:                       volumes,
+			HostNetwork:                   props.HostNetwork,
+			HostPID:                       props.HostPID,
+			NodeSelector:                  props.NodeSelector,
+			Tolerations:                   props.Tolerations,
+			DNSPolicy:                     props.DNSPolicy,
+			DNSConfig:                     props.DNSConfig,
+			Affinity:                      props.Affinity,
+			TerminationGracePeriodSeconds: props.TerminationGracePeriodSeconds,
 		},
 	}
 	if props.Replicas == nil {

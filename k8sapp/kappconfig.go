@@ -26,6 +26,9 @@ func NewKappConfig(scope kgen.Scope) kgen.Scope {
 			clusterOwnedFields([][]string{{"data"}}, []map[string]any{
 				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "external-secrets", "name": "external-secrets-webhook"}},
 				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "secrets", "name": "external-secrets-webhook"}},
+
+				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "metallb", "name": "metallb-webhook-cert"}},
+
 				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "system", "name": "kubernetes-dashboard-csrf"}},
 				{"kindNamespaceNameMatcher": map[string]any{"kind": "Secret", "namespace": "system", "name": "kubernetes-dashboard-key-holder"}},
 			}),
@@ -36,6 +39,12 @@ func NewKappConfig(scope kgen.Scope) kgen.Scope {
 			}),
 			clusterOwnedFields([][]string{{"metadata", "annotations", "force-resync"}}, []map[string]any{
 				{"apiVersionKindMatcher": map[string]any{"apiVersion": "external-secrets.io/v1beta1", "kind": "ExternalSecret"}},
+			}),
+			// clusterOwnedFields([][]string{{"spec", "conversion", "webhook", "clientConfig", "caBundle"}}, []map[string]any{
+			// 	{"kindNamespaceNameMatcher": map[string]any{"kind": "CustomResourceDefinition", "namespace": "", "name": "bgppeers.metallb.io"}},
+			// }),
+			clusterOwnedFields([][]string{{"spec", "conversion", "webhook", "clientConfig", "caBundle"}}, []map[string]any{
+				{"apiVersionKindMatcher": map[string]any{"apiVersion": "apiextensions.k8s.io/v1", "kind": "CustomResourceDefinition"}},
 			}),
 			clusterOwnedFields([][]string{
 				// {"spec", "claimRef"},

@@ -13,6 +13,13 @@ type LLDAP struct {
 	ImageInfo   k8sapp.ImageInfo `json:"image"`
 	BaseDN      string           `json:"base_dn"`
 	EmailDomain string           `json:"email_domain"`
+	Postgres    struct {
+		Host        string `json:"host"`
+		Port        int    `json:"port"`
+		Database    string `json:"database"`
+		Username    string `json:"username"`
+		PasswordRef string `json:"passwordRef"`
+	} `json:"postgres"`
 }
 
 func (props *LLDAP) Render(scope kgen.Scope) {
@@ -67,11 +74,10 @@ func (props *LLDAP) Render(scope kgen.Scope) {
 			{
 				Name: "lldap-postgres",
 				Template: map[string]string{
-					"LLDAP_DATABASE_URL": "postgres://{{ .PGUSER }}:{{ .PGPASSWORD | urlquery }}@postgres.database.svc.cluster.local:5432/lldap",
+					"LLDAP_DATABASE_URL": fmt.Sprintf("postgres://%s:%s@%s:%d/%s", props.Postgres.Username, "{{ .PGPASSWORD | urlquery }}", props.Postgres.Host, props.Postgres.Port, props.Postgres.Database),
 				},
 				RemoteRefs: map[string]string{
-					"PGPASSWORD": "POSTGRES_USER_PASSWORD",
-					"PGUSER":     "POSTGRES_USERNAME",
+					"PGPASSWORD": props.Postgres.PasswordRef,
 				},
 			},
 		},

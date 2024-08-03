@@ -41,9 +41,10 @@ func (props *PgBackuper) Render(scope kgen.Scope) {
 		},
 	}
 	for _, db := range props.Databases {
+		// TODO: use per db credentials
 		config["databases"].(map[string]any)[db] = map[string]any{
 			"host":     props.Host,
-			"username": "{{.DB_USERNAME}}",
+			"username": "postgres",
 			"password": "{{.DB_PASSWORD}}",
 			"port":     5432,
 			"schedule": props.Schedule,
@@ -67,8 +68,7 @@ func (props *PgBackuper) Render(scope kgen.Scope) {
 		ExternalSecrets: []k8sapp.ApplicationExternalSecret{{
 			Name: "pg-backuper-config",
 			RemoteRefs: map[string]string{
-				"DB_PASSWORD":         "POSTGRES_USER_PASSWORD",
-				"DB_USERNAME":         "POSTGRES_USERNAME",
+				"DB_PASSWORD":         "POSTGRES_PASSWORD_POSTGRES",
 				"HEARTBEAT_URL":       "DB_BACKUP_HEARTBEAT_URL",
 				"S3_SECRET_KEY":       "BACKUP_S3_SECRET_KEY",
 				"S3_ACCESS_KEY":       "BACKUP_S3_ACCESS_KEY",

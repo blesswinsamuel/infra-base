@@ -156,6 +156,7 @@ authelia:
     postgres:
       host: "postgres.database.svc.cluster.local"
       database: authelia
+      username: authelia
       port: 5432
       schema: public
     redis:
@@ -165,6 +166,12 @@ lldap:
   image:
     repository: ghcr.io/lldap/lldap
     tag: v0.5.0-alpine
+  postgres:
+    host: "postgres.database.svc.cluster.local"
+    database: lldap
+    username: lldap
+    port: 5432
+    passwordRef: POSTGRES_PASSWORD_LLDAP
 
 traefik-forward-auth:
   image:

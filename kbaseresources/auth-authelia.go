@@ -93,6 +93,7 @@ type Authelia struct {
 			Host     *string `json:"host"`
 			Port     *int    `json:"port"`
 			Database *string `json:"database"`
+			Username *string `json:"username"`
 			Schema   *string `json:"schema"`
 		} `json:"postgres"`
 		Redis struct {
@@ -235,7 +236,7 @@ func (props *Authelia) Render(scope kgen.Scope) {
 				"address":  "tcp://" + *props.Database.Postgres.Host + ":" + fmt.Sprintf("%d", *props.Database.Postgres.Port),
 				"database": props.Database.Postgres.Database,
 				"schema":   props.Database.Postgres.Schema,
-				"username": "{{ .POSTGRES_USERNAME }}",
+				"username": props.Database.Postgres.Username,
 				"timeout":  "5s",
 				"password": "{{ .POSTGRES_PASSWORD }}",
 			},
@@ -305,8 +306,7 @@ func (props *Authelia) Render(scope kgen.Scope) {
 		"JWT_TOKEN":              "AUTHELIA_JWT_TOKEN",
 		"SESSION_ENCRYPTION_KEY": "AUTHELIA_SESSION_ENCRYPTION_KEY",
 		"STORAGE_ENCRYPTION_KEY": "AUTHELIA_STORAGE_ENCRYPTION_KEY",
-		"POSTGRES_PASSWORD":      "POSTGRES_USER_PASSWORD",
-		"POSTGRES_USERNAME":      "POSTGRES_USERNAME",
+		"POSTGRES_PASSWORD":      "POSTGRES_PASSWORD_AUTHELIA",
 	}
 	if props.OIDC.Enabled {
 		for i, client := range props.OIDC.Clients.V {
