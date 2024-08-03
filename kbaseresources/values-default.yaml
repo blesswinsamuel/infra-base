@@ -17,7 +17,7 @@ cert-manager:
   helm:
     repo: https://charts.jetstack.io
     chart: cert-manager
-    version: "v1.14.5"
+    version: "v1.15.2"
   _grafana_dashboards:
     cert-manager:
       url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/cert-manager.json
@@ -33,7 +33,7 @@ cilium:
   helm:
     repo: https://helm.cilium.io
     chart: cilium
-    version: "1.15.6"
+    version: "1.16.0"
 
 traefik:
   helm:
@@ -175,7 +175,7 @@ traefik-forward-auth:
 vector:
   image:
     repository: timberio/vector
-    tag: 0.38.0-distroless-libc
+    tag: 0.40.0-distroless-libc
   syslogServer:
     enabled: false
   _grafana_dashboards:
@@ -229,18 +229,18 @@ crowdsec:
 kube-state-metrics:
   image:
     repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
-    tag: v2.12.0
+    tag: v2.13.0
   _alerting_rules:
     kube-state-metrics:
       url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/kubeStateMetrics-prometheusRule.yaml
 grafana:
   image:
     repository: grafana/grafana
-    tag: 11.0.0
+    tag: 11.1.3
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.26.2
+      tag: 1.27.5
   authProxyEnabled: true
   anonymousAuthEnabled: false
   ingress:
@@ -327,7 +327,7 @@ alerting-rules:
 vmagent:
   image:
     repository: victoriametrics/vmagent
-    tag: "v1.101.0"
+    tag: "v1.102.1"
   ingress:
     enabled: true
     subDomain: "vmagent"
@@ -347,11 +347,11 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.101.0
+    tag: v1.102.1
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.26.2
+      tag: 1.27.5
   ingress:
     enabled: true
     subDomain: "vmalert"
@@ -413,7 +413,7 @@ node-exporter:
 victoriametrics:
   image:
     repository: victoriametrics/victoria-metrics
-    tag: v1.101.0
+    tag: v1.102.1
   ingress:
     enabled: true
     subDomain: "victoriametrics"
@@ -437,7 +437,7 @@ victoriametrics:
 loki:
   image:
     repository: grafana/loki
-    tag: "3.0.0"
+    tag: "3.1.0"
   storage: local
   _alerting_rules:
     loki:
@@ -469,7 +469,7 @@ kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
     chart: kubernetes-dashboard
-    version: "7.4.0"
+    version: "7.5.0"
   ingress:
     enabled: true
     subDomain: kubernetes-dashboard
