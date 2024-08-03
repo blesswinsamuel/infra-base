@@ -39,6 +39,7 @@ func (props *VmagentProps) Render(scope kgen.Scope) {
 
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		Name:               "vmagent",
+		Kind:               "StatefulSet",
 		ServiceAccountName: "vmagent",
 		Containers: []k8sapp.ApplicationContainer{{
 			Name:  "vmagent",
