@@ -4,7 +4,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.9.17"
+    version: "0.9.20"
 
 external-secrets-store:
   tokenSecretName: doppler-token-auth-api
@@ -78,7 +78,7 @@ postgres:
   metrics:
     image:
       repository: docker.io/bitnami/postgres-exporter
-      tag: 0.15.0-debian-12-r29
+      tag: 0.15.0-debian-12-r38
   database: null
   username: null
   resources:
@@ -138,7 +138,7 @@ redis:
 authelia:
   image:
     repository: ghcr.io/authelia/authelia
-    tag: "4.38.8"
+    tag: "4.38.9"
   ingress:
     subDomain: authelia
   ldap:
@@ -387,7 +387,7 @@ alertmanager:
 node-exporter:
   image:
     repository: quay.io/prometheus/node-exporter
-    tag: v1.8.0
+    tag: v1.8.2
   _grafana_dashboards:
     node-exporter:
       url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
@@ -464,7 +464,7 @@ kube-git-ops:
 reloader:
   image:
     repository: ghcr.io/stakater/reloader
-    tag: "v1.0.95"
+    tag: "v1.0.119"
 kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
