@@ -3,11 +3,11 @@ module github.com/blesswinsamuel/infra-base/pg-backuper
 go 1.22.2
 
 require (
-	github.com/go-logr/logr v1.4.1
-	github.com/golang/glog v1.2.1
-	k8s.io/api v0.30.2
-	k8s.io/apimachinery v0.30.2
-	k8s.io/client-go v0.30.2
+	github.com/go-logr/logr v1.4.2
+	github.com/golang/glog v1.2.2
+	k8s.io/api v0.30.3
+	k8s.io/apimachinery v0.30.3
+	k8s.io/client-go v0.30.3
 	sigs.k8s.io/sig-storage-lib-external-provisioner/v10 v10.0.0
 )
 
