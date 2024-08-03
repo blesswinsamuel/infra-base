@@ -3,11 +3,12 @@ module github.com/blesswinsamuel/infra-base/pg-backuper
 go 1.22.2
 
 require (
-	github.com/golang/glog v1.2.2
-	k8s.io/api v0.30.3
-	k8s.io/apimachinery v0.30.3
-	k8s.io/client-go v0.30.3
-	sigs.k8s.io/sig-storage-lib-external-provisioner/v6 v6.3.0
+	github.com/go-logr/logr v1.4.1
+	github.com/golang/glog v1.2.1
+	k8s.io/api v0.30.2
+	k8s.io/apimachinery v0.30.2
+	k8s.io/client-go v0.30.2
+	sigs.k8s.io/sig-storage-lib-external-provisioner/v10 v10.0.0
 )
 
 require (
@@ -15,7 +16,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect

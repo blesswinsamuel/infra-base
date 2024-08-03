@@ -26,6 +26,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/go-logr/logr"
 	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 
@@ -33,7 +34,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/sig-storage-lib-external-provisioner/v6/controller"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/v10/controller"
 )
 
 type nfsProvisioner struct {
@@ -165,12 +166,12 @@ func main() {
 		glog.Fatalf("Failed to create client: %v", err)
 	}
 
-	// The controller needs to know what the server version is because out-of-tree
-	// provisioners aren't officially supported until 1.5
-	serverVersion, err := clientset.Discovery().ServerVersion()
-	if err != nil {
-		glog.Fatalf("Error getting server version: %v", err)
-	}
+	// // The controller needs to know what the server version is because out-of-tree
+	// // provisioners aren't officially supported until 1.5
+	// serverVersion, err := clientset.Discovery().ServerVersion()
+	// if err != nil {
+	// 	glog.Fatalf("Error getting server version: %v", err)
+	// }
 
 	leaderElection := true
 	leaderElectionEnv := os.Getenv("ENABLE_LEADER_ELECTION")
@@ -186,10 +187,10 @@ func main() {
 	}
 	// Start the provision controller which will dynamically provision efs NFS
 	// PVs
-	pc := controller.NewProvisionController(clientset,
+	logger := logr.New(nil)
+	pc := controller.NewProvisionController(logger, clientset,
 		provisionerName,
 		clientNFSProvisioner,
-		serverVersion.GitVersion,
 		controller.LeaderElection(leaderElection),
 	)
 	// Never stops.
