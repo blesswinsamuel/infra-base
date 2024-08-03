@@ -27,7 +27,7 @@ type Postgres struct {
 	ImageInfo        k8sapp.ImageInfo `json:"image"`
 	Metrics          struct {
 		ImageInfo k8sapp.ImageInfo `json:"image"`
-	}
+	} `json:"metrics"`
 	ImagePullPolicy        corev1.PullPolicy `json:"imagePullPolicy"`
 	Database               string            `json:"database"`
 	Username               string            `json:"username"`

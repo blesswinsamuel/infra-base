@@ -113,10 +113,13 @@ postgres:
           "2 %": "7 %"
 
 redis:
-  helm:
-    repo: https://charts.bitnami.com/bitnami
-    chart: redis
-    version: "19.3.0"
+  image:
+    repository: bitnami/redis
+    tag: 7.2.5
+  metrics:
+    image:
+      repository: bitnami/redis-exporter
+      tag: 1.62.0
   resources:
     limits:
       cpu: 500m

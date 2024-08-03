@@ -4,10 +4,17 @@ import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 type Redis struct {
-	HelmChartInfo        k8sapp.ChartInfo            `json:"helm"`
+	ImageInfo k8sapp.ImageInfo `json:"image"`
+	Metrics   struct {
+		ImageInfo k8sapp.ImageInfo `json:"image"`
+	} `json:"metrics"`
 	Resources            corev1.ResourceRequirements `json:"resources"`
 	PersistentVolumeName string                      `json:"persistentVolumeName"`
 	Tolerations          []corev1.Toleration         `json:"tolerations"`
@@ -16,60 +23,119 @@ type Redis struct {
 // https://github.com/bitnami/charts/tree/main/bitnami/redis
 
 func (props *Redis) Render(scope kgen.Scope) {
-	// TODO: remove helm dependency
-	values := map[string]interface{}{
-		"architecture": "standalone",
-		"auth": map[string]interface{}{
-			"enabled": false,
+	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
+		Kind:                         "StatefulSet",
+		Name:                         "redis-master",
+		HeadlessServiceNames:         []string{"redis-headless"},
+		StatefulSetServiceName:       "redis-headless",
+		ServiceAccountName:           "redis-master",
+		CreateServiceAccount:         true,
+		AutomountServiceAccountToken: ptr.To(false),
+		Tolerations:                  props.Tolerations,
+		Affinity: &corev1.Affinity{
+			PodAntiAffinity: &corev1.PodAntiAffinity{
+				PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
+					{
+						PodAffinityTerm: corev1.PodAffinityTerm{
+							LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "redis"}},
+							TopologyKey:   "kubernetes.io/hostname",
+						},
+						Weight: 1,
+					},
+				},
+			},
 		},
-		"metrics": map[string]interface{}{
-			"enabled":   true,
-			"resources": props.Resources,
+		Containers: []k8sapp.ApplicationContainer{
+			{
+				Name:  "redis",
+				Image: props.ImageInfo,
+				Ports: []k8sapp.ContainerPort{{Name: "tcp-redis", Port: 6379, ServiceName: "redis-master"}},
+				Env: map[string]string{
+					"REDIS_REPLICATION_MODE": "master",
+					"BITNAMI_DEBUG":          "false",
+					"ALLOW_EMPTY_PASSWORD":   "yes",
+					// "REDIS_DISABLE_COMMANDS": "FLUSHDB,FLUSHALL",
+				},
+				Resources: props.Resources,
+				SecurityContext: &corev1.SecurityContext{
+					AllowPrivilegeEscalation: ptr.To(false),
+					Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+					Privileged:               ptr.To(false),
+					ReadOnlyRootFilesystem:   ptr.To(true),
+					RunAsGroup:               ptr.To(int64(1001)),
+					RunAsNonRoot:             ptr.To(true),
+					RunAsUser:                ptr.To(int64(1001)),
+					SELinuxOptions:           &corev1.SELinuxOptions{},
+					SeccompProfile:           &corev1.SeccompProfile{Type: "RuntimeDefault"},
+				},
+				ExtraVolumeMounts: []corev1.VolumeMount{
+					{Name: "empty-dir", MountPath: "/opt/bitnami/redis/tmp", SubPath: "tmp-dir"},
+					{Name: "empty-dir", MountPath: "/opt/bitnami/redis/logs", SubPath: "log-dir"},
+					{Name: "empty-dir", MountPath: "/opt/bitnami/redis/etc", SubPath: "app-conf-dir"},
+					// {Name: "empty-dir", MountPath: "/tmp", SubPath: "tmp-dir"},
+				},
+			},
+			{
+				Name:  "metrics",
+				Image: props.Metrics.ImageInfo,
+				Ports: []k8sapp.ContainerPort{{Name: "http-metrics", Port: 9121, ServiceName: "redis-metrics", PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}}},
+				Env: map[string]string{
+					"REDIS_ALIAS":                       "redis",
+					"REDIS_EXPORTER_WEB_LISTEN_ADDRESS": ":9121",
+				},
+				LivenessProbe:  &corev1.Probe{FailureThreshold: 5, InitialDelaySeconds: 10, PeriodSeconds: 10, SuccessThreshold: 1, ProbeHandler: corev1.ProbeHandler{TCPSocket: &corev1.TCPSocketAction{Port: intstr.FromString("http-metrics")}}, TimeoutSeconds: 5},
+				ReadinessProbe: &corev1.Probe{FailureThreshold: 3, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/", Port: intstr.FromString("http-metrics")}}, TimeoutSeconds: 1},
+				SecurityContext: &corev1.SecurityContext{
+					AllowPrivilegeEscalation: ptr.To(false),
+					Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+					Privileged:               ptr.To(false),
+					ReadOnlyRootFilesystem:   ptr.To(true),
+					RunAsGroup:               ptr.To(int64(1001)),
+					RunAsNonRoot:             ptr.To(true),
+					RunAsUser:                ptr.To(int64(1001)),
+					SELinuxOptions:           &corev1.SELinuxOptions{},
+					SeccompProfile:           &corev1.SeccompProfile{Type: "RuntimeDefault"},
+				},
+				ExtraVolumeMounts: []corev1.VolumeMount{
+					{Name: "empty-dir", MountPath: "/tmp", SubPath: "app-tmp-dir"},
+				},
+			},
 		},
-		"master": map[string]interface{}{
-			"resources":   props.Resources,
-			"tolerations": props.Tolerations,
+		PodSecurityContext: &corev1.PodSecurityContext{
+			FSGroup:             ptr.To(int64(1001)),
+			FSGroupChangePolicy: ptr.To(corev1.FSGroupChangeAlways),
 		},
-	}
-	if props.PersistentVolumeName != "" {
-		k8sapp.NewPersistentVolumeClaim(scope, &k8sapp.PersistentVolumeClaim{
-			Name: "redis", RequestsStorage: "1Gi", VolumeName: props.PersistentVolumeName, AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce}},
-		)
-		values["master"].(map[string]interface{})["persistence"] = map[string]interface{}{
-			"existingClaim": "redis",
-		}
-	}
-	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
-		ChartInfo:   props.HelmChartInfo,
-		ReleaseName: "redis",
-		Values:      values,
+		ExtraVolumes: []corev1.Volume{
+			{Name: "empty-dir", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+		},
+		PersistentVolumes: []k8sapp.ApplicationPersistentVolume{
+			{Name: "redis", VolumeName: props.PersistentVolumeName, RequestsStorage: "1Gi", MountToContainers: []string{"redis"}, MountName: "data", MountPath: "/bitnami/redis/data"},
+		},
 	})
-	// k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
-	// 	Kind: "StatefulSet",
-	// 	Name: "redis",
-	// 	Containers: []k8sapp.ApplicationContainer{
-	// 		{
-	// 			Name:  "redis",
-	// 			Image: props.ImageInfo,
-	// 			Ports: []k8sapp.ContainerPort{{Name: "redis", Port: 6379}},
-	// 			Env: map[string]string{
-	// 				"ALLOW_EMPTY_PASSWORD":   "yes",
-	// 				"REDIS_DISABLE_COMMANDS": "FLUSHDB,FLUSHALL",
-	// 			},
-	// 			Resources: props.Resources,
-	// 		},
-	// 		{
-	// 			Name:  "metrics",
-	// 			Image: props.Exporter.ImageInfo,
-	// 			Ports: []k8sapp.ContainerPort{{Name: "redis", Port: 6379}},
-	// 			Env: map[string]string{
-	// 				"ALLOW_EMPTY_PASSWORD":   "yes",
-	// 				"REDIS_DISABLE_COMMANDS": "FLUSHDB,FLUSHALL",
-	// 			},
-	// 		},
-	// 	},
-	// 	StatefulSetVolumeClaimTemplates: []k8sapp.ApplicationPersistentVolume{
-	// 		{Name: "data", VolumeName: props.VolumeName, RequestsStorage: "1Gi", MountToContainers: []string{"redis"}, MountName: "data", MountPath: "/bitnami/redis/data"},
-	// 	},
-	// })
+	scope.AddApiObject(&corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "redis-headless",
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{Name: "tcp-redis", Port: 6379, Protocol: "TCP", TargetPort: intstr.FromString("redis")},
+			},
+			Selector: map[string]string{
+				"app.kubernetes.io/name": "redis",
+			},
+			ClusterIP: corev1.ClusterIPNone,
+		},
+	})
+	scope.AddApiObject(&networkingv1.NetworkPolicy{
+		ObjectMeta: metav1.ObjectMeta{Name: "redis"},
+		Spec: networkingv1.NetworkPolicySpec{
+			Egress: []networkingv1.NetworkPolicyEgressRule{{}},
+			Ingress: []networkingv1.NetworkPolicyIngressRule{
+				{Ports: []networkingv1.NetworkPolicyPort{{Port: ptr.To(intstr.FromInt(6379))}}},
+				{Ports: []networkingv1.NetworkPolicyPort{{Port: ptr.To(intstr.FromInt(9121))}}},
+			},
+			PolicyTypes: []networkingv1.PolicyType{"Ingress", "Egress"},
+			PodSelector: metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "redis"}},
+		},
+	})
 }
