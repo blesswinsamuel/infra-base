@@ -191,6 +191,15 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 				"moduleName": "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin",
 				"version":    "v1.3.0",
 			}
+		case "request-headers":
+			plugins[plugin] = map[string]any{
+				"moduleName": "github.com/traefik/plugindemo",
+				"version":    "v0.2.2",
+			}
+			// plugins[plugin] = map[string]any{
+			// 	"moduleName": "github.com/blesswinsamuel/traefik-request-headers-middleware",
+			// 	"version":    "v0.0.6",
+			// }
 		}
 	}
 
