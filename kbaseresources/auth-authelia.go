@@ -26,6 +26,8 @@ type AutheliaClient struct {
 	PreConfiguredConsentDuration string   `json:"pre_configured_consent_duration"`
 	Public                       bool     `json:"public"`
 	RedirectURIs                 []string `json:"redirect_uris"`
+	RequirePKCE                  bool     `json:"require_pkce"`
+	PKCEChallengeMethod          string   `json:"pkce_challenge_method"`
 	ResponseTypes                []string `json:"response_types"`
 	Scopes                       []string `json:"scopes"`
 	ClientSecret                 string   `json:"client_secret,omitempty"`
