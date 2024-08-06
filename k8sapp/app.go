@@ -118,7 +118,7 @@ func Render(scope kgen.Scope, values Values) {
 		namespace, services := key, values.Services.Map[key]
 		t := logModuleTiming(namespace, 0)
 		namespaceScope := scope.CreateScope(namespace, kgen.ScopeProps{Namespace: namespace})
-		if namespace != "default" {
+		if namespace != "default" && namespace != "kube-system" {
 			NewNamespace(namespaceScope, namespace)
 		}
 

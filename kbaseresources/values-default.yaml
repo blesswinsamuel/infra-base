@@ -505,6 +505,14 @@ pg-backuper:
     repository: ghcr.io/blesswinsamuel/infra-base/pg-backuper
     tag: latest
   host: "postgres.database.svc.cluster.local"
+coredns:
+  image:
+    repository: "rancher/mirrored-coredns-coredns"
+    tag: "1.10.1"
+  clusterDomain: cluster.local
+  clusterDNS: "10.43.0.10"
+  clusterDNSList: ["10.43.0.10"]
+  ipFamilyPolicy: SingleStack
 
 ### utils ###
 
