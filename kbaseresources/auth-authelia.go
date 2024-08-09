@@ -140,7 +140,7 @@ func (props *Authelia) Render(scope kgen.Scope) {
 			},
 			LivenessProbe:  &corev1.Probe{FailureThreshold: 5, PeriodSeconds: 30, SuccessThreshold: 1, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/api/health", Port: intstr.FromString("http"), Scheme: "HTTP"}}},
 			ReadinessProbe: &corev1.Probe{FailureThreshold: 5, PeriodSeconds: 5, SuccessThreshold: 1, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/api/health", Port: intstr.FromString("http"), Scheme: "HTTP"}}},
-			StartupProbe:   &corev1.Probe{FailureThreshold: 6, InitialDelaySeconds: 10, PeriodSeconds: 5, SuccessThreshold: 1, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/api/health", Port: intstr.FromString("http"), Scheme: "HTTP"}}},
+			StartupProbe:   &corev1.Probe{FailureThreshold: 6, PeriodSeconds: 5, SuccessThreshold: 1, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/api/health", Port: intstr.FromString("http"), Scheme: "HTTP"}}},
 		}},
 		ExternalSecrets:       []k8sapp.ApplicationExternalSecret{},
 		EnableServiceLinks:    ptr.To(false),

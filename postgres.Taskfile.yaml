@@ -12,74 +12,42 @@ tasks:
     cmds:
       - yq e '.system.backupJob.postgres.databases[]' ../../homelab/values.yaml | xargs -I{} task postgres-restore -- {}
 
-  backup:
-    # yq e '.system.backupJob.postgres.databases[]' homelab/values.yaml
-    cmds:
-      - defer: kubectl delete job -n system backup-job-postgres-{{ .DATABASE }}-manual
-      - kubectl create job -n system --from=cronjob/backup-job-postgres-{{ .DATABASE }} backup-job-postgres-{{ .DATABASE }}-manual
-      # - task: logs
-      #   vars: { CLI_ARGS: "backup-job-postgres-{{ .DATABASE }}-manual" }
-      # - kubectl get po -n system -w -l job-name=backup-job-postgres-manual
-      # - kubectl wait pod -n system --for=condition=initialized -l job-name=backup-job-postgres-{{ .DATABASE }}-manual --timeout=60s
-      # - kubectl wait -n system --for=condition=ready job/backup-job-postgres-{{ .DATABASE }}-manual --timeout=60s
-      # - kubectl logs -n system -f -l job-name=backup-job-postgres-{{ .DATABASE }}-manual --all-containers --prefix --ignore-errors
-      - >
-        bash -c "
-        (trap 'echo Exiting; jobs; jobs -p | xargs -r kill' SIGINT SIGTERM EXIT;
-        stern -n system job/backup-job-postgres-{{ .DATABASE }}-manual &
-        kubectl wait -n system --for=condition=complete job/backup-job-postgres-{{ .DATABASE }}-manual --timeout=600s)
-        "
-    vars:
-      DATABASE: '{{ .CLI_ARGS | splitList " " | first }}'
+  # backup:
+  #   # yq e '.system.backupJob.postgres.databases[]' homelab/values.yaml
+  #   cmds:
+  #     - defer: kubectl delete job -n system backup-job-postgres-{{ .DATABASE }}-manual
+  #     - kubectl create job -n system --from=cronjob/backup-job-postgres-{{ .DATABASE }} backup-job-postgres-{{ .DATABASE }}-manual
+  #     # - task: logs
+  #     #   vars: { CLI_ARGS: "backup-job-postgres-{{ .DATABASE }}-manual" }
+  #     # - kubectl get po -n system -w -l job-name=backup-job-postgres-manual
+  #     # - kubectl wait pod -n system --for=condition=initialized -l job-name=backup-job-postgres-{{ .DATABASE }}-manual --timeout=60s
+  #     # - kubectl wait -n system --for=condition=ready job/backup-job-postgres-{{ .DATABASE }}-manual --timeout=60s
+  #     # - kubectl logs -n system -f -l job-name=backup-job-postgres-{{ .DATABASE }}-manual --all-containers --prefix --ignore-errors
+  #     - >
+  #       bash -c "
+  #       (trap 'echo Exiting; jobs; jobs -p | xargs -r kill' SIGINT SIGTERM EXIT;
+  #       stern -n system job/backup-job-postgres-{{ .DATABASE }}-manual &
+  #       kubectl wait -n system --for=condition=complete job/backup-job-postgres-{{ .DATABASE }}-manual --timeout=600s)
+  #       "
+  #   vars:
+  #     DATABASE: '{{ .CLI_ARGS | splitList " " | first }}'
 
-  restore:
-    cmds:
-      - defer: kubectl delete job restore-job-postgres-{{ .DATABASE }}-manual -n system
-      - kubectl create job --from=cronjob/restore-job-postgres-{{ .DATABASE }} restore-job-postgres-{{ .DATABASE }}-manual -n system
-      # - task: logs
-      #   vars: { CLI_ARGS: restore-job-postgres-manual }
-      - >
-        bash -c "
-        trap 'echo Exiting; jobs; jobs -p | xargs -r kill' SIGINT SIGTERM EXIT;
-        stern -n system job/restore-job-postgres-{{ .DATABASE }}-manual &
-        kubectl wait -n system --for=condition=complete job/restore-job-postgres-{{ .DATABASE }}-manual --timeout=600s
-        "
-    vars:
-      DATABASE: '{{ .CLI_ARGS | splitList " " | first }}'
+  # restore:
+  #   cmds:
+  #     - defer: kubectl delete job restore-job-postgres-{{ .DATABASE }}-manual -n system
+  #     - kubectl create job --from=cronjob/restore-job-postgres-{{ .DATABASE }} restore-job-postgres-{{ .DATABASE }}-manual -n system
+  #     # - task: logs
+  #     #   vars: { CLI_ARGS: restore-job-postgres-manual }
+  #     - >
+  #       bash -c "
+  #       trap 'echo Exiting; jobs; jobs -p | xargs -r kill' SIGINT SIGTERM EXIT;
+  #       stern -n system job/restore-job-postgres-{{ .DATABASE }}-manual &
+  #       kubectl wait -n system --for=condition=complete job/restore-job-postgres-{{ .DATABASE }}-manual --timeout=600s
+  #       "
+  #   vars:
+  #     DATABASE: '{{ .CLI_ARGS | splitList " " | first }}'
 
   # https://stackoverflow.com/questions/40632228/input-file-appears-to-be-a-text-format-dump-please-use-psql
   pg-backup:
     cmds:
       - kubectl exec -i -n system sts/pg-backuper -- /pg-backuper run-backups-now
-
-  pg-backup-local:
-    cmds:
-      - mkdir -p pg_backup
-      - for:
-          var: DATABASES
-          split: " "
-        cmd: |
-          [ "{{.ITEM}}" == "immich" ] && kubectl exec -i -n database sts/postgres -- env PGUSER=TODO PGPASSWORD=TODO PGDATABASE=immich psql -c 'ALTER EXTENSION cube SET SCHEMA pg_catalog;'
-          [ "{{.ITEM}}" == "immich" ] && kubectl exec -i -n database sts/postgres -- env PGUSER=TODO PGPASSWORD=TODO PGDATABASE=immich psql -c 'ALTER EXTENSION earthdistance SET SCHEMA pg_catalog;'
-          kubectl exec -i -n database sts/postgres -- env PGUSER=TODO PGPASSWORD=TODO PGDATABASE={{ .ITEM }} pg_dump -Fc > pg_backup/{{ .ITEM }}.dump
-    vars:
-      DATABASES: TODO
-
-  pg-restore-local:
-    cmds:
-      - for:
-          var: DATABASES
-          split: "\n"
-        cmd: |
-          kubectl exec -i -n database sts/postgres -- env PGUSER=TODO PGPASSWORD=TODO dropdb {{ .ITEM }} || true
-          kubectl exec -i -n database sts/postgres -- env PGUSER=TODO PGPASSWORD=TODO createdb {{ .ITEM }}
-
-          # if database name is immich
-          [ "{{.ITEM}}" == "immich" ] && kubectl exec -i -n database sts/postgres -- env PGUSER=postgres PGPASSWORD=TODO PGDATABASE=immich psql -c 'CREATE EXTENSION vectors;'
-          [ "{{.ITEM}}" == "immich" ] && kubectl exec -i -n database sts/postgres -- env PGUSER=postgres PGPASSWORD=TODO PGDATABASE=immich psql -c 'CREATE EXTENSION cube WITH SCHEMA pg_catalog;'
-          [ "{{.ITEM}}" == "immich" ] && kubectl exec -i -n database sts/postgres -- env PGUSER=postgres PGPASSWORD=TODO PGDATABASE=immich psql -c 'CREATE EXTENSION earthdistance WITH SCHEMA pg_catalog;'
-
-          kubectl exec -i -n database sts/postgres -- env PGUSER=postgres PGPASSWORD=TODO pg_restore -d {{ .ITEM }} -x --no-owner < pg_backup/{{ .ITEM }}.dump
-    vars:
-      DATABASES:
-        sh: ls pg_backup/*.dump | xargs -I '{}' -L1 sh -c 'basename {} .dump'

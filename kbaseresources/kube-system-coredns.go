@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"strings"
 
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/kgen"
 	"github.com/muesli/reflow/dedent"
@@ -26,6 +27,7 @@ type CoreDNSProps struct {
 	ClusterDNS     string                 `json:"clusterDNS"`
 	ClusterDNSList []string               `json:"clusterDNSList"`
 	IpFamilyPolicy *corev1.IPFamilyPolicy `json:"ipFamilyPolicy"`
+	Tolerations    []corev1.Toleration    `json:"tolerations"`
 }
 
 func (props *CoreDNSProps) Render(scope kgen.Scope) {
@@ -80,8 +82,6 @@ func (props *CoreDNSProps) Render(scope kgen.Scope) {
 				import /etc/coredns/custom/*.server
 			`)),
 			"NodeHosts": strings.TrimSpace(dedent.String(`
-			10.100.1.27 hp-chromebox-g2
-			10.100.1.29 beelink-mini-s12-pro
 			`)),
 		},
 	})
@@ -104,11 +104,11 @@ func (props *CoreDNSProps) Render(scope kgen.Scope) {
 				Spec: corev1.PodSpec{
 					PriorityClassName:  "system-cluster-critical",
 					ServiceAccountName: "coredns",
-					Tolerations: []corev1.Toleration{
+					Tolerations: infrahelpers.MergeLists(props.Tolerations, []corev1.Toleration{
 						{Key: "CriticalAddonsOnly", Operator: corev1.TolerationOpExists},
 						{Key: "node-role.kubernetes.io/control-plane", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule},
 						{Key: "node-role.kubernetes.io/master", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule},
-					},
+					}),
 					NodeSelector:              map[string]string{"kubernetes.io/os": "linux"},
 					TopologySpreadConstraints: []corev1.TopologySpreadConstraint{{MaxSkew: 1, TopologyKey: "kubernetes.io/hostname", WhenUnsatisfiable: corev1.DoNotSchedule, LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"k8s-app": "kube-dns"}}}},
 					Containers: []corev1.Container{{
