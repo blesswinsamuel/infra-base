@@ -6,10 +6,10 @@ require (
 	github.com/go-co-op/gocron/v2 v2.11.0
 	github.com/goccy/go-yaml v1.12.0
 	github.com/google/uuid v1.6.0
-	github.com/minio/minio-go/v7 v7.0.74
+	github.com/minio/minio-go/v7 v7.0.75
 	github.com/prometheus/client_golang v1.19.1
 	github.com/rs/zerolog v1.33.0
-	github.com/urfave/cli/v2 v2.27.3
+	github.com/urfave/cli/v2 v2.27.4
 )
 
 require (
