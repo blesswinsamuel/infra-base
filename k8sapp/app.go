@@ -118,6 +118,7 @@ func Render(scope kgen.Scope, values Values) {
 		namespace, services := key, values.Services.Map[key]
 		t := logModuleTiming(namespace, 0)
 		namespaceScope := scope.CreateScope(namespace, kgen.ScopeProps{Namespace: namespace})
+		namespaceScope.SetContext("type", "namespace")
 		if namespace != "default" && namespace != "kube-system" {
 			NewNamespace(namespaceScope, namespace)
 		}
@@ -147,6 +148,7 @@ func Render(scope kgen.Scope, values Values) {
 			scopeProps := kgen.ScopeProps{}
 			serviceScope := namespaceScope.CreateScope(serviceName, scopeProps)
 			serviceScope.SetContext("name", serviceName)
+			serviceScope.SetContext("type", "service")
 			module.Render(serviceScope)
 			NewGrafanaDashboards(serviceScope, module.GetGrafanaDashboards())
 			NewAlertingRules(serviceScope, module.GetAlertingRules())

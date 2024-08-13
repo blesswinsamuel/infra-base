@@ -40,7 +40,10 @@ func (props *VmalertProps) Render(scope kgen.Scope) {
 					// # external.alert.source: explore?orgId=1&left=["now-1h","now","VictoriaMetrics",{"expr":""},{"mode":"Metrics"},{"ui":[true,true,true,"none"]}]
 					// # external.alert.source: {{ `explore?orgId=1&left=["now-1h","now","VictoriaMetrics",{"expr":"{{$expr|quotesEscape|pathEscape}}"}]` }}
 					// https://github.com/VictoriaMetrics/VictoriaMetrics/blob/8edb390e215cbffe9bb267eea8337dbf1df1c76f/deployment/docker/docker-compose.yml#L75
-					`-external.alert.source=explore?orgId=1&left={"datasource":"VictoriaMetrics","queries":[{"expr":"{{$expr|quotesEscape|crlfEscape|queryEscape}}","refId":"A"}],"range":{"from":"now-1h","to":"now"}}`,
+					// https://grafana.com/docs/grafana/latest/explore/#share-explore-urls
+					`-external.alert.source=explore?schemaVersion=1&panes={"pane1":{"datasource":"victoriametrics","queries":[{"refId":"A","expr":{{$expr|jsonEscape|queryEscape}},"datasource":{"type":"prometheus","uid":"victoriametrics"}}],"range":{"from":"now-1h","to":"now"}}}&orgId=1`,
+					// `-external.alert.source=/?#/?g0.expr={{$expr|crlfEscape|queryEscape}}`,
+					// `-external.url=https://victoriametrics.` + k8sapp.GetDomain(scope) + `/vmui`,
 					`-external.url=https://grafana.` + k8sapp.GetDomain(scope),
 					`-loggerFormat=json`,
 					`-rule="/config/*.yaml"`,

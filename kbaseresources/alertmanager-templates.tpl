@@ -62,7 +62,7 @@
 {{- end }}
 {{- end }}
 {{- if $alert.GeneratorURL }}
-📈 <a href="{{ $alert.GeneratorURL }}">Grafana</a> 📈
+📈 <a href="{{ $alert.GeneratorURL }}">Graph</a> 📈
 {{- end }}
 {{- else }}
 {{ template "__alertStatusEmoji" $alert.Status }} {{ $alert.Labels.alertname }} {{ template "__severityEmoji" $alert.Labels.severity }}

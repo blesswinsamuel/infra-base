@@ -2,7 +2,6 @@ package kbaseresources
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/kgen"
@@ -346,7 +345,7 @@ func (props *Authelia) Render(scope kgen.Scope) {
 			"clients": props.OIDC.Clients,
 		}
 		autheliaConfig["identity_providers"].(map[string]any)["oidc"].(map[string]any)["jwks"] = []map[string]any{
-			{"key": "{{ .OIDC_PRIVATE_KEY }}", "certificate_chain": props.OIDC.IssuerCertificateChain},
+			{"key": `{{ .OIDC_PRIVATE_KEY | quote | substr 1 (int (sub (len (.OIDC_PRIVATE_KEY | quote)) 1)) }}`, "certificate_chain": props.OIDC.IssuerCertificateChain},
 		}
 	}
 	if props.Assets != nil {
@@ -410,13 +409,11 @@ func (props *Authelia) Render(scope kgen.Scope) {
 		externalSecretRefs["LDAP_PASSWORD"] = props.LDAP.PasswordSecretKey
 	}
 
-	autheliaConfigStr := infrahelpers.ToYamlString(autheliaConfig)
-	autheliaConfigStr = strings.Replace(autheliaConfigStr, `"{{ .OIDC_PRIVATE_KEY }}"`, "|\n{{ .OIDC_PRIVATE_KEY | nindent 8 }}", 1)
 	appProps.ExternalSecrets = append(appProps.ExternalSecrets, k8sapp.ApplicationExternalSecret{
 		Name:       "authelia",
 		RemoteRefs: externalSecretRefs,
 		Template: map[string]string{
-			"configuration.yaml": autheliaConfigStr,
+			"configuration.yaml": infrahelpers.ToYamlString(autheliaConfig),
 		},
 		MountToContainers: []string{"authelia"},
 		MountName:         "config",
