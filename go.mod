@@ -5,7 +5,7 @@ go 1.22.4
 toolchain go1.22.6
 
 require (
-	github.com/blesswinsamuel/kgen v0.0.4
+	github.com/blesswinsamuel/kgen v0.0.5
 	github.com/cert-manager/cert-manager v1.15.2
 	github.com/external-secrets/external-secrets v0.10.0
 	github.com/goccy/go-yaml v1.12.0
