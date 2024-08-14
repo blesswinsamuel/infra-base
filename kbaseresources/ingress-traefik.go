@@ -189,7 +189,7 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 		case "crowdsec-bouncer":
 			plugins[plugin] = map[string]any{
 				"moduleName": "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin",
-				"version":    "v1.3.0",
+				"version":    "v1.3.3",
 			}
 		case "request-headers":
 			plugins[plugin] = map[string]any{

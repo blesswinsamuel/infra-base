@@ -1,8 +1,6 @@
 module github.com/blesswinsamuel/infra-base
 
-go 1.22.4
-
-toolchain go1.22.6
+go 1.23.0
 
 require (
 	github.com/blesswinsamuel/kgen v0.0.5
