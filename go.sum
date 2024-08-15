@@ -4,8 +4,8 @@ github.com/aws/aws-sdk-go v1.55.3 h1:0B5hOX+mIx7I5XPOrjrHlKSDQV/+ypFZpIHOx5LOk3E
 github.com/aws/aws-sdk-go v1.55.3/go.mod h1:eRwEWoyTWFMVYVQzKMNHWP5/RV4xIUGMQfXQHfHkpNU=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/blesswinsamuel/kgen v0.0.5 h1:CkfA32tIyH56UzPNL3HDOg3gODOyWCoYOHYAggigH54=
-github.com/blesswinsamuel/kgen v0.0.5/go.mod h1:3FgV7hDcMtXisut7em3HSbcCO5LwJWeX6JDrrOAq1tM=
+github.com/blesswinsamuel/kgen v0.0.6 h1:jJL32ocy5szKto9uNvP9kHXiqhqCbE+cfqaA0zR1s6Y=
+github.com/blesswinsamuel/kgen v0.0.6/go.mod h1:zCV3y/mSz9x7b8UuMhD/lp2iTJHeeRPe2S3o6LdA5qg=
 github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK343L8=
 github.com/cenkalti/backoff/v4 v4.3.0/go.mod h1:Y3VNntkOUPxTVeUxJ/G5vcM//AlwfmyYozVcomhLiZE=
 github.com/cert-manager/cert-manager v1.15.2 h1:Mjbvc+FjYeg2928xy7bcS+c+ARxyqBcXM9QypOg1/Uo=

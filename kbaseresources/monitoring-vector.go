@@ -21,6 +21,7 @@ type VectorProps struct {
 		HostnameMappings map[string]string `json:"hostnameMappings"`
 		Debug            bool              `json:"debug"`
 	} `json:"syslogServer"`
+	Tolerations []corev1.Toleration `json:"tolerations"`
 }
 
 // https://github.com/vectordotdev/helm-charts/tree/develop/charts/vector
@@ -246,9 +247,10 @@ if err != null {
 	}
 
 	applicationProps := &k8sapp.ApplicationProps{
-		Name:      "vector",
-		Kind:      "DaemonSet",
-		DNSPolicy: corev1.DNSClusterFirst,
+		Name:        "vector",
+		Kind:        "DaemonSet",
+		DNSPolicy:   corev1.DNSClusterFirst,
+		Tolerations: props.Tolerations,
 		Containers: []k8sapp.ApplicationContainer{
 			{
 				Name:  "vector",
