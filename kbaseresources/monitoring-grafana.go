@@ -207,19 +207,19 @@ format = json
 				ReadOnly:          true,
 			},
 		},
-		// Homepage: &k8sapp.ApplicationHomepage{
-		// 	Name:        "Grafana",
-		// 	Description: "Metrics visualization",
-		// 	Widget: map[string]string{
-		// 		"type": "grafana",
-		// 		"url":  "http://grafana." + scope.Namespace() + ".svc.cluster.local",
-		// 		"username": "admin",
-		// 		"password": "{{ .GRAFANA_ADMIN_PASSWORD }}",
-		// 	},
-		// 	// SiteMonitor: "http://grafana."+scope.Namespace()+".svc.cluster.local/api/health",
-		// 	Group: "Infra",
-		// 	Icon:  "grafana",
-		// },
+		Homepage: &k8sapp.ApplicationHomepage{
+			Name:        "Grafana",
+			Description: "Metrics visualization",
+			Widget: map[string]string{
+				"type":     "grafana",
+				"url":      "http://grafana." + scope.Namespace() + ".svc.cluster.local",
+				"username": "admin",
+				"password": "{{HOMEPAGE_VAR_GRAFANA_ADMIN_PASSWORD}}",
+			},
+			SiteMonitor: "http://grafana." + scope.Namespace() + ".svc.cluster.local/api/health",
+			Group:       "Infra",
+			Icon:        "grafana",
+		},
 	})
 	scope.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: v1.ObjectMeta{Name: "grafana"},

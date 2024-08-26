@@ -232,7 +232,7 @@ func (props *Postgres) Render(scope kgen.Scope) {
 				"grafana_datasource": "1",
 			},
 			RemoteRefs: map[string]string{
-				"password": "POSTGRES_USER_PASSWORD",
+				"password": "POSTGRES_PASSWORD_POSTGRES",
 			},
 			Template: map[string]string{
 				"postgres.yaml": infrahelpers.ToYamlString(map[string]interface{}{
