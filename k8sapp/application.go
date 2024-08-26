@@ -63,6 +63,7 @@ type ApplicationProps struct {
 	IngressUseDefaultCert         *bool
 	Affinity                      *corev1.Affinity
 	TerminationGracePeriodSeconds *int64
+	Homepage                      *ApplicationHomepage
 	// IngressAnnotations              map[string]string
 
 	DeploymentUpdateStrategy        v1.DeploymentStrategy
@@ -70,6 +71,17 @@ type ApplicationProps struct {
 	DaemonSetUpdateStrategy         v1.DaemonSetUpdateStrategy
 	StatefulSetServiceName          string
 	StatefulSetVolumeClaimTemplates []ApplicationPersistentVolume
+}
+
+type ApplicationHomepage struct {
+	Name        string
+	Description string
+	Group       string
+	Icon        string
+	Widget      map[string]string
+	SiteMonitor string
+	Href        string
+	PodSelector string
 }
 
 type ApplicationPersistentVolume struct {
@@ -533,12 +545,16 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 		if props.IngressUseDefaultCert == nil {
 			props.IngressUseDefaultCert = ptr.To(true)
 		}
+		var ingressAnnotations map[string]string
+		if props.Homepage != nil {
+			ingressAnnotations = GetHomepageAnnotations(props.Homepage)
+		}
 		NewIngress(scope, &IngressProps{
 			Name:                   props.Name,
 			Hosts:                  ingressHosts,
 			TraefikMiddlewareNames: props.IngressMiddlewares,
 			UseDefaultCert:         *props.IngressUseDefaultCert,
-			// Annotations:            props.IngressAnnotations,
+			Annotations:            ingressAnnotations,
 		})
 	}
 	if props.CreateServiceAccount {
@@ -548,6 +564,30 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 			},
 		})
 	}
+}
+
+func GetHomepageAnnotations(props *ApplicationHomepage) map[string]string {
+	if props == nil {
+		return nil
+	}
+	annotations := map[string]string{
+		"gethomepage.dev/enabled":     "true",
+		"gethomepage.dev/description": props.Description,
+		"gethomepage.dev/group":       props.Group,
+		"gethomepage.dev/icon":        props.Icon,
+		"gethomepage.dev/name":        props.Name,
+		"gethomepage.dev/siteMonitor": props.SiteMonitor,
+	}
+	if props.Href != "" {
+		annotations["gethomepage.dev/href"] = props.Href
+	}
+	if props.PodSelector != "" {
+		annotations["gethomepage.dev/pod-selector"] = props.PodSelector
+	}
+	for key, value := range props.Widget {
+		annotations[fmt.Sprintf("gethomepage.dev/widget.%s", key)] = value
+	}
+	return annotations
 }
 
 func Base64Encode(s string) string {

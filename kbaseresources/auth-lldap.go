@@ -81,5 +81,12 @@ func (props *LLDAP) Render(scope kgen.Scope) {
 				},
 			},
 		},
+		Homepage: &k8sapp.ApplicationHomepage{
+			Name:        "Light LDAP",
+			Description: "LDAP server",
+			SiteMonitor: "http://lldap." + scope.Namespace() + ".svc.cluster.local:17170/health",
+			Group:       "Infra",
+			Icon:        "authentik",
+		},
 	})
 }

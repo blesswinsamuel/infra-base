@@ -92,6 +92,13 @@ func (props *VmalertProps) Render(scope kgen.Scope) {
 		},
 		ServiceAccountName:   "vmalert",
 		CreateServiceAccount: true,
+		Homepage: &k8sapp.ApplicationHomepage{
+			Name:        "VictoriaMetrics Alert",
+			Description: "Metrics alerting",
+			SiteMonitor: "http://vmalert." + scope.Namespace() + ".svc.cluster.local:8880/health",
+			Group:       "Infra",
+			Icon:        "si-victoriametrics",
+		},
 	})
 	scope.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: v1.ObjectMeta{Name: "vmalert"},

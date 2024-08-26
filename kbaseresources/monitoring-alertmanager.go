@@ -158,6 +158,13 @@ func (props *AlertmanagerProps) Render(scope kgen.Scope) {
 			VolumeName:      props.Persistence.VolumeName,
 		}},
 		Tolerations: props.Tolerations,
+		Homepage: &k8sapp.ApplicationHomepage{
+			Name:        "Alertmanager",
+			Description: "Metrics alerting",
+			SiteMonitor: "http://alertmanager." + scope.Namespace() + ".svc.cluster.local:9093/-/healthy",
+			Group:       "Infra",
+			Icon:        "alertmanager",
+		},
 	})
 
 	scope.AddApiObject(&corev1.ServiceAccount{

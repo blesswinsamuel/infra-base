@@ -144,6 +144,13 @@ func (props *Authelia) Render(scope kgen.Scope) {
 		ExternalSecrets:       []k8sapp.ApplicationExternalSecret{},
 		EnableServiceLinks:    ptr.To(false),
 		IngressUseDefaultCert: props.IngressUseDefaultCert,
+		Homepage: &k8sapp.ApplicationHomepage{
+			Name:        "Authelia",
+			Description: "SSO",
+			SiteMonitor: "http://authelia." + scope.Namespace() + ".svc.cluster.local/api/health",
+			Group:       "Infra",
+			Icon:        "authelia",
+		},
 	}
 	redirectionURL := "https://" + infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") + k8sapp.GetDomain(scope)
 	if len(props.CookieDomains) == 0 {

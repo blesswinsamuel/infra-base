@@ -6,7 +6,7 @@ import (
 	"github.com/blesswinsamuel/kgen"
 	"github.com/traefik/traefik/v3/pkg/config/dynamic"
 	traefikv1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type TraefikProps struct {
@@ -18,6 +18,9 @@ type TraefikProps struct {
 		SubDomain string `json:"subDomain"`
 	} `json:"dashboardIngress"`
 	CreateMiddlewares struct {
+		HSTS struct {
+			Enabled bool `json:"enabled"`
+		} `json:"hsts"`
 		StripPrefix struct {
 			Enabled bool `json:"enabled"`
 		} `json:"stripPrefix"`
@@ -233,12 +236,24 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 			},
 			IngressType:    "traefik",
 			UseDefaultCert: true,
+			Annotations: k8sapp.GetHomepageAnnotations(&k8sapp.ApplicationHomepage{
+				Name:        "Traefik",
+				Description: "Reverse proxy",
+				Widget: map[string]string{
+					"type": "traefik",
+					"url":  "http://traefik-api." + scope.Namespace() + ".svc.cluster.local:8080",
+				},
+				Href:        "https://" + props.DashboardIngress.SubDomain + "." + k8sapp.GetDomain(scope),
+				PodSelector: "app.kubernetes.io/name=traefik",
+				Icon:        "traefik",
+				Group:       "Infra",
+			}),
 		})
 	}
 
 	if props.CreateMiddlewares.StripPrefix.Enabled {
 		scope.AddApiObject(&traefikv1alpha1.Middleware{
-			ObjectMeta: v1.ObjectMeta{Name: "traefik-strip-prefix"},
+			ObjectMeta: metav1.ObjectMeta{Name: "traefik-strip-prefix"},
 			Spec: traefikv1alpha1.MiddlewareSpec{
 				StripPrefixRegex: &dynamic.StripPrefixRegex{
 					Regex: []string{"^/[^/]+"},
@@ -246,9 +261,23 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 			},
 		})
 	}
+	// https://docs.nextcloud.com/server/29/admin_manual/installation/harden_server.html#enable-http-strict-transport-security
+	if props.CreateMiddlewares.HSTS.Enabled {
+		scope.AddApiObject(&traefikv1alpha1.Middleware{
+			ObjectMeta: metav1.ObjectMeta{Name: "traefik-hsts"},
+			Spec: traefikv1alpha1.MiddlewareSpec{
+				Headers: &dynamic.Headers{
+					STSSeconds:           15552000,
+					STSIncludeSubdomains: true,
+					STSPreload:           true,
+					ForceSTSHeader:       true,
+				},
+			},
+		})
+	}
 
 	// scope.AddApiObject(&networkingv1.NetworkPolicy{
-	// 	ObjectMeta: v1.ObjectMeta{
+	// 	ObjectMeta: metav1.ObjectMeta{
 	// 		Name: "allow-all-svclbtraefik-ingress",
 	// 	},
 	// 	Spec: networkingv1.NetworkPolicySpec{

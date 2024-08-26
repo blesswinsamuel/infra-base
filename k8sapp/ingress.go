@@ -36,6 +36,7 @@ type IngressProps struct {
 	IngressType            string             `json:"ingressType"`
 	CertIssuer             CertIssuerRefProps `json:"certIssuer"`
 	UseDefaultCert         bool               `json:"useDefaultCert"`
+	Annotations            map[string]string  `json:"annotations"`
 }
 
 type CertIssuerRefProps struct {
@@ -107,7 +108,8 @@ func NewIngress(scope kgen.Scope, props *IngressProps) kgen.Scope {
 		}
 		scope.AddApiObject(&traefikv1alpha1.IngressRoute{
 			ObjectMeta: v1.ObjectMeta{
-				Name: props.Name,
+				Name:        props.Name,
+				Annotations: props.Annotations,
 			},
 			Spec: traefikv1alpha1.IngressRouteSpec{
 				EntryPoints: infrahelpers.If(globals.Ingress.DisableTls, []string{"web"}, []string{"websecure"}),
@@ -157,7 +159,7 @@ func NewIngress(scope kgen.Scope, props *IngressProps) kgen.Scope {
 		for _, traefikMiddleware := range props.TraefikMiddlewareNames {
 			traefikMiddlwareNames = append(traefikMiddlwareNames, fmt.Sprintf("%s-%s@kubernetescrd", traefikMiddleware.Namespace, traefikMiddleware.Name))
 		}
-		annotations := map[string]string{}
+		annotations := infrahelpers.MergeMaps(map[string]string{}, props.Annotations)
 		if len(tlsHosts) > 0 && !props.UseDefaultCert {
 			clusterIssuerAnnotationKey := map[string]string{
 				"ClusterIssuer": "cert-manager.io/cluster-issuer",

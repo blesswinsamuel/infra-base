@@ -64,6 +64,13 @@ func (props *VictoriaMetrics) Render(scope kgen.Scope) {
 		ExtraVolumes:                    vols,
 		StatefulSetVolumeClaimTemplates: vcts,
 		Tolerations:                     props.Tolerations,
+		Homepage: &k8sapp.ApplicationHomepage{
+			Name:        "VictoriaMetrics",
+			Description: "Metrics storage",
+			SiteMonitor: "http://victoriametrics." + scope.Namespace() + ".svc.cluster.local:8428/health",
+			Group:       "Infra",
+			Icon:        "si-victoriametrics",
+		},
 	})
 
 	if props.NodePortServiceEnabled {

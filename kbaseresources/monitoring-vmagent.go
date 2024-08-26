@@ -67,6 +67,17 @@ func (props *VmagentProps) Render(scope kgen.Scope) {
 			{Name: "vmagent-tmpdata", RequestsStorage: "1Gi", MountName: "tmpdata", MountPath: "/tmpdata", VolumeName: props.PersistentVolumeName},
 		},
 		Tolerations: props.Tolerations,
+		Homepage: &k8sapp.ApplicationHomepage{
+			Name:        "VictoriaMetrics Agent",
+			Description: "Metrics collector",
+			SiteMonitor: "http://vmagent." + scope.Namespace() + ".svc.cluster.local:8429/health",
+			Group:       "Infra",
+			Icon:        "si-victoriametrics",
+			Widget: map[string]string{
+				"type": "prometheus",
+				"url":  "http://vmagent." + scope.Namespace() + ".svc.cluster.local:8429",
+			},
+		},
 	})
 	scope.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: v1.ObjectMeta{Name: "vmagent"},
