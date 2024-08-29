@@ -163,6 +163,7 @@ type ContainerPort struct {
 	DisableService       bool
 	DisableContainerPort bool
 	Protocol             corev1.Protocol
+	HTTPRoutes           []ApplicationHTTPRoute
 	Ingress              *ApplicationIngress
 	Ingresses            []ApplicationIngress
 	PrometheusScrape     *ApplicationPrometheusScrape
@@ -179,6 +180,11 @@ type ApplicationIngress struct {
 	Host string
 	Path string // defaults to "/"
 	TLS  *bool
+}
+
+type ApplicationHTTPRoute struct {
+	Host string
+	Path string // defaults to "/"
 }
 
 type ApplicationPrometheusScrape struct {
