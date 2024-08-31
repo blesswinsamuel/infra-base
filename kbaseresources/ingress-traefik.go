@@ -63,6 +63,12 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 					"enabled": true,
 				},
 			},
+			"kubernetesGateway": map[string]any{
+				"enabled": true,
+			},
+		},
+		"gateway": map[string]any{
+			"enabled": false,
 		},
 		"priorityClassName": "system-cluster-critical",
 		"tolerations": []map[string]any{
