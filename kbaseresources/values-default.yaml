@@ -4,7 +4,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.10.0"
+    version: "0.10.3"
 
 external-secrets-store:
   tokenSecretName: doppler-token-auth-api
@@ -84,7 +84,7 @@ postgres:
   metrics:
     image:
       repository: docker.io/bitnami/postgres-exporter
-      tag: 0.15.0-debian-12-r40
+      tag: 0.15.0-debian-12-r43
   database: null
   username: null
   resources:
@@ -205,7 +205,7 @@ crowdsec-firewall-bouncer:
 crowdsec:
   image:
     repository: crowdsecurity/crowdsec
-    tag: v1.6.2
+    tag: v1.6.3
   notifiers:
     - slack
     # - telegram
@@ -253,7 +253,7 @@ grafana:
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.27.5
+      tag: 1.27.6
   authProxyEnabled: true
   anonymousAuthEnabled: false
   ingress:
@@ -364,7 +364,7 @@ vmalert:
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.27.5
+      tag: 1.27.6
   ingress:
     enabled: true
     subDomain: "vmalert"
@@ -508,7 +508,7 @@ pg-backuper:
 coredns:
   image:
     repository: "rancher/mirrored-coredns-coredns"
-    tag: "1.11.1"
+    tag: "1.11.3"
   clusterDomain: cluster.local
   clusterDNS: "10.43.0.10"
   clusterDNSList: ["10.43.0.10"]
