@@ -25,8 +25,8 @@ func init() {
 
 func modifyObj[T runtime.Object](apiObject kgen.ApiObject, f func(T)) error {
 	var res T
-	statefulsetUnstructured := apiObject.GetObject().(*unstructured.Unstructured)
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(statefulsetUnstructured.UnstructuredContent(), &res)
+	objUnstructured := apiObject.GetObject().(*unstructured.Unstructured)
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(objUnstructured.UnstructuredContent(), &res)
 	if err != nil {
 		return fmt.Errorf("FromUnstructured: %w", err)
 	}

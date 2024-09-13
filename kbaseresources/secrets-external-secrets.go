@@ -15,7 +15,7 @@ func (props *ExternalSecretsProps) Render(scope kgen.Scope) {
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "external-secrets",
 		Values: map[string]interface{}{
-			"installCRDs": "true",
+			"installCRDs": true,
 			"metrics": map[string]interface{}{
 				"service": map[string]any{
 					"enabled": true,
@@ -51,5 +51,6 @@ func (props *ExternalSecretsProps) Render(scope kgen.Scope) {
 				},
 			},
 		},
+		PatchObject: helmPatchCleanLabelsAndAnnotations,
 	})
 }

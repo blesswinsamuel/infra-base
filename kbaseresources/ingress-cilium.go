@@ -48,5 +48,6 @@ func (props *CiliumProps) Render(scope kgen.Scope) {
 			// 	"secretsBackend": "k8s",
 			// },
 		},
+		PatchObject: helmPatchCleanLabelsAndAnnotations,
 	})
 }

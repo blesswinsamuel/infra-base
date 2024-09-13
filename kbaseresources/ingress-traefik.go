@@ -232,6 +232,7 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: "traefik",
 		Values:      values,
+		PatchObject: helmPatchCleanLabelsAndAnnotations,
 	})
 
 	if props.DashboardIngress.Enabled {

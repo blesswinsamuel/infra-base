@@ -28,5 +28,6 @@ func (props *CertManagerProps) Render(scope kgen.Scope) {
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "cert-manager",
 		Values:      values,
+		PatchObject: helmPatchCleanLabelsAndAnnotations,
 	})
 }

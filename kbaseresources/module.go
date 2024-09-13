@@ -2,6 +2,8 @@ package kbaseresources
 
 import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func RegisterModules() {
@@ -44,4 +46,16 @@ func RegisterModules() {
 
 func RegisterModule[T k8sapp.Module](name string, module T) {
 	k8sapp.RegisterModule(name, &k8sapp.ModuleCommons[T]{}, defaultValues[name])
+}
+
+func helmPatchCleanLabelsAndAnnotations(obj runtime.Object) error {
+	objUnstructured := obj.(*unstructured.Unstructured)
+	labels := objUnstructured.GetLabels()
+	delete(labels, "app.kubernetes.io/version")
+	delete(labels, "helm.sh/chart")
+	objUnstructured.SetLabels(labels)
+	annotations := objUnstructured.GetAnnotations()
+	delete(annotations, "controller-gen.kubebuilder.io/version")
+	objUnstructured.SetAnnotations(annotations)
+	return nil
 }

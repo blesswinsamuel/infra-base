@@ -30,6 +30,7 @@ func (props *MetalLBProps) Render(scope kgen.Scope) {
 		ChartInfo:   props.ChartInfo,
 		ReleaseName: "metallb",
 		Values:      values,
+		PatchObject: helmPatchCleanLabelsAndAnnotations,
 	})
 	scope.AddApiObject(&v1beta1.IPAddressPool{
 		ObjectMeta: metav1.ObjectMeta{Name: "default"},
