@@ -25,6 +25,9 @@ func NewPersistentVolumeClaimProps(props *PersistentVolumeClaim) corev1.Persiste
 	var storageClassName *string
 	if props.VolumeName != "" || props.StorageClass == "-" || props.StorageClass == "__none__" {
 		storageClassName = infrahelpers.Ptr("no-provisioner")
+		if props.RequestsStorage == "" {
+			props.RequestsStorage = "1"
+		}
 	} else if props.StorageClass == "" {
 		storageClassName = nil
 	} else {

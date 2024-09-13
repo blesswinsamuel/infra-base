@@ -189,6 +189,9 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 	if props.Kind == "" {
 		props.Kind = "Deployment"
 	}
+	if props.Name == "" {
+		props.Name = scope.ID()
+	}
 	commonLabels := map[string]string{"app.kubernetes.io/name": props.Name}
 	podAnnotations := infrahelpers.CopyMap(props.PodAnnotations)
 	var volumes []corev1.Volume
