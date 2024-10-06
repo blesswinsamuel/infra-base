@@ -4,7 +4,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.10.3"
+    version: "0.10.4"
 
 external-secrets-store:
   tokenSecretName: doppler-token-auth-api
@@ -39,7 +39,7 @@ cilium:
   helm:
     repo: https://helm.cilium.io
     chart: cilium
-    version: "1.16.1"
+    version: "1.16.2"
 
 traefik:
   helm:
@@ -84,7 +84,7 @@ postgres:
   metrics:
     image:
       repository: docker.io/bitnami/postgres-exporter
-      tag: 0.15.0-debian-12-r43
+      tag: 0.15.0-debian-12-r44
   database: null
   username: null
   resources:
@@ -121,7 +121,7 @@ postgres:
 redis:
   image:
     repository: bitnami/redis
-    tag: 7.4.0
+    tag: 7.4.1
   metrics:
     image:
       repository: bitnami/redis-exporter
@@ -144,7 +144,7 @@ redis:
 authelia:
   image:
     repository: ghcr.io/authelia/authelia
-    tag: "4.38.10"
+    tag: "4.38.16"
   ingress:
     subDomain: authelia
   ldap:
@@ -249,7 +249,7 @@ kube-state-metrics:
 grafana:
   image:
     repository: grafana/grafana
-    tag: 11.2.0
+    tag: 11.2.2
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
