@@ -3,11 +3,11 @@ module github.com/blesswinsamuel/infra-base/pg-backuper
 go 1.22.2
 
 require (
-	github.com/go-co-op/gocron/v2 v2.11.0
+	github.com/go-co-op/gocron/v2 v2.12.1
 	github.com/goccy/go-yaml v1.12.0
 	github.com/google/uuid v1.6.0
-	github.com/minio/minio-go/v7 v7.0.76
-	github.com/prometheus/client_golang v1.20.3
+	github.com/minio/minio-go/v7 v7.0.77
+	github.com/prometheus/client_golang v1.20.4
 	github.com/rs/zerolog v1.33.0
 	github.com/urfave/cli/v2 v2.27.4
 )
