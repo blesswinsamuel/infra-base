@@ -152,18 +152,19 @@ func (props *Authelia) Render(scope kgen.Scope) {
 			Icon:        "authelia",
 		},
 	}
-	redirectionURL := "https://" + infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") + k8sapp.GetDomain(scope)
 	if len(props.CookieDomains) == 0 {
 		props.CookieDomains = append(props.CookieDomains, map[string]any{
 			"domain": k8sapp.GetDomain(scope),
 		})
 	}
-	for i := range props.CookieDomains {
-		if props.CookieDomains[i]["default_redirection_url"] == nil {
-			props.CookieDomains[i]["default_redirection_url"] = redirectionURL
+	for _, cookieDomain := range props.CookieDomains {
+		domain := cookieDomain["domain"].(string)
+		redirectionURL := "https://" + infrahelpers.Ternary(props.RedirectionSubDomain != "", props.RedirectionSubDomain+".", "") + domain
+		if cookieDomain["default_redirection_url"] == nil {
+			cookieDomain["default_redirection_url"] = redirectionURL
 		}
-		if props.CookieDomains[i]["authelia_url"] == nil {
-			props.CookieDomains[i]["authelia_url"] = "https://" + props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)
+		if cookieDomain["authelia_url"] == nil {
+			cookieDomain["authelia_url"] = "https://" + props.Ingress.SubDomain + "." + domain
 		}
 	}
 	// https://github.com/authelia/chartrepo/blob/master/charts/authelia/templates/autheliaConfig.yaml
