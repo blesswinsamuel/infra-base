@@ -17,7 +17,7 @@ cert-manager:
   helm:
     repo: https://charts.jetstack.io
     chart: cert-manager
-    version: "v1.15.3"
+    version: "v1.16.1"
   _grafana_dashboards:
     cert-manager:
       url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/cert-manager.json
@@ -45,7 +45,7 @@ traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "31.0.0"
+    version: "31.1.1"
   dashboardIngress:
     enabled: false
     subDomain: traefik
@@ -125,7 +125,7 @@ redis:
   metrics:
     image:
       repository: bitnami/redis-exporter
-      tag: 1.63.0
+      tag: 1.64.1
   resources:
     limits:
       cpu: 500m
@@ -253,7 +253,7 @@ grafana:
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.27.6
+      tag: 1.28.0
   authProxyEnabled: true
   anonymousAuthEnabled: false
   ingress:
@@ -340,7 +340,7 @@ alerting-rules:
 vmagent:
   image:
     repository: victoriametrics/vmagent
-    tag: "v1.103.0"
+    tag: "v1.104.0"
   ingress:
     enabled: true
     subDomain: "vmagent"
@@ -360,11 +360,11 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.103.0
+    tag: v1.104.0
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.27.6
+      tag: 1.28.0
   ingress:
     enabled: true
     subDomain: "vmalert"
@@ -426,7 +426,7 @@ node-exporter:
 victoriametrics:
   image:
     repository: victoriametrics/victoria-metrics
-    tag: v1.103.0
+    tag: v1.104.0
   ingress:
     enabled: true
     subDomain: "victoriametrics"
@@ -450,7 +450,7 @@ victoriametrics:
 loki:
   image:
     repository: grafana/loki
-    tag: "3.1.1"
+    tag: "3.2.0"
   storage: local
   _alerting_rules:
     loki:
@@ -482,7 +482,7 @@ kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
     chart: kubernetes-dashboard
-    version: "7.5.0"
+    version: "7.8.0"
   ingress:
     enabled: true
     subDomain: kubernetes-dashboard
