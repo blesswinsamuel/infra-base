@@ -64,6 +64,7 @@ type ApplicationProps struct {
 	Affinity                      *corev1.Affinity
 	TerminationGracePeriodSeconds *int64
 	Homepage                      *ApplicationHomepage
+	NetworkPolicy                 *ApplicationNetworkPolicy
 	// IngressAnnotations              map[string]string
 
 	DeploymentUpdateStrategy        v1.DeploymentStrategy
@@ -71,6 +72,11 @@ type ApplicationProps struct {
 	DaemonSetUpdateStrategy         v1.DaemonSetUpdateStrategy
 	StatefulSetServiceName          string
 	StatefulSetVolumeClaimTemplates []ApplicationPersistentVolume
+}
+
+type ApplicationNetworkPolicy struct {
+	Ingress NetworkPolicyIngress
+	Egress  NetworkPolicyEgress
 }
 
 type ApplicationHomepage struct {
@@ -197,6 +203,11 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 	var volumes []corev1.Volume
 	containerVolumeMountsMap := map[string][]corev1.VolumeMount{}
 	allContainerNames := []string{}
+	networkPolicy := NetworkPolicy{Name: props.Name}
+	if props.NetworkPolicy != nil {
+		networkPolicy.Ingress = props.NetworkPolicy.Ingress
+		networkPolicy.Egress = props.NetworkPolicy.Egress
+	}
 	for _, container := range props.Containers {
 		allContainerNames = append(allContainerNames, container.Name)
 	}
@@ -407,6 +418,9 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 					Tls:   *ingress.TLS,
 				})
 			}
+			if len(networkPolicy.Ingress.AllowFromTraefik) == 0 {
+				networkPolicy.Ingress.AllowFromTraefik = []intstr.IntOrString{intstr.FromString(port.Name)}
+			}
 			if prometheusScrape := port.PrometheusScrape; prometheusScrape != nil {
 				if serviceAnnotations[serviceName] == nil {
 					serviceAnnotations[serviceName] = map[string]string{}
@@ -416,6 +430,9 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 				if prometheusScrape.Path != "" {
 					serviceAnnotations[serviceName]["prometheus.io/path"] = prometheusScrape.Path
 				}
+				networkPolicy.Ingress.AllowFromPods = append(networkPolicy.Ingress.AllowFromPods, NetworkPolicyPeer{
+					Namespace: "monitoring", Pod: "vmagent", Ports: []intstr.IntOrString{intstr.FromInt32(port.GetServicePort())},
+				})
 			}
 		}
 
@@ -566,6 +583,9 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 				Name: props.ServiceAccountName,
 			},
 		})
+	}
+	if props.NetworkPolicy != nil {
+		NewNetworkPolicy(scope, &networkPolicy)
 	}
 }
 
