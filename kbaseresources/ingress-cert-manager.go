@@ -13,7 +13,7 @@ type CertManagerProps struct {
 // https://artifacthub.io/packages/helm/cert-manager/cert-manager
 func (props *CertManagerProps) Render(scope kgen.Scope) {
 	values := map[string]interface{}{
-		"installCRDs": "true",
+		"installCRDs": true,
 		"extraArgs": []string{
 			"--enable-certificate-owner-ref=true",
 		},
