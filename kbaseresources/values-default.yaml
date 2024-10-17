@@ -39,7 +39,7 @@ cilium:
   helm:
     repo: https://helm.cilium.io
     chart: cilium
-    version: "1.16.2"
+    version: "1.16.3"
 
 traefik:
   helm:
@@ -450,7 +450,7 @@ victoriametrics:
 loki:
   image:
     repository: grafana/loki
-    tag: "3.2.0"
+    tag: "3.2.1"
   storage: local
   _alerting_rules:
     loki:
