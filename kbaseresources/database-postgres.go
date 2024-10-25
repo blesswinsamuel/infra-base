@@ -9,7 +9,6 @@ import (
 	"github.com/blesswinsamuel/kgen"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -167,19 +166,10 @@ func (props *Postgres) Render(scope kgen.Scope) {
 		},
 		ImagePullSecrets: props.ImagePullSecrets,
 		// TerminationGracePeriodSeconds: ptr.To(int64(300)),
-	})
-	scope.AddApiObject(&networkingv1.NetworkPolicy{
-		ObjectMeta: metav1.ObjectMeta{Name: scope.ID()},
-		Spec: networkingv1.NetworkPolicySpec{
-			Egress: []networkingv1.NetworkPolicyEgressRule{{}},
-			Ingress: []networkingv1.NetworkPolicyIngressRule{
-				{Ports: []networkingv1.NetworkPolicyPort{
-					{Port: ptr.To(intstr.FromInt(5432))},
-					{Port: ptr.To(intstr.FromInt(9187))},
-				}},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Ingress: k8sapp.NetworkPolicyIngress{
+				AllowFromAllNamespaces: []intstr.IntOrString{intstr.FromString("tcp-postgresql")},
 			},
-			PolicyTypes: []networkingv1.PolicyType{"Ingress", "Egress"},
-			PodSelector: metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": scope.ID()}},
 		},
 	})
 	scope.AddApiObject(&corev1.Service{

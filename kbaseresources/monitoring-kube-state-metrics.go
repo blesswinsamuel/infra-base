@@ -44,6 +44,11 @@ func (props *KubeStateMetricsProps) Render(scope kgen.Scope) {
 			RunAsGroup:     ptr.To(int64(65534)),
 			SeccompProfile: &v1.SeccompProfile{Type: v1.SeccompProfileTypeRuntimeDefault},
 		},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Egress: k8sapp.NetworkPolicyEgress{
+				AllowToKubeAPIServer: true,
+			},
+		},
 	})
 	scope.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{Name: "kube-state-metrics"},

@@ -77,5 +77,6 @@ func (props *NodeExporterProps) Render(scope kgen.Scope) {
 			RunAsUser:    ptr.To(int64(65534)),
 			RunAsGroup:   ptr.To(int64(65534)),
 		},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{},
 	})
 }

@@ -89,6 +89,12 @@ func (props *PgBackuper) Render(scope kgen.Scope) {
 			// {Name: "pg-backuper-local", StorageClass: "-", VolumeName: "applications-pg-backuper-local", RequestsStorage: "1Gi", MountName: "storage-local", MountPath: "/data"},
 			// {Name: "pg-backuper-music", StorageClass: "-", VolumeName: "media-music-applications-pg-backuper", RequestsStorage: "1Gi", MountName: "music", MountPath: "/music"},
 		},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Egress: k8sapp.NetworkPolicyEgress{
+				AllowToAllInternet: []int{80, 443}, // for uploading to s3
+				AllowToAppRefs:     []string{"postgres"},
+			},
+		},
 	})
 	if props.PersistentVolumeClaims != nil {
 		for _, pvc := range props.PersistentVolumeClaims {

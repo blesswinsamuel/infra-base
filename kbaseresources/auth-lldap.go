@@ -13,6 +13,7 @@ type LLDAP struct {
 	ImageInfo   k8sapp.ImageInfo `json:"image"`
 	BaseDN      string           `json:"base_dn"`
 	EmailDomain string           `json:"email_domain"`
+	UseMailpit  bool             `json:"useMailpit"`
 	Postgres    struct {
 		Host        string `json:"host"`
 		Port        int    `json:"port"`
@@ -23,7 +24,7 @@ type LLDAP struct {
 }
 
 func (props *LLDAP) Render(scope kgen.Scope) {
-	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
+	app := &k8sapp.ApplicationProps{
 		Name: "lldap",
 		Containers: []k8sapp.ApplicationContainer{{
 			Name:  "lldap",
@@ -39,7 +40,6 @@ func (props *LLDAP) Render(scope kgen.Scope) {
 			Env: map[string]string{
 				// "LLDAP_VERBOSE": "true",
 				"LLDAP_SMTP_OPTIONS__ENABLE_PASSWORD_RESET": "true",
-				"LLDAP_SMTP_OPTIONS__SMTP_ENCRYPTION":       "STARTTLS",
 				"LLDAP_SMTP_OPTIONS__FROM":                  fmt.Sprintf("LLDAP <lldap@%s>", props.EmailDomain),
 				"LLDAP_SMTP_OPTIONS__REPLY_TO":              fmt.Sprintf("LLDAP no-reply <lldap-no-reply@%s>", props.EmailDomain),
 				"LLDAP_LDAP_BASE_DN":                        props.BaseDN,
@@ -62,13 +62,9 @@ func (props *LLDAP) Render(scope kgen.Scope) {
 			{
 				Name: "lldap",
 				RemoteRefs: map[string]string{
-					"LLDAP_JWT_SECRET":             "LLDAP_JWT_SECRET",
-					"LLDAP_LDAP_USER_PASS":         "LLDAP_LDAP_USER_PASS",
-					"LLDAP_SMTP_OPTIONS__USER":     "SMTP_USERNAME",
-					"LLDAP_SMTP_OPTIONS__PASSWORD": "SMTP_PASSWORD",
-					"LLDAP_SMTP_OPTIONS__SERVER":   "SMTP_HOST",
-					"LLDAP_SMTP_OPTIONS__PORT":     "SMTP_PORT",
-					"LLDAP_PRIVATE_KEY":            "LLDAP_PRIVATE_KEY",
+					"LLDAP_JWT_SECRET":     "LLDAP_JWT_SECRET",
+					"LLDAP_LDAP_USER_PASS": "LLDAP_LDAP_USER_PASS",
+					"LLDAP_PRIVATE_KEY":    "LLDAP_PRIVATE_KEY",
 				},
 			},
 			{
@@ -88,5 +84,27 @@ func (props *LLDAP) Render(scope kgen.Scope) {
 			Group:       "Infra",
 			Icon:        "authentik",
 		},
-	})
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Ingress: k8sapp.NetworkPolicyIngress{
+				AllowFromAppRefs: map[string][]intstr.IntOrString{
+					"authelia": {intstr.FromString("http")},
+				},
+			},
+			Egress: k8sapp.NetworkPolicyEgress{
+				AllowToAppRefs: []string{"postgres"},
+			},
+		},
+	}
+	if props.UseMailpit {
+		app.Containers[0].Env["LLDAP_SMTP_OPTIONS__SERVER"] = "mailpit.smtp.svc.cluster.local."
+		app.Containers[0].Env["LLDAP_SMTP_OPTIONS__PORT"] = "1025"
+		app.NetworkPolicy.Egress.AllowToAppRefs = append(app.NetworkPolicy.Egress.AllowToAppRefs, "mailpit")
+	} else {
+		app.Containers[0].Env["LLDAP_SMTP_OPTIONS__SMTP_ENCRYPTION"] = "STARTTLS"
+		app.ExternalSecrets[0].RemoteRefs["LLDAP_SMTP_OPTIONS__USER"] = "SMTP_USERNAME"
+		app.ExternalSecrets[0].RemoteRefs["LLDAP_SMTP_OPTIONS__PASSWORD"] = "SMTP_PASSWORD"
+		app.ExternalSecrets[0].RemoteRefs["LLDAP_SMTP_OPTIONS__SERVER"] = "SMTP_HOST"
+		app.ExternalSecrets[0].RemoteRefs["LLDAP_SMTP_OPTIONS__PORT"] = "SMTP_PORT"
+	}
+	k8sapp.NewApplication(scope, app)
 }

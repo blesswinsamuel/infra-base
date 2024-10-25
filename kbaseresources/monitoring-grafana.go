@@ -220,6 +220,12 @@ format = json
 			Group:       "Infra",
 			Icon:        "grafana",
 		},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Egress: k8sapp.NetworkPolicyEgress{
+				AllowToAppRefs:       []string{"victoriametrics", "loki"},
+				AllowToKubeAPIServer: true,
+			},
+		},
 	})
 	scope.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: v1.ObjectMeta{Name: "grafana"},

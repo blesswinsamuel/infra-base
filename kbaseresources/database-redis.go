@@ -4,7 +4,6 @@ import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
@@ -111,6 +110,11 @@ func (props *Redis) Render(scope kgen.Scope) {
 		PersistentVolumes: []k8sapp.ApplicationPersistentVolume{
 			{Name: "redis", VolumeName: props.PersistentVolumeName, RequestsStorage: "1Gi", MountToContainers: []string{"redis"}, MountName: "data", MountPath: "/bitnami/redis/data"},
 		},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Ingress: k8sapp.NetworkPolicyIngress{
+				AllowFromAllNamespaces: []intstr.IntOrString{intstr.FromString("tcp-redis")},
+			},
+		},
 	})
 	scope.AddApiObject(&corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -124,18 +128,6 @@ func (props *Redis) Render(scope kgen.Scope) {
 				"app.kubernetes.io/name": "redis",
 			},
 			ClusterIP: corev1.ClusterIPNone,
-		},
-	})
-	scope.AddApiObject(&networkingv1.NetworkPolicy{
-		ObjectMeta: metav1.ObjectMeta{Name: "redis"},
-		Spec: networkingv1.NetworkPolicySpec{
-			Egress: []networkingv1.NetworkPolicyEgressRule{{}},
-			Ingress: []networkingv1.NetworkPolicyIngressRule{
-				{Ports: []networkingv1.NetworkPolicyPort{{Port: ptr.To(intstr.FromInt(6379))}}},
-				{Ports: []networkingv1.NetworkPolicyPort{{Port: ptr.To(intstr.FromInt(9121))}}},
-			},
-			PolicyTypes: []networkingv1.PolicyType{"Ingress", "Egress"},
-			PodSelector: metav1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "redis"}},
 		},
 	})
 }

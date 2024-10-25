@@ -10,7 +10,14 @@ import (
 	traefiktypes "github.com/traefik/traefik/v3/pkg/types"
 	networkingv1 "k8s.io/api/networking/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
+
+type NameNamespacePort struct {
+	Name      string             `json:"name"`
+	Namespace string             `json:"namespace"`
+	Port      intstr.IntOrString `json:"port"`
+}
 
 type NameNamespace struct {
 	Name      string `json:"name"`

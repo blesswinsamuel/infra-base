@@ -27,22 +27,6 @@ type LokiProps struct {
 
 // https://github.com/grafana/loki/tree/main/production/helm/loki
 func (props *LokiProps) Render(scope kgen.Scope) {
-	var vcts []k8sapp.ApplicationPersistentVolume
-	vols := []corev1.Volume{}
-	volMnts := []corev1.VolumeMount{}
-	if props.PersistentVolumeName != "" {
-		// k8sapp.NewPersistentVolumeClaim(scope, &k8sapp.PersistentVolumeClaim{
-		// 	Name:            "loki",
-		// 	StorageClass:    "-",
-		// 	RequestsStorage: "10Gi",
-		// 	VolumeName:      props.PersistentVolumeName,
-		// })
-		// vols = []corev1.Volume{{Name: "storage", VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "loki"}}}}
-		// volMnts = []corev1.VolumeMount{{Name: "storage", MountPath: "/var/loki"}}
-		vcts = []k8sapp.ApplicationPersistentVolume{{Name: "storage", StorageClass: "-", VolumeName: props.PersistentVolumeName, RequestsStorage: "10Gi", MountName: "storage", MountPath: "/var/loki"}}
-	} else {
-		vcts = []k8sapp.ApplicationPersistentVolume{{Name: "storage", RequestsStorage: "16Gi", MountName: "storage", MountPath: "/var/loki"}}
-	}
 	lokiConfig := map[string]any{
 		"server": map[string]any{
 			"grpc_listen_port": 9095,
@@ -187,25 +171,27 @@ func (props *LokiProps) Render(scope kgen.Scope) {
 			Name:  "loki",
 			Image: props.ImageInfo,
 			Ports: []k8sapp.ContainerPort{
-				{Name: "http-metrics", Port: 3100},
+				{Name: "http", Port: 3100},
 				{Name: "grpc", Port: 9095},
-				{Name: "http-metrics", Port: 3100, ServiceName: "loki-headless", DisableContainerPort: true},
+				{Name: "http", Port: 3100, ServiceName: "loki-headless", DisableContainerPort: true},
 			},
 			Args: []string{
 				"-config.file=/etc/loki/config/config.yaml",
 				"-target=all",
 				"-validation.allow-structured-metadata=false", // TODO temporary
 			},
-			ReadinessProbe: &corev1.Probe{InitialDelaySeconds: 30, TimeoutSeconds: 1, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http-metrics"), Path: "/ready"}}},
-			ExtraVolumeMounts: infrahelpers.MergeLists(volMnts, []corev1.VolumeMount{
+			ReadinessProbe: &corev1.Probe{InitialDelaySeconds: 30, TimeoutSeconds: 1, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/ready"}}},
+			ExtraVolumeMounts: []corev1.VolumeMount{
 				{Name: "tmp", MountPath: "/tmp"},
-			}),
+			},
 			SecurityContext: &corev1.SecurityContext{Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}}, AllowPrivilegeEscalation: infrahelpers.Ptr(false), ReadOnlyRootFilesystem: infrahelpers.Ptr(true)},
 		}},
-		ExtraVolumes: infrahelpers.MergeLists(vols, []corev1.Volume{
+		ExtraVolumes: []corev1.Volume{
 			{Name: "tmp", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
-		}),
-		StatefulSetVolumeClaimTemplates: vcts,
+		},
+		StatefulSetVolumeClaimTemplates: []k8sapp.ApplicationPersistentVolume{
+			{Name: "storage", VolumeName: props.PersistentVolumeName, RequestsStorage: "16Gi", MountName: "storage", MountPath: "/var/loki"},
+		},
 		ConfigMaps: []k8sapp.ApplicationConfigMap{
 			{
 				Name: "loki",
@@ -227,6 +213,14 @@ func (props *LokiProps) Render(scope kgen.Scope) {
 			},
 		},
 		Tolerations: props.Tolerations,
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Ingress: k8sapp.NetworkPolicyIngress{
+				AllowFromAppRefs: map[string][]intstr.IntOrString{
+					"vector":  {intstr.FromString("http")},
+					"grafana": {intstr.FromString("http")},
+				},
+			},
+		},
 	})
 
 	scope.AddApiObject(&corev1.Service{

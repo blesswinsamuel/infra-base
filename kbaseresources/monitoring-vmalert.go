@@ -99,6 +99,17 @@ func (props *VmalertProps) Render(scope kgen.Scope) {
 			Group:       "Infra",
 			Icon:        "si-victoriametrics",
 		},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Ingress: k8sapp.NetworkPolicyIngress{
+				AllowFromAppRefs: map[string][]intstr.IntOrString{
+					"victoriametrics": {intstr.FromString("http")},
+				},
+			},
+			Egress: k8sapp.NetworkPolicyEgress{
+				AllowToKubeAPIServer: true,
+				AllowToAppRefs:       []string{"victoriametrics", "alertmanager"},
+			},
+		},
 	})
 	scope.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: v1.ObjectMeta{Name: "vmalert"},

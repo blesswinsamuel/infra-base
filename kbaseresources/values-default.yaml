@@ -514,6 +514,13 @@ coredns:
   clusterDNSList: ["10.43.0.10"]
   ipFamilyPolicy: SingleStack
 
+### smtp ###
+
+mailpit:
+  image:
+    repository: axllent/mailpit
+    tag: v1.20.7
+
 ### utils ###
 
 docker-creds: {}

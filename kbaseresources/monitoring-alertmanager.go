@@ -149,6 +149,14 @@ func (props *AlertmanagerProps) Render(scope kgen.Scope) {
 			MountName: "config",
 			ReadOnly:  true,
 		}},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Ingress: k8sapp.NetworkPolicyIngress{
+				AllowFromAppRefs: map[string][]intstr.IntOrString{"vmalert": {intstr.FromString("http")}},
+			},
+			Egress: k8sapp.NetworkPolicyEgress{
+				AllowToAllInternet: []int{80, 443}, // for sending notifications
+			},
+		},
 		StatefulSetVolumeClaimTemplates: []k8sapp.ApplicationPersistentVolume{{
 			Name:            "storage",
 			RequestsStorage: "40Mi",

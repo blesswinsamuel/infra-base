@@ -78,6 +78,12 @@ func (props *VmagentProps) Render(scope kgen.Scope) {
 				"url":  "http://vmagent." + scope.Namespace() + ".svc.cluster.local:8429",
 			},
 		},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Egress: k8sapp.NetworkPolicyEgress{
+				AllowToAppRefs:       []string{"victoriametrics"},
+				AllowToAllNamespaces: true,
+			},
+		},
 	})
 	scope.AddApiObject(&rbacv1.ClusterRole{
 		ObjectMeta: v1.ObjectMeta{Name: "vmagent"},

@@ -300,6 +300,11 @@ if err != null {
 				},
 			},
 		},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Egress: k8sapp.NetworkPolicyEgress{
+				AllowToAppRefs: []string{"loki"},
+			},
+		},
 	}
 	if props.SyslogServer.Enabled {
 		applicationProps.Containers[0].Ports = append(applicationProps.Containers[0].Ports, k8sapp.ContainerPort{Name: "syslog-server-t", Port: 514, Protocol: "TCP"})

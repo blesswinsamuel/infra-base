@@ -1,6 +1,9 @@
 package k8sapp
 
 import (
+	"slices"
+
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/kgen"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -93,25 +96,46 @@ func NewGlobalNetworkPolicies(scope kgen.Scope) {
 }
 
 type NetworkPolicyIngress struct {
-	AllowFromPods    []NetworkPolicyPeer
-	AllowFromTraefik []intstr.IntOrString
+	// // deprecated
+	// AllowFromVMAgent []intstr.IntOrString
+	// // deprecated
+	// AllowFromHomepage []intstr.IntOrString
+	// // deprecated
+	// AllowFromTraefik []intstr.IntOrString
+
+	AllowFromAppRefs       map[string][]intstr.IntOrString
+	AllowFromApps          []NetworkPolicyPeer
+	AllowFromIPs           map[string][]intstr.IntOrString
+	AllowFromAllNamespaces []intstr.IntOrString
 }
 
 type NetworkPolicyPeer struct {
 	Namespace string
-	Pod       string
+	App       string
 	Ports     []intstr.IntOrString
 }
 
 type NetworkPolicyEgressIP struct {
 	CidrIPBlocks []string
-	Ports        []intstr.IntOrString
+	Ports        []int
 }
 
 type NetworkPolicyEgress struct {
-	AllowToPods        []NetworkPolicyPeer
-	AllowToAllInternet []int
-	AllowToIPs         []NetworkPolicyEgressIP
+	// // deprecated
+	// AllowToPostgres bool
+	// // deprecated
+	// AllowToRedis bool
+	// // deprecated
+	// AllowToMQTT bool
+	// // deprecated
+	// AllowToTraefik bool // for oauth
+
+	AllowToKubeAPIServer bool
+	AllowToAppRefs       []string
+	AllowToApps          []NetworkPolicyPeer
+	AllowToAllInternet   []int
+	AllowToAllNamespaces bool
+	AllowToIPs           []NetworkPolicyEgressIP
 }
 
 type NetworkPolicy struct {
@@ -121,29 +145,27 @@ type NetworkPolicy struct {
 }
 
 func NewNetworkPolicy(scope kgen.Scope, props *NetworkPolicy) kgen.ApiObject {
+	globals := GetGlobals(scope)
+
+	// Ingress
 	var ingressRules []networkingv1.NetworkPolicyIngressRule
-	if len(props.Ingress.AllowFromTraefik) > 0 {
-		rule := NetworkPolicyPeer{
-			Namespace: "ingress",
-			Pod:       "traefik",
-			Ports:     props.Ingress.AllowFromTraefik,
-		}
-		props.Ingress.AllowFromPods = append(props.Ingress.AllowFromPods, rule)
-		// rule := networkingv1.NetworkPolicyIngressRule{
-		// 	From: []networkingv1.NetworkPolicyPeer{
-		// 		{NamespaceSelector: &v1.LabelSelector{MatchLabels: map[string]string{"kubernetes.io/metadata.name": "ingress"}}},
-		// 		{PodSelector: &v1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": "traefik"}}},
-		// 	},
-		// 	Ports: []networkingv1.NetworkPolicyPort{},
-		// }
-		// for _, port := range props.Ingress.AllowFromTraefikToPorts {
-		// 	rule.Ports = append(rule.Ports, networkingv1.NetworkPolicyPort{Port: ptr.To(port)})
-		// }
-		// ingressRules = append(ingressRules, rule)
+	allowFromPods := slices.Clone(props.Ingress.AllowFromApps)
+	// if len(props.Ingress.AllowFromTraefik) > 0 {
+	// 	allowFromPods = append(allowFromPods, NetworkPolicyPeer{Namespace: globals.AppRefs["traefik"].Namespace, App: globals.AppRefs["traefik"].Name, Ports: props.Ingress.AllowFromTraefik})
+	// }
+	// if len(props.Ingress.AllowFromVMAgent) > 0 {
+	// 	allowFromPods = append(allowFromPods, NetworkPolicyPeer{Namespace: globals.AppRefs["vmagent"].Namespace, App: globals.AppRefs["vmagent"].Name, Ports: props.Ingress.AllowFromVMAgent})
+	// }
+	// if len(props.Ingress.AllowFromHomepage) > 0 {
+	// 	allowFromPods = append(allowFromPods, NetworkPolicyPeer{Namespace: globals.AppRefs["homepage"].Namespace, App: globals.AppRefs["homepage"].Name, Ports: props.Ingress.AllowFromHomepage})
+	// }
+	for _, app := range infrahelpers.MapKeysSorted(props.Ingress.AllowFromAppRefs) {
+		ports := props.Ingress.AllowFromAppRefs[app]
+		allowFromPods = append(allowFromPods, NetworkPolicyPeer{Namespace: globals.AppRefs[app].Namespace, App: globals.AppRefs[app].Name, Ports: ports})
 	}
-	for _, ingressPod := range props.Ingress.AllowFromPods {
+	for _, ingressPod := range allowFromPods {
 		peer := networkingv1.NetworkPolicyPeer{}
-		peer.PodSelector = &v1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": ingressPod.Pod}}
+		peer.PodSelector = &v1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": ingressPod.App}}
 		if ingressPod.Namespace != "" {
 			peer.NamespaceSelector = &v1.LabelSelector{MatchLabels: map[string]string{"kubernetes.io/metadata.name": ingressPod.Namespace}}
 		}
@@ -156,7 +178,29 @@ func NewNetworkPolicy(scope kgen.Scope, props *NetworkPolicy) kgen.ApiObject {
 		}
 		ingressRules = append(ingressRules, ingressRule)
 	}
+	for _, cidrBlock := range infrahelpers.MapKeysSorted(props.Ingress.AllowFromIPs) {
+		ports := props.Ingress.AllowFromIPs[cidrBlock]
+		ingressRule := networkingv1.NetworkPolicyIngressRule{
+			From: []networkingv1.NetworkPolicyPeer{{IPBlock: &networkingv1.IPBlock{CIDR: cidrBlock}}},
+		}
+		for _, port := range ports {
+			ingressRule.Ports = append(ingressRule.Ports, networkingv1.NetworkPolicyPort{Port: ptr.To(port)})
+		}
+		ingressRules = append(ingressRules, ingressRule)
+	}
+	if len(props.Ingress.AllowFromAllNamespaces) > 0 {
+		ingressRule := networkingv1.NetworkPolicyIngressRule{
+			From: []networkingv1.NetworkPolicyPeer{{NamespaceSelector: &v1.LabelSelector{}}},
+		}
+		if !(len(props.Ingress.AllowFromAllNamespaces) == 1 && props.Ingress.AllowFromAllNamespaces[0] == intstr.FromInt(0)) {
+			for _, port := range props.Ingress.AllowFromAllNamespaces {
+				ingressRule.Ports = append(ingressRule.Ports, networkingv1.NetworkPolicyPort{Port: ptr.To(port)})
+			}
+		}
+		ingressRules = append(ingressRules, ingressRule)
+	}
 
+	// Egress
 	var egressRules []networkingv1.NetworkPolicyEgressRule
 	allowCorednsRule := networkingv1.NetworkPolicyEgressRule{
 		To: []networkingv1.NetworkPolicyPeer{
@@ -168,42 +212,69 @@ func NewNetworkPolicy(scope kgen.Scope, props *NetworkPolicy) kgen.ApiObject {
 		Ports: []networkingv1.NetworkPolicyPort{{Port: ptr.To(intstr.FromInt(53)), Protocol: ptr.To(corev1.ProtocolUDP)}},
 	}
 	egressRules = append(egressRules, allowCorednsRule)
+	if props.Egress.AllowToAllNamespaces {
+		egressRule := networkingv1.NetworkPolicyEgressRule{
+			To: []networkingv1.NetworkPolicyPeer{{NamespaceSelector: &v1.LabelSelector{}}},
+		}
+		egressRules = append(egressRules, egressRule)
+	}
+	allowToPods := slices.Clone(props.Egress.AllowToApps)
+
+	// if props.Egress.AllowToPostgres {
+	// 	// deprecated
+	// 	allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: globals.AppRefs["postgres"].Namespace, App: globals.AppRefs["postgres"].Name, Ports: []intstr.IntOrString{intstr.FromString("tcp-postgresql")}})
+	// }
+	// if props.Egress.AllowToRedis {
+	// 	// deprecated
+	// 	allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: globals.AppRefs["redis"].Namespace, App: globals.AppRefs["redis"].Name, Ports: []intstr.IntOrString{intstr.FromString("tcp-redis")}})
+	// }
+	// if props.Egress.AllowToMQTT {
+	// 	// deprecated
+	// 	allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: globals.AppRefs["mqtt"].Namespace, App: globals.AppRefs["mqtt"].Name, Ports: []intstr.IntOrString{intstr.FromString("mqtt")}})
+	// }
+	// if props.Egress.AllowToTraefik {
+	// 	// deprecated
+	// 	allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: globals.AppRefs["traefik"].Namespace, App: globals.AppRefs["traefik"].Name, Ports: []intstr.IntOrString{intstr.FromString("websecure")}})
+	// }
+	for _, app := range props.Egress.AllowToAppRefs {
+		if appRef, ok := globals.AppRefs[app]; ok {
+			allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: appRef.Namespace, App: appRef.Name, Ports: []intstr.IntOrString{appRef.Port}})
+		} else {
+			panic("AppRef not found: " + app)
+		}
+	}
+	allowToIPs := slices.Clone(props.Egress.AllowToIPs)
+	if props.Egress.AllowToKubeAPIServer {
+		// allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: "kube-system", Pod: "kube-apiserver", Ports: []intstr.IntOrString{intstr.FromString("https")}})
+		allowToIPs = append(allowToIPs, NetworkPolicyEgressIP{CidrIPBlocks: []string{"10.100.20.50/32"}, Ports: []int{6443}})
+	}
 
 	if len(props.Egress.AllowToAllInternet) > 0 {
-		rule := NetworkPolicyEgressIP{
-			CidrIPBlocks: []string{"0.0.0.0/0"},
-			Ports:        []intstr.IntOrString{},
-		}
-		for _, port := range props.Egress.AllowToAllInternet {
-			rule.Ports = append(rule.Ports, intstr.FromInt(port))
-		}
-		props.Egress.AllowToIPs = append(props.Egress.AllowToIPs, rule)
+		allowToIPs = append(allowToIPs, NetworkPolicyEgressIP{CidrIPBlocks: []string{"0.0.0.0/0"}, Ports: props.Egress.AllowToAllInternet})
 	}
-	for _, egressPod := range props.Egress.AllowToPods {
+	for _, egressPod := range allowToPods {
 		peer := networkingv1.NetworkPolicyPeer{}
-		peer.PodSelector = &v1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": egressPod.Pod}}
+		if egressPod.App != "" {
+			peer.PodSelector = &v1.LabelSelector{MatchLabels: map[string]string{"app.kubernetes.io/name": egressPod.App}}
+		}
 		if egressPod.Namespace != "" {
 			peer.NamespaceSelector = &v1.LabelSelector{MatchLabels: map[string]string{"kubernetes.io/metadata.name": egressPod.Namespace}}
 		}
 		egressRule := networkingv1.NetworkPolicyEgressRule{
-			To:    []networkingv1.NetworkPolicyPeer{peer},
-			Ports: []networkingv1.NetworkPolicyPort{},
+			To: []networkingv1.NetworkPolicyPeer{peer},
 		}
 		for _, port := range egressPod.Ports {
 			egressRule.Ports = append(egressRule.Ports, networkingv1.NetworkPolicyPort{Port: ptr.To(port)})
 		}
 		egressRules = append(egressRules, egressRule)
 	}
-	for _, egressIP := range props.Egress.AllowToIPs {
-		egressRule := networkingv1.NetworkPolicyEgressRule{
-			To:    []networkingv1.NetworkPolicyPeer{},
-			Ports: []networkingv1.NetworkPolicyPort{},
-		}
+	for _, egressIP := range allowToIPs {
+		egressRule := networkingv1.NetworkPolicyEgressRule{}
 		for _, ipBlock := range egressIP.CidrIPBlocks {
 			egressRule.To = append(egressRule.To, networkingv1.NetworkPolicyPeer{IPBlock: &networkingv1.IPBlock{CIDR: ipBlock}})
 		}
 		for _, port := range egressIP.Ports {
-			egressRule.Ports = append(egressRule.Ports, networkingv1.NetworkPolicyPort{Port: ptr.To(port)})
+			egressRule.Ports = append(egressRule.Ports, networkingv1.NetworkPolicyPort{Port: ptr.To(intstr.FromInt(port))})
 		}
 		egressRules = append(egressRules, egressRule)
 	}

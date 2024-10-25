@@ -68,6 +68,7 @@ type Authelia struct {
 		SubDomain string `json:"subDomain"`
 	} `json:"ingress"`
 	AccessControl infrahelpers.YAMLAllowInclude[map[string]any] `json:"accessControl"`
+	UseMailpit    bool                                          `json:"useMailpit"`
 	OIDC          struct {
 		Enabled                bool                                            `json:"enabled"`
 		IssuerCertificateChain string                                          `json:"issuer_certificate_chain"`
@@ -150,6 +151,15 @@ func (props *Authelia) Render(scope kgen.Scope) {
 			SiteMonitor: "http://authelia." + scope.Namespace() + ".svc.cluster.local/api/health",
 			Group:       "Infra",
 			Icon:        "authelia",
+		},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Egress: k8sapp.NetworkPolicyEgress{
+				AllowToAppRefs: []string{"postgres", "redis", "lldap", "mailpit"},
+				AllowToIPs: []k8sapp.NetworkPolicyEgressIP{
+					{CidrIPBlocks: []string{"162.159.200.1/32", "162.159.200.123/32"}, Ports: []int{123}}, // for ntp UDP to time.cloudflare.com
+				},
+				AllowToAllInternet: infrahelpers.Ternary(props.Assets != nil, []int{80, 443}, nil), // for downloading assets
+			},
 		},
 	}
 	if len(props.CookieDomains) == 0 {
@@ -254,10 +264,7 @@ func (props *Authelia) Render(scope kgen.Scope) {
 		"notifier": map[string]any{
 			"disable_startup_check": false,
 			"smtp": map[string]any{
-				"address":  "smtp://{{ .SMTP_HOST }}:{{ .SMTP_PORT }}",
-				"password": "{{ .SMTP_PASSWORD }}",
-				"timeout":  "5s",
-				"username": "{{ .SMTP_USERNAME }}",
+				"timeout": "5s",
 				"sender": infrahelpers.UseOrDefault(
 					props.SMTP.Sender,
 					fmt.Sprintf("Authelia <authelia@%s>", props.SMTP.EmailDomain),
@@ -266,14 +273,6 @@ func (props *Authelia) Render(scope kgen.Scope) {
 				"subject":               infrahelpers.UseOrDefault(props.SMTP.Subject, "[authelia] {title}"),
 				"startup_check_address": fmt.Sprintf("test@%s", props.SMTP.EmailDomain),
 				"disable_html_emails":   false,
-				"disable_require_tls":   false,
-				"disable_starttls":      false,
-				"tls": map[string]any{
-					"server_name":     "{{ .SMTP_HOST }}",
-					"skip_verify":     false,
-					"minimum_version": "TLS1.2",
-					"maximum_version": "TLS1.3",
-				},
 			},
 		},
 		"authentication_backend": map[string]any{
@@ -308,14 +307,33 @@ func (props *Authelia) Render(scope kgen.Scope) {
 		},
 	}
 	externalSecretRefs := map[string]string{
-		"SMTP_PASSWORD":          "SMTP_PASSWORD",
-		"SMTP_HOST":              "SMTP_HOST",
-		"SMTP_PORT":              "SMTP_PORT",
-		"SMTP_USERNAME":          "SMTP_USERNAME",
 		"JWT_TOKEN":              "AUTHELIA_JWT_TOKEN",
 		"SESSION_ENCRYPTION_KEY": "AUTHELIA_SESSION_ENCRYPTION_KEY",
 		"STORAGE_ENCRYPTION_KEY": "AUTHELIA_STORAGE_ENCRYPTION_KEY",
 		"POSTGRES_PASSWORD":      "POSTGRES_PASSWORD_AUTHELIA",
+	}
+	globals := k8sapp.GetGlobals(scope)
+	smtpSettings := autheliaConfig["notifier"].(map[string]any)["smtp"].(map[string]any)
+	if mailpit, ok := globals.AppRefs["mailpit"]; ok {
+		smtpSettings["address"] = "smtp://" + mailpit.Name + "." + mailpit.Namespace + ".svc.cluster.local.:1025"
+		smtpSettings["disable_starttls"] = true
+		smtpSettings["disable_require_tls"] = true
+	} else {
+		smtpSettings["address"] = "smtp://{{ .SMTP_HOST }}:{{ .SMTP_PORT }}"
+		smtpSettings["username"] = "{{ .SMTP_USERNAME }}"
+		smtpSettings["password"] = "{{ .SMTP_PASSWORD }}"
+		smtpSettings["disable_starttls"] = false
+		smtpSettings["disable_require_tls"] = false
+		smtpSettings["tls"] = map[string]any{
+			"server_name":     "{{ .SMTP_HOST }}",
+			"skip_verify":     false,
+			"minimum_version": "TLS1.2",
+			"maximum_version": "TLS1.3",
+		}
+		externalSecretRefs["SMTP_PASSWORD"] = "SMTP_PASSWORD"
+		externalSecretRefs["SMTP_HOST"] = "SMTP_HOST"
+		externalSecretRefs["SMTP_PORT"] = "SMTP_PORT"
+		externalSecretRefs["SMTP_USERNAME"] = "SMTP_USERNAME"
 	}
 	if props.OIDC.Enabled {
 		for i, client := range props.OIDC.Clients.V {

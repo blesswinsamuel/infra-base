@@ -23,9 +23,10 @@ type ValuesGlobal struct {
 	Domain      string `json:"domain"`
 	ClusterName string `json:"clusterName"`
 
-	Cert           ValuesGlobalCert           `json:"cert"`
-	Ingress        ValuesGlobalIngress        `json:"ingress"`
-	ExternalSecret ValuesGlobalExternalSecret `json:"externalSecret"`
+	Cert           ValuesGlobalCert             `json:"cert"`
+	Ingress        ValuesGlobalIngress          `json:"ingress"`
+	ExternalSecret ValuesGlobalExternalSecret   `json:"externalSecret"`
+	AppRefs        map[string]NameNamespacePort `json:"appRefs"`
 }
 
 var defaultValuesGlobal = ValuesGlobal{

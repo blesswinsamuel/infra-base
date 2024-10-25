@@ -71,6 +71,18 @@ func (props *VictoriaMetrics) Render(scope kgen.Scope) {
 			Group:       "Infra",
 			Icon:        "si-victoriametrics",
 		},
+		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Ingress: k8sapp.NetworkPolicyIngress{
+				AllowFromIPs: map[string][]intstr.IntOrString{"0.0.0.0/0": {intstr.FromString("http")}}, // TODO: move to vmagent
+				AllowFromAppRefs: map[string][]intstr.IntOrString{
+					"grafana": {intstr.FromString("http")},
+					"vmalert": {intstr.FromString("http")},
+				},
+			},
+			Egress: k8sapp.NetworkPolicyEgress{
+				AllowToAppRefs: []string{"vmalert"},
+			},
+		},
 	})
 
 	if props.NodePortServiceEnabled {

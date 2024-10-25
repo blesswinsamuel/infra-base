@@ -208,6 +208,9 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 		networkPolicy.Ingress = props.NetworkPolicy.Ingress
 		networkPolicy.Egress = props.NetworkPolicy.Egress
 	}
+	if networkPolicy.Ingress.AllowFromAppRefs == nil {
+		networkPolicy.Ingress.AllowFromAppRefs = map[string][]intstr.IntOrString{}
+	}
 	for _, container := range props.Containers {
 		allContainerNames = append(allContainerNames, container.Name)
 	}
@@ -418,8 +421,8 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 					Tls:   *ingress.TLS,
 				})
 			}
-			if len(networkPolicy.Ingress.AllowFromTraefik) == 0 {
-				networkPolicy.Ingress.AllowFromTraefik = []intstr.IntOrString{intstr.FromString(port.Name)}
+			if len(ingressHosts) > 0 && len(networkPolicy.Ingress.AllowFromAppRefs["traefik"]) == 0 {
+				networkPolicy.Ingress.AllowFromAppRefs["traefik"] = []intstr.IntOrString{intstr.FromString(port.Name)}
 			}
 			if prometheusScrape := port.PrometheusScrape; prometheusScrape != nil {
 				if serviceAnnotations[serviceName] == nil {
@@ -430,9 +433,9 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 				if prometheusScrape.Path != "" {
 					serviceAnnotations[serviceName]["prometheus.io/path"] = prometheusScrape.Path
 				}
-				networkPolicy.Ingress.AllowFromPods = append(networkPolicy.Ingress.AllowFromPods, NetworkPolicyPeer{
-					Namespace: "monitoring", Pod: "vmagent", Ports: []intstr.IntOrString{intstr.FromInt32(port.GetServicePort())},
-				})
+				if len(networkPolicy.Ingress.AllowFromAppRefs["vmagent"]) == 0 {
+					networkPolicy.Ingress.AllowFromAppRefs["vmagent"] = []intstr.IntOrString{intstr.FromInt32(port.GetServicePort())}
+				}
 			}
 		}
 
@@ -568,6 +571,15 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 		var ingressAnnotations map[string]string
 		if props.Homepage != nil {
 			ingressAnnotations = GetHomepageAnnotations(props.Homepage)
+			if len(networkPolicy.Ingress.AllowFromAppRefs["homepage"]) == 0 {
+				ports := []intstr.IntOrString{}
+				for _, port := range ingressHosts {
+					for _, path := range port.Paths {
+						ports = append(ports, intstr.FromString(path.ServicePortName))
+					}
+				}
+				networkPolicy.Ingress.AllowFromAppRefs["homepage"] = ports
+			}
 		}
 		NewIngress(scope, &IngressProps{
 			Name:                   props.Name,
