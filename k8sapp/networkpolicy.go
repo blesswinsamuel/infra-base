@@ -96,13 +96,6 @@ func NewGlobalNetworkPolicies(scope kgen.Scope) {
 }
 
 type NetworkPolicyIngress struct {
-	// // deprecated
-	// AllowFromVMAgent []intstr.IntOrString
-	// // deprecated
-	// AllowFromHomepage []intstr.IntOrString
-	// // deprecated
-	// AllowFromTraefik []intstr.IntOrString
-
 	AllowFromAppRefs       map[string][]intstr.IntOrString
 	AllowFromApps          []NetworkPolicyPeer
 	AllowFromIPs           map[string][]intstr.IntOrString
@@ -121,15 +114,6 @@ type NetworkPolicyEgressIP struct {
 }
 
 type NetworkPolicyEgress struct {
-	// // deprecated
-	// AllowToPostgres bool
-	// // deprecated
-	// AllowToRedis bool
-	// // deprecated
-	// AllowToMQTT bool
-	// // deprecated
-	// AllowToTraefik bool // for oauth
-
 	AllowToKubeAPIServer bool
 	AllowToAppRefs       []string
 	AllowToApps          []NetworkPolicyPeer
@@ -150,15 +134,6 @@ func NewNetworkPolicy(scope kgen.Scope, props *NetworkPolicy) kgen.ApiObject {
 	// Ingress
 	var ingressRules []networkingv1.NetworkPolicyIngressRule
 	allowFromPods := slices.Clone(props.Ingress.AllowFromApps)
-	// if len(props.Ingress.AllowFromTraefik) > 0 {
-	// 	allowFromPods = append(allowFromPods, NetworkPolicyPeer{Namespace: globals.AppRefs["traefik"].Namespace, App: globals.AppRefs["traefik"].Name, Ports: props.Ingress.AllowFromTraefik})
-	// }
-	// if len(props.Ingress.AllowFromVMAgent) > 0 {
-	// 	allowFromPods = append(allowFromPods, NetworkPolicyPeer{Namespace: globals.AppRefs["vmagent"].Namespace, App: globals.AppRefs["vmagent"].Name, Ports: props.Ingress.AllowFromVMAgent})
-	// }
-	// if len(props.Ingress.AllowFromHomepage) > 0 {
-	// 	allowFromPods = append(allowFromPods, NetworkPolicyPeer{Namespace: globals.AppRefs["homepage"].Namespace, App: globals.AppRefs["homepage"].Name, Ports: props.Ingress.AllowFromHomepage})
-	// }
 	for _, app := range infrahelpers.MapKeysSorted(props.Ingress.AllowFromAppRefs) {
 		ports := props.Ingress.AllowFromAppRefs[app]
 		allowFromPods = append(allowFromPods, NetworkPolicyPeer{Namespace: globals.AppRefs[app].Namespace, App: globals.AppRefs[app].Name, Ports: ports})
@@ -220,22 +195,6 @@ func NewNetworkPolicy(scope kgen.Scope, props *NetworkPolicy) kgen.ApiObject {
 	}
 	allowToPods := slices.Clone(props.Egress.AllowToApps)
 
-	// if props.Egress.AllowToPostgres {
-	// 	// deprecated
-	// 	allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: globals.AppRefs["postgres"].Namespace, App: globals.AppRefs["postgres"].Name, Ports: []intstr.IntOrString{intstr.FromString("tcp-postgresql")}})
-	// }
-	// if props.Egress.AllowToRedis {
-	// 	// deprecated
-	// 	allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: globals.AppRefs["redis"].Namespace, App: globals.AppRefs["redis"].Name, Ports: []intstr.IntOrString{intstr.FromString("tcp-redis")}})
-	// }
-	// if props.Egress.AllowToMQTT {
-	// 	// deprecated
-	// 	allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: globals.AppRefs["mqtt"].Namespace, App: globals.AppRefs["mqtt"].Name, Ports: []intstr.IntOrString{intstr.FromString("mqtt")}})
-	// }
-	// if props.Egress.AllowToTraefik {
-	// 	// deprecated
-	// 	allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: globals.AppRefs["traefik"].Namespace, App: globals.AppRefs["traefik"].Name, Ports: []intstr.IntOrString{intstr.FromString("websecure")}})
-	// }
 	for _, app := range props.Egress.AllowToAppRefs {
 		if appRef, ok := globals.AppRefs[app]; ok {
 			allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: appRef.Namespace, App: appRef.Name, Ports: []intstr.IntOrString{appRef.Port}})
