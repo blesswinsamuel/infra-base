@@ -5,9 +5,9 @@ go 1.22.2
 require (
 	github.com/go-logr/logr v1.4.2
 	github.com/golang/glog v1.2.2
-	k8s.io/api v0.31.1
-	k8s.io/apimachinery v0.31.1
-	k8s.io/client-go v0.31.1
+	k8s.io/api v0.31.2
+	k8s.io/apimachinery v0.31.2
+	k8s.io/client-go v0.31.2
 	sigs.k8s.io/sig-storage-lib-external-provisioner/v10 v10.0.1
 )
 
