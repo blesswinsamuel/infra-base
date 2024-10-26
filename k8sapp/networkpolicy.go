@@ -165,7 +165,7 @@ func NewNetworkPolicy(scope kgen.Scope, props *NetworkPolicy) kgen.ApiObject {
 	}
 	if len(props.Ingress.AllowFromAllNamespaces) > 0 {
 		ingressRule := networkingv1.NetworkPolicyIngressRule{
-			From: []networkingv1.NetworkPolicyPeer{{NamespaceSelector: &v1.LabelSelector{}}},
+			// From: []networkingv1.NetworkPolicyPeer{{NamespaceSelector: &v1.LabelSelector{}}},
 		}
 		if !(len(props.Ingress.AllowFromAllNamespaces) == 1 && props.Ingress.AllowFromAllNamespaces[0] == intstr.FromInt(0)) {
 			for _, port := range props.Ingress.AllowFromAllNamespaces {

@@ -87,7 +87,7 @@ func (props *LLDAP) Render(scope kgen.Scope) {
 		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
 			Ingress: k8sapp.NetworkPolicyIngress{
 				AllowFromAppRefs: map[string][]intstr.IntOrString{
-					"authelia": {intstr.FromString("http")},
+					"authelia": {intstr.FromString("ldap")},
 				},
 			},
 			Egress: k8sapp.NetworkPolicyEgress{
