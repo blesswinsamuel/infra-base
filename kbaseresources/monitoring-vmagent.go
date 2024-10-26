@@ -80,7 +80,11 @@ func (props *VmagentProps) Render(scope kgen.Scope) {
 		},
 		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
 			Egress: k8sapp.NetworkPolicyEgress{
-				AllowToAppRefs:       []string{"victoriametrics"},
+				AllowToAppRefs: []string{"victoriametrics"},
+				AllowToIPs: []k8sapp.NetworkPolicyEgressIP{
+					{CidrIPBlocks: []string{k8sapp.GetGlobals(scope).KubeApiServer.IP}, Ports: []int{9100}}, // node exporter
+				},
+				AllowToKubeAPIServer: true,
 				AllowToAllNamespaces: true,
 			},
 		},

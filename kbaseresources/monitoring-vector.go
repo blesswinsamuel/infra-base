@@ -302,7 +302,8 @@ if err != null {
 		},
 		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
 			Egress: k8sapp.NetworkPolicyEgress{
-				AllowToAppRefs: []string{"loki"},
+				AllowToAppRefs:       []string{"loki"},
+				AllowToKubeAPIServer: true,
 			},
 		},
 	}

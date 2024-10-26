@@ -156,7 +156,7 @@ func (props *Authelia) Render(scope kgen.Scope) {
 			Egress: k8sapp.NetworkPolicyEgress{
 				AllowToAppRefs: []string{"postgres", "redis", "lldap", "mailpit"},
 				AllowToIPs: []k8sapp.NetworkPolicyEgressIP{
-					{CidrIPBlocks: []string{"162.159.200.1/32", "162.159.200.123/32"}, Ports: []int{123}}, // for ntp UDP to time.cloudflare.com
+					{CidrIPBlocks: []string{"162.159.200.1/32", "162.159.200.123/32"}, Ports: []int{123}, Protocol: corev1.ProtocolUDP}, // for ntp UDP to time.cloudflare.com
 				},
 				AllowToAllInternet: infrahelpers.Ternary(props.Assets != nil, []int{80, 443}, nil), // for downloading assets
 			},

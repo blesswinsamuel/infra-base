@@ -23,11 +23,14 @@ type ValuesGlobal struct {
 	Domain      string `json:"domain"`
 	ClusterName string `json:"clusterName"`
 
-	Cert            ValuesGlobalCert             `json:"cert"`
-	Ingress         ValuesGlobalIngress          `json:"ingress"`
-	ExternalSecret  ValuesGlobalExternalSecret   `json:"externalSecret"`
-	KubeApiServerIP string                       `json:"kubeApiServerIP"`
-	AppRefs         map[string]NameNamespacePort `json:"appRefs"`
+	Cert           ValuesGlobalCert           `json:"cert"`
+	Ingress        ValuesGlobalIngress        `json:"ingress"`
+	ExternalSecret ValuesGlobalExternalSecret `json:"externalSecret"`
+	KubeApiServer  struct {
+		IP   string `json:"ip"`
+		Port int    `json:"port"`
+	} `json:"kubeApiServer"`
+	AppRefs map[string]NameNamespacePort `json:"appRefs"`
 }
 
 var defaultValuesGlobal = ValuesGlobal{

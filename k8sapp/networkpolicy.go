@@ -5,6 +5,7 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/kgen"
+	"github.com/rs/zerolog/log"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -111,6 +112,7 @@ type NetworkPolicyPeer struct {
 type NetworkPolicyEgressIP struct {
 	CidrIPBlocks []string
 	Ports        []int
+	Protocol     corev1.Protocol
 }
 
 type NetworkPolicyEgress struct {
@@ -136,7 +138,11 @@ func NewNetworkPolicy(scope kgen.Scope, props *NetworkPolicy) kgen.ApiObject {
 	allowFromPods := slices.Clone(props.Ingress.AllowFromApps)
 	for _, app := range infrahelpers.MapKeysSorted(props.Ingress.AllowFromAppRefs) {
 		ports := props.Ingress.AllowFromAppRefs[app]
-		allowFromPods = append(allowFromPods, NetworkPolicyPeer{Namespace: globals.AppRefs[app].Namespace, App: globals.AppRefs[app].Name, Ports: ports})
+		if appRef, ok := globals.AppRefs[app]; ok {
+			allowFromPods = append(allowFromPods, NetworkPolicyPeer{Namespace: appRef.Namespace, App: appRef.Name, Ports: ports})
+		} else {
+			log.Panic().Msg("AppRef not found: " + app)
+		}
 	}
 	for _, ingressPod := range allowFromPods {
 		peer := networkingv1.NetworkPolicyPeer{}
@@ -199,13 +205,13 @@ func NewNetworkPolicy(scope kgen.Scope, props *NetworkPolicy) kgen.ApiObject {
 		if appRef, ok := globals.AppRefs[app]; ok {
 			allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: appRef.Namespace, App: appRef.Name, Ports: []intstr.IntOrString{appRef.Port}})
 		} else {
-			panic("AppRef not found: " + app)
+			log.Panic().Msg("AppRef not found: " + app)
 		}
 	}
 	allowToIPs := slices.Clone(props.Egress.AllowToIPs)
 	if props.Egress.AllowToKubeAPIServer {
 		// allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: "kube-system", Pod: "kube-apiserver", Ports: []intstr.IntOrString{intstr.FromString("https")}})
-		allowToIPs = append(allowToIPs, NetworkPolicyEgressIP{CidrIPBlocks: []string{globals.KubeApiServerIP}, Ports: []int{6443}})
+		allowToIPs = append(allowToIPs, NetworkPolicyEgressIP{CidrIPBlocks: []string{globals.KubeApiServer.IP}, Ports: []int{globals.KubeApiServer.Port}})
 	}
 
 	if len(props.Egress.AllowToAllInternet) > 0 {
@@ -233,7 +239,7 @@ func NewNetworkPolicy(scope kgen.Scope, props *NetworkPolicy) kgen.ApiObject {
 			egressRule.To = append(egressRule.To, networkingv1.NetworkPolicyPeer{IPBlock: &networkingv1.IPBlock{CIDR: ipBlock}})
 		}
 		for _, port := range egressIP.Ports {
-			egressRule.Ports = append(egressRule.Ports, networkingv1.NetworkPolicyPort{Port: ptr.To(intstr.FromInt(port))})
+			egressRule.Ports = append(egressRule.Ports, networkingv1.NetworkPolicyPort{Port: ptr.To(intstr.FromInt(port)), Protocol: infrahelpers.PtrIfNonEmpty(egressIP.Protocol)})
 		}
 		egressRules = append(egressRules, egressRule)
 	}
