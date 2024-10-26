@@ -205,7 +205,7 @@ func NewNetworkPolicy(scope kgen.Scope, props *NetworkPolicy) kgen.ApiObject {
 	allowToIPs := slices.Clone(props.Egress.AllowToIPs)
 	if props.Egress.AllowToKubeAPIServer {
 		// allowToPods = append(allowToPods, NetworkPolicyPeer{Namespace: "kube-system", Pod: "kube-apiserver", Ports: []intstr.IntOrString{intstr.FromString("https")}})
-		allowToIPs = append(allowToIPs, NetworkPolicyEgressIP{CidrIPBlocks: []string{"10.100.20.50/32"}, Ports: []int{6443}})
+		allowToIPs = append(allowToIPs, NetworkPolicyEgressIP{CidrIPBlocks: []string{globals.KubeApiServerIP}, Ports: []int{6443}})
 	}
 
 	if len(props.Egress.AllowToAllInternet) > 0 {
