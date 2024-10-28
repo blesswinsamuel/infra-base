@@ -73,9 +73,6 @@ func (props *Grafana) Render(scope kgen.Scope) {
 					{Name: "GF_SECURITY_ADMIN_USER", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "username", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
 					{Name: "GF_SECURITY_ADMIN_PASSWORD", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "password", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
 				},
-				SecurityContext: &corev1.SecurityContext{
-					AllowPrivilegeEscalation: infrahelpers.Ptr(false), Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}}, SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
-				},
 				Ports: []k8sapp.ContainerPort{{Name: "http", Port: 3000, ServicePort: 80, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}}},
 				LivenessProbe: &corev1.Probe{
 					InitialDelaySeconds: int32(60),
@@ -111,9 +108,6 @@ func (props *Grafana) Render(scope kgen.Scope) {
 					{Name: "REQ_USERNAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "username", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
 					{Name: "REQ_PASSWORD", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "password", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
 				},
-				SecurityContext: &corev1.SecurityContext{
-					AllowPrivilegeEscalation: infrahelpers.Ptr(false), Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}}, SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
-				},
 				ExtraVolumeMounts: []corev1.VolumeMount{
 					{Name: "sc-dashboard-volume", MountPath: "/tmp/dashboards"},
 				},
@@ -136,14 +130,12 @@ func (props *Grafana) Render(scope kgen.Scope) {
 					{Name: "REQ_USERNAME", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "username", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
 					{Name: "REQ_PASSWORD", ValueFrom: &corev1.EnvVarSource{SecretKeyRef: &corev1.SecretKeySelector{Key: "password", LocalObjectReference: corev1.LocalObjectReference{Name: "grafana-admin-credentials"}}}},
 				},
-				SecurityContext: &corev1.SecurityContext{
-					AllowPrivilegeEscalation: infrahelpers.Ptr(false), Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}}, SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
-				},
 				ExtraVolumeMounts: []corev1.VolumeMount{
 					{Name: "sc-datasources-volume", MountPath: "/etc/grafana/provisioning/datasources"},
 				},
 			},
 		},
+		Security: &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
 		ExtraVolumes: []corev1.Volume{
 			{Name: "sc-datasources-volume", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 			{Name: "sc-dashboard-volume", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},

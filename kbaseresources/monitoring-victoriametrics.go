@@ -4,6 +4,7 @@ import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/kgen"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -25,23 +26,15 @@ type VictoriaMetrics struct {
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single
 func (props *VictoriaMetrics) Render(scope kgen.Scope) {
 	vcts := []k8sapp.ApplicationPersistentVolume{}
-	vols := []corev1.Volume{}
-	volMnts := []corev1.VolumeMount{}
+	pvs := []k8sapp.ApplicationPersistentVolume{}
 	if props.PersistentVolumeName != "" {
-		k8sapp.NewPersistentVolumeClaim(scope, &k8sapp.PersistentVolumeClaim{
-			Name:            "victoriametrics",
-			VolumeName:      props.PersistentVolumeName,
-			RequestsStorage: "1Gi",
-		})
-		// TODO: https://stackoverflow.com/questions/48270971/how-do-i-statically-provision-a-volume-for-a-statefulset
-		vols = []corev1.Volume{{Name: "server-volume", VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "victoriametrics"}}}}
-		volMnts = []corev1.VolumeMount{{Name: "server-volume", MountPath: "/storage"}}
+		pvs = []k8sapp.ApplicationPersistentVolume{{Name: "victoriametrics", VolumeName: props.PersistentVolumeName, MountName: "server-volume", MountPath: "/storage"}}
 	} else {
 		vcts = []k8sapp.ApplicationPersistentVolume{{Name: "server-volume", RequestsStorage: "16Gi", MountName: "server-volume", MountPath: "/storage"}}
 	}
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
-		Kind: "StatefulSet",
-		Name: "victoriametrics",
+		DeploymentUpdateStrategy: appsv1.DeploymentStrategy{Type: appsv1.RecreateDeploymentStrategyType},
+		Name:                     "victoriametrics",
 		Containers: []k8sapp.ApplicationContainer{{
 			Name:  "victoriametrics",
 			Image: props.ImageInfo,
@@ -56,12 +49,12 @@ func (props *VictoriaMetrics) Render(scope kgen.Scope) {
 				"--loggerFormat=json",
 				"--vmalert.proxyURL=http://vmalert:8880",
 			},
-			ReadinessProbe:    &corev1.Probe{FailureThreshold: 10, InitialDelaySeconds: 30, PeriodSeconds: 30, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/health"}}},
-			LivenessProbe:     &corev1.Probe{FailureThreshold: 10, InitialDelaySeconds: 30, PeriodSeconds: 30, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/health"}}},
-			Resources:         props.Resources,
-			ExtraVolumeMounts: volMnts,
+			ReadinessProbe: &corev1.Probe{FailureThreshold: 10, InitialDelaySeconds: 30, PeriodSeconds: 30, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/health"}}},
+			LivenessProbe:  &corev1.Probe{FailureThreshold: 10, InitialDelaySeconds: 30, PeriodSeconds: 30, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/health"}}},
+			Resources:      props.Resources,
 		}},
-		ExtraVolumes:                    vols,
+		Security:                        &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
+		PersistentVolumes:               pvs,
 		StatefulSetVolumeClaimTemplates: vcts,
 		Tolerations:                     props.Tolerations,
 		Homepage: &k8sapp.ApplicationHomepage{

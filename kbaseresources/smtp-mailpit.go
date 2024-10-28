@@ -38,12 +38,8 @@ func (props *Mailpit) Render(scope kgen.Scope) {
 			EnvFromSecretRef: []string{
 				scope.ID() + "-smtp",
 			},
-			LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{
-				HTTPGet: &corev1.HTTPGetAction{Path: "/livez", Port: intstr.FromString("web")},
-			}},
-			ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{
-				HTTPGet: &corev1.HTTPGetAction{Path: "/readyz", Port: intstr.FromString("web")},
-			}},
+			LivenessProbe:  &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/livez", Port: intstr.FromString("web")}}},
+			ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/readyz", Port: intstr.FromString("web")}}},
 		}},
 		ExternalSecrets: []k8sapp.ApplicationExternalSecret{
 			{
@@ -59,6 +55,7 @@ func (props *Mailpit) Render(scope kgen.Scope) {
 		PersistentVolumes: []k8sapp.ApplicationPersistentVolume{
 			{Name: scope.ID(), VolumeName: props.PersistentVolumeName, RequestsStorage: "2Gi", MountName: "data", MountPath: "/data"},
 		},
+		Security: &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
 		Homepage: &k8sapp.ApplicationHomepage{
 			Name:        "Mailpit",
 			Description: "Email relay service",

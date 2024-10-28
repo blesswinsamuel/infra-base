@@ -46,12 +46,9 @@ func (props *AlertmanagerProps) Render(scope kgen.Scope) {
 		Kind:                         "StatefulSet",
 		Name:                         "alertmanager",
 		AutomountServiceAccountToken: ptr.To(true),
-		PodSecurityContext: &corev1.PodSecurityContext{
-			FSGroup: infrahelpers.Ptr(int64(65534)),
-		},
-		ServiceAccountName:     "alertmanager",
-		HeadlessServiceNames:   []string{"alertmanager-headless"},
-		StatefulSetServiceName: "alertmanager-headless",
+		ServiceAccountName:           "alertmanager",
+		HeadlessServiceNames:         []string{"alertmanager-headless"},
+		StatefulSetServiceName:       "alertmanager-headless",
 		Containers: []k8sapp.ApplicationContainer{{
 			Name:  "alertmanager",
 			Image: props.Image,
@@ -68,11 +65,6 @@ func (props *AlertmanagerProps) Render(scope kgen.Scope) {
 			},
 			LivenessProbe:  &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/"}}},
 			ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/"}}},
-			SecurityContext: &corev1.SecurityContext{
-				RunAsGroup:   infrahelpers.Ptr(int64(65534)),
-				RunAsUser:    infrahelpers.Ptr(int64(65534)),
-				RunAsNonRoot: infrahelpers.Ptr(true),
-			},
 		}},
 		Secrets: []k8sapp.ApplicationSecret{{
 			Name: "alertmanager-templates",
@@ -149,6 +141,7 @@ func (props *AlertmanagerProps) Render(scope kgen.Scope) {
 			MountName: "config",
 			ReadOnly:  true,
 		}},
+		Security: &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
 		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
 			Ingress: k8sapp.NetworkPolicyIngress{
 				AllowFromAppRefs: map[string][]intstr.IntOrString{"vmalert": {intstr.FromString("http")}},

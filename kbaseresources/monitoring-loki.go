@@ -161,12 +161,6 @@ func (props *LokiProps) Render(scope kgen.Scope) {
 		EnableServiceLinks:           infrahelpers.Ptr(true),
 		StatefulSetServiceName:       "loki-headless",
 		StatefulSetUpdateStrategy:    v1.StatefulSetUpdateStrategy{RollingUpdate: &v1.RollingUpdateStatefulSetStrategy{Partition: infrahelpers.Ptr(int32(0))}},
-		PodSecurityContext: &corev1.PodSecurityContext{
-			FSGroup:      infrahelpers.Ptr(int64(10001)),
-			RunAsGroup:   infrahelpers.Ptr(int64(10001)),
-			RunAsUser:    infrahelpers.Ptr(int64(10001)),
-			RunAsNonRoot: infrahelpers.Ptr(true),
-		},
 		Containers: []k8sapp.ApplicationContainer{{
 			Name:  "loki",
 			Image: props.ImageInfo,
@@ -184,7 +178,6 @@ func (props *LokiProps) Render(scope kgen.Scope) {
 			ExtraVolumeMounts: []corev1.VolumeMount{
 				{Name: "tmp", MountPath: "/tmp"},
 			},
-			SecurityContext: &corev1.SecurityContext{Capabilities: &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}}, AllowPrivilegeEscalation: infrahelpers.Ptr(false), ReadOnlyRootFilesystem: infrahelpers.Ptr(true)},
 		}},
 		ExtraVolumes: []corev1.Volume{
 			{Name: "tmp", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
@@ -212,6 +205,7 @@ func (props *LokiProps) Render(scope kgen.Scope) {
 				ReadOnly:  true,
 			},
 		},
+		Security:    &k8sapp.ApplicationSecurity{User: 10001, Group: 10001, FSGroup: 10001},
 		Tolerations: props.Tolerations,
 		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
 			Ingress: k8sapp.NetworkPolicyIngress{

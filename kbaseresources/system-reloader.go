@@ -7,7 +7,6 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/ptr"
 )
 
 func init() {
@@ -35,11 +34,7 @@ func (props *ReloaderProps) Render(scope kgen.Scope) {
 				ReadinessProbe: &v1.Probe{FailureThreshold: 5, ProbeHandler: v1.ProbeHandler{HTTPGet: &v1.HTTPGetAction{Path: "/metrics", Port: intstr.FromString("http")}}, InitialDelaySeconds: 10, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
 			},
 		},
-		PodSecurityContext: &v1.PodSecurityContext{
-			RunAsNonRoot:   ptr.To(true),
-			RunAsUser:      ptr.To(int64(65534)),
-			SeccompProfile: &v1.SeccompProfile{Type: v1.SeccompProfileTypeRuntimeDefault},
-		},
+		Security: &k8sapp.ApplicationSecurity{User: 65534, Group: 65534},
 		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
 			Egress: k8sapp.NetworkPolicyEgress{
 				AllowToKubeAPIServer: true,

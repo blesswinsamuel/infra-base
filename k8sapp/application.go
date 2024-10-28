@@ -65,6 +65,7 @@ type ApplicationProps struct {
 	TerminationGracePeriodSeconds *int64
 	Homepage                      *ApplicationHomepage
 	NetworkPolicy                 *ApplicationNetworkPolicy
+	Security                      *ApplicationSecurity
 	// IngressAnnotations              map[string]string
 
 	DeploymentUpdateStrategy        v1.DeploymentStrategy
@@ -72,6 +73,16 @@ type ApplicationProps struct {
 	DaemonSetUpdateStrategy         v1.DaemonSetUpdateStrategy
 	StatefulSetServiceName          string
 	StatefulSetVolumeClaimTemplates []ApplicationPersistentVolume
+}
+
+type ApplicationSecurity struct {
+	User                     int64
+	Group                    int64
+	FSGroup                  int64
+	WriteableRootFS          bool
+	AllowPrivilegeEscalation bool
+	RunAsRoot                bool
+	Capabilities             []corev1.Capability
 }
 
 type ApplicationNetworkPolicy struct {
@@ -260,6 +271,44 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 	}
 	if addConfigMapHash {
 		podAnnotations["configmap/checksum"] = fmt.Sprintf("%x", configmapHash.Sum(nil))
+	}
+	if props.Security != nil {
+		if props.PodSecurityContext == nil {
+			props.PodSecurityContext = &corev1.PodSecurityContext{
+				RunAsNonRoot:   ptr.To(true),
+				SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
+			}
+			if props.Security.RunAsRoot {
+				props.PodSecurityContext.RunAsNonRoot = ptr.To(false)
+			}
+		}
+		for _, container := range infrahelpers.MergeLists(infrahelpers.ListToPtrs(props.Containers), infrahelpers.ListToPtrs(props.InitContainers)) {
+			if container.SecurityContext == nil {
+				container.SecurityContext = &corev1.SecurityContext{
+					AllowPrivilegeEscalation: ptr.To(false),
+					ReadOnlyRootFilesystem:   ptr.To(true),
+					Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+				}
+			}
+			if props.Security.WriteableRootFS {
+				container.SecurityContext.ReadOnlyRootFilesystem = ptr.To(false)
+			}
+			if props.Security.AllowPrivilegeEscalation {
+				container.SecurityContext.AllowPrivilegeEscalation = ptr.To(true)
+			}
+			if len(props.Security.Capabilities) > 0 {
+				container.SecurityContext.Capabilities.Add = append(container.SecurityContext.Capabilities.Add, props.Security.Capabilities...)
+			}
+		}
+		if props.Security.User != 0 {
+			props.PodSecurityContext.RunAsUser = ptr.To(props.Security.User)
+		}
+		if props.Security.Group != 0 {
+			props.PodSecurityContext.RunAsGroup = ptr.To(props.Security.Group)
+		}
+		if props.Security.FSGroup != 0 {
+			props.PodSecurityContext.FSGroup = ptr.To(props.Security.FSGroup)
+		}
 	}
 	for _, secret := range props.Secrets {
 		NewSecret(scope, &SecretProps{

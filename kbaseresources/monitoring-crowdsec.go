@@ -172,6 +172,7 @@ fi;
 `},
 				ExtraVolumeMounts: infrahelpers.MergeLists(extraAcquisitionsVolMounts, []corev1.VolumeMount{
 					{Name: "config", MountPath: "/etc/crowdsec/profiles.yaml", SubPath: "profiles.yaml", ReadOnly: true},
+					{Name: "tmp", MountPath: "/tmp"},
 				}),
 			},
 		},
@@ -184,7 +185,7 @@ fi;
 					{Name: "lapi", Port: 8080},
 				},
 				Env: infrahelpers.MergeMaps(bouncerKeys, map[string]string{
-					"GID":                  "1000",
+					"GID":                  "65534",
 					"ENROLL_INSTANCE_NAME": props.InstanceName,
 					"ENROLL_TAGS":          "k8s",
 					"COLLECTIONS":          strings.Join(collections, " "),
@@ -195,10 +196,6 @@ fi;
 					// "PARSERS": "crowdsecurity/cri-logs",
 					// "DISABLE_PARSERS": "crowdsecurity/whitelists",
 				}),
-				SecurityContext: &corev1.SecurityContext{
-					AllowPrivilegeEscalation: infrahelpers.Ptr(false),
-					Privileged:               infrahelpers.Ptr(false),
-				},
 				ExtraVolumeMounts: infrahelpers.MergeLists(extraAcquisitionsVolMounts, []corev1.VolumeMount{
 					{Name: "crowdsec-pv", MountPath: "/etc/crowdsec", SubPath: "config"},
 					{Name: "crowdsec-pv", MountPath: "/var/lib/crowdsec/data", SubPath: "data"},
@@ -206,6 +203,7 @@ fi;
 					{Name: "config", MountPath: "/etc/crowdsec/profiles.yaml", SubPath: "profiles.yaml", ReadOnly: true},
 					{Name: "config-envsubst", MountPath: "/etc/crowdsec/notifications/http.yaml", SubPath: "notifications-telegram.yaml"},
 					{Name: "config-envsubst", MountPath: "/etc/crowdsec/notifications/slack.yaml", SubPath: "notifications-slack.yaml"},
+					{Name: "tmp", MountPath: "/tmp"},
 				}),
 				EnvFromSecretRef: []string{"crowdsec"},
 			},
@@ -215,7 +213,9 @@ fi;
 			// {Name: "config", VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "crowdsec-config"}}}},
 			{Name: "config-envsubst", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 			{Name: "crowdsec-pv", VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "crowdsec"}}},
+			{Name: "tmp", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 		},
+		// Security:    &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
 		Tolerations: props.Tolerations,
 		ConfigMaps: []k8sapp.ApplicationConfigMap{
 			{

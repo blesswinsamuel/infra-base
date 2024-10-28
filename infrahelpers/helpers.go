@@ -134,6 +134,14 @@ func MergeLists[T any](annotations ...[]T) []T {
 	return merged
 }
 
+func ListToPtrs[T any](list []T) []*T {
+	res := make([]*T, 0)
+	for i := range list {
+		res = append(res, &list[i])
+	}
+	return res
+}
+
 func Ternary[V any](cond bool, trueVal V, falseVal V) V {
 	if cond {
 		return trueVal

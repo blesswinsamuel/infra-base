@@ -287,6 +287,7 @@ if err != null {
 			{Name: "procfs", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/proc"}}},
 			{Name: "sysfs", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/sys"}}},
 		},
+		// Security:             &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
 		ServiceAccountName:   "vector",
 		CreateServiceAccount: true,
 		ConfigMaps: []k8sapp.ApplicationConfigMap{

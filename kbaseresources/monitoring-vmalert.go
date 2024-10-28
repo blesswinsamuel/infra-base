@@ -86,6 +86,7 @@ func (props *VmalertProps) Render(scope kgen.Scope) {
 				},
 			},
 		},
+		Security: &k8sapp.ApplicationSecurity{User: 65534, Group: 65534},
 		ExtraVolumes: []corev1.Volume{
 			// {Name: "alerts-config", VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "alerting-rules"}}}},
 			{Name: "alerts-config", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},

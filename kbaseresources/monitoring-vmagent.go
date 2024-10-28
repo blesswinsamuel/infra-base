@@ -6,6 +6,7 @@ import (
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/blesswinsamuel/kgen"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,9 +39,9 @@ func (props *VmagentProps) Render(scope kgen.Scope) {
 	vmagentConfig["scrape_configs"] = append(vmagentConfig["scrape_configs"].([]any), extraScrapeConfigs...)
 
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
-		Name:               "vmagent",
-		Kind:               "StatefulSet",
-		ServiceAccountName: "vmagent",
+		Name:                     "vmagent",
+		DeploymentUpdateStrategy: appsv1.DeploymentStrategy{Type: appsv1.RecreateDeploymentStrategyType},
+		ServiceAccountName:       "vmagent",
 		Containers: []k8sapp.ApplicationContainer{{
 			Name:  "vmagent",
 			Image: props.ImageInfo,
@@ -66,6 +67,7 @@ func (props *VmagentProps) Render(scope kgen.Scope) {
 		PersistentVolumes: []k8sapp.ApplicationPersistentVolume{
 			{Name: "vmagent-tmpdata", RequestsStorage: "1Gi", MountName: "tmpdata", MountPath: "/tmpdata", VolumeName: props.PersistentVolumeName},
 		},
+		Security:    &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
 		Tolerations: props.Tolerations,
 		Homepage: &k8sapp.ApplicationHomepage{
 			Name:        "VictoriaMetrics Agent",

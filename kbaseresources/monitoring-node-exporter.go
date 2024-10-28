@@ -44,12 +44,11 @@ func (props *NodeExporterProps) Render(scope kgen.Scope) {
 					"--collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|var/lib/kubelet/pods/.+|run/containerd/runc/k8s.io/.+)($|/)",
 					"--collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|tmpfs)$",
 				},
-				Env:             map[string]string{"HOST_IP": "0.0.0.0"},
-				Image:           props.ImageInfo,
-				Ports:           []k8sapp.ContainerPort{{Name: "metrics", Port: 9100, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}}},
-				LivenessProbe:   &corev1.Probe{FailureThreshold: 3, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/", Port: intstr.FromString("metrics")}}, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 1},
-				ReadinessProbe:  &corev1.Probe{FailureThreshold: 3, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/", Port: intstr.FromString("metrics")}}, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 1},
-				SecurityContext: &corev1.SecurityContext{ReadOnlyRootFilesystem: ptr.To(true)},
+				Env:            map[string]string{"HOST_IP": "0.0.0.0"},
+				Image:          props.ImageInfo,
+				Ports:          []k8sapp.ContainerPort{{Name: "metrics", Port: 9100, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}}},
+				LivenessProbe:  &corev1.Probe{FailureThreshold: 3, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/", Port: intstr.FromString("metrics")}}, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 1},
+				ReadinessProbe: &corev1.Probe{FailureThreshold: 3, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/", Port: intstr.FromString("metrics")}}, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 1},
 				ExtraVolumeMounts: []corev1.VolumeMount{
 					{MountPath: "/host/proc", Name: "proc", ReadOnly: true},
 					{MountPath: "/host/sys", Name: "sys", ReadOnly: true},
@@ -71,12 +70,7 @@ func (props *NodeExporterProps) Render(scope kgen.Scope) {
 			{Name: "root", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/"}}},
 		},
 		DaemonSetUpdateStrategy: appsv1.DaemonSetUpdateStrategy{Type: appsv1.RollingUpdateDaemonSetStrategyType, RollingUpdate: &appsv1.RollingUpdateDaemonSet{MaxUnavailable: ptr.To(intstr.FromInt(1))}},
-		PodSecurityContext: &corev1.PodSecurityContext{
-			RunAsNonRoot: ptr.To(true),
-			FSGroup:      ptr.To(int64(65534)),
-			RunAsUser:    ptr.To(int64(65534)),
-			RunAsGroup:   ptr.To(int64(65534)),
-		},
-		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{},
+		Security:                &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
+		NetworkPolicy:           &k8sapp.ApplicationNetworkPolicy{},
 	})
 }

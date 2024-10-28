@@ -47,6 +47,7 @@ func (props *LLDAP) Render(scope kgen.Scope) {
 				"LLDAP_LDAP_USER_EMAIL":                     fmt.Sprintf("admin@%s", props.EmailDomain),
 				"LLDAP_KEY_FILE":                            "/data/private_key",
 				"LLDAP_HTTP_URL":                            "https://lldap." + k8sapp.GetDomain(scope),
+				// TODO: use LLDAP_SERVER_KEY_SEED (https://github.com/lldap/lldap/issues/504)
 			},
 			EnvFromSecretRef: []string{
 				"lldap", "lldap-postgres",
@@ -57,7 +58,14 @@ func (props *LLDAP) Render(scope kgen.Scope) {
 			ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{Path: "/health", Port: intstr.FromInt(17170)},
 			}},
+			ExtraVolumeMounts: []corev1.VolumeMount{
+				{Name: "data", MountPath: "/data"},
+			},
 		}},
+		ExtraVolumes: []corev1.Volume{
+			{Name: "data", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+		},
+		Security: &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
 		ExternalSecrets: []k8sapp.ApplicationExternalSecret{
 			{
 				Name: "lldap",

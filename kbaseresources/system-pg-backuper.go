@@ -84,6 +84,7 @@ func (props *PgBackuper) Render(scope kgen.Scope) {
 			SubPath:   "config.yaml",
 			ReadOnly:  true,
 		}},
+		Security:          &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
 		ExtraVolumes:      []corev1.Volume{{Name: "data", VolumeSource: props.LocalBackupVolume.VolumeSource}},
 		PersistentVolumes: []k8sapp.ApplicationPersistentVolume{
 			// {Name: "pg-backuper-local", StorageClass: "-", VolumeName: "applications-pg-backuper-local", RequestsStorage: "1Gi", MountName: "storage-local", MountPath: "/data"},
@@ -98,9 +99,6 @@ func (props *PgBackuper) Render(scope kgen.Scope) {
 	})
 	if props.PersistentVolumeClaims != nil {
 		for _, pvc := range props.PersistentVolumeClaims {
-			if pvc.StorageClass == "__none__" {
-				pvc.StorageClass = "-"
-			}
 			k8sapp.NewPersistentVolumeClaim(scope, &k8sapp.PersistentVolumeClaim{
 				Name:            pvc.Name,
 				RequestsStorage: "1Gi",

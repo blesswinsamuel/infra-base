@@ -7,7 +7,6 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/ptr"
 )
 
 func init() {
@@ -30,20 +29,13 @@ func (props *KubeStateMetricsProps) Render(scope kgen.Scope) {
 					"--port=8080",
 					"--resources=certificatesigningrequests,configmaps,cronjobs,daemonsets,deployments,endpoints,horizontalpodautoscalers,ingresses,jobs,leases,limitranges,mutatingwebhookconfigurations,namespaces,networkpolicies,nodes,persistentvolumeclaims,persistentvolumes,poddisruptionbudgets,pods,replicasets,replicationcontrollers,resourcequotas,secrets,services,statefulsets,storageclasses,validatingwebhookconfigurations,volumeattachments",
 				},
-				Image:           props.ImageInfo,
-				Ports:           []k8sapp.ContainerPort{{Name: "http", Port: 8080, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}}},
-				LivenessProbe:   &v1.Probe{FailureThreshold: 3, ProbeHandler: v1.ProbeHandler{HTTPGet: &v1.HTTPGetAction{Path: "/healthz", Port: intstr.FromString("http")}}, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
-				ReadinessProbe:  &v1.Probe{FailureThreshold: 3, ProbeHandler: v1.ProbeHandler{HTTPGet: &v1.HTTPGetAction{Path: "/", Port: intstr.FromString("http")}}, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
-				SecurityContext: &v1.SecurityContext{AllowPrivilegeEscalation: ptr.To(false), Capabilities: &v1.Capabilities{Drop: []v1.Capability{"ALL"}}, ReadOnlyRootFilesystem: ptr.To(true)},
+				Image:          props.ImageInfo,
+				Ports:          []k8sapp.ContainerPort{{Name: "http", Port: 8080, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}}},
+				LivenessProbe:  &v1.Probe{FailureThreshold: 3, ProbeHandler: v1.ProbeHandler{HTTPGet: &v1.HTTPGetAction{Path: "/healthz", Port: intstr.FromString("http")}}, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
+				ReadinessProbe: &v1.Probe{FailureThreshold: 3, ProbeHandler: v1.ProbeHandler{HTTPGet: &v1.HTTPGetAction{Path: "/", Port: intstr.FromString("http")}}, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
 			},
 		},
-		PodSecurityContext: &v1.PodSecurityContext{
-			RunAsNonRoot:   ptr.To(true),
-			FSGroup:        ptr.To(int64(65534)),
-			RunAsUser:      ptr.To(int64(65534)),
-			RunAsGroup:     ptr.To(int64(65534)),
-			SeccompProfile: &v1.SeccompProfile{Type: v1.SeccompProfileTypeRuntimeDefault},
-		},
+		Security: &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
 		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
 			Egress: k8sapp.NetworkPolicyEgress{
 				AllowToKubeAPIServer: true,
