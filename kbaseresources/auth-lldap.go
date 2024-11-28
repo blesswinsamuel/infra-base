@@ -47,7 +47,8 @@ func (props *LLDAP) Render(scope kgen.Scope) {
 				"LLDAP_LDAP_USER_EMAIL":                     fmt.Sprintf("admin@%s", props.EmailDomain),
 				"LLDAP_KEY_FILE":                            "/data/private_key",
 				"LLDAP_HTTP_URL":                            "https://lldap." + k8sapp.GetDomain(scope),
-				// TODO: use LLDAP_SERVER_KEY_SEED (https://github.com/lldap/lldap/issues/504)
+				"LLDAP_KEY_SEED":                            "",
+				// TODO: use LLDAP_KEY_SEED (https://github.com/lldap/lldap/issues/504)
 			},
 			EnvFromSecretRef: []string{
 				"lldap", "lldap-postgres",
