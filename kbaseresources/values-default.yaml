@@ -419,12 +419,15 @@ node-exporter:
       url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/nodeExporter-prometheusRule.yaml
       replacements:
         'node_systemd_unit_state{job="node-exporter", state="failed"}': 'max_over_time(node_systemd_unit_state{job="node-exporter", state="failed"}[10m])'
+      skipAlerts:
+        - NodeClockNotSynchronising # annoying (clock skew alert should be enough)
     node-exporter:
       url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/host-and-hardware/node-exporter.yml
       skipAlerts:
         - HostMemoryIsUnderutilized
         - HostCpuIsUnderutilized
         - HostSystemdServiceCrashed # duplicate of NodeSystemdServiceFailed
+        - HostClockNotSynchronising # duplicate of NodeClockNotSynchronising
 victoriametrics:
   image:
     repository: victoriametrics/victoria-metrics
