@@ -417,6 +417,8 @@ node-exporter:
   _alerting_rules:
     node-exporter-official:
       url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/nodeExporter-prometheusRule.yaml
+      replacements:
+        'node_systemd_unit_state{job="node-exporter", state="failed"}': 'max_over_time(node_systemd_unit_state{job="node-exporter", state="failed"}[10m])'
     node-exporter:
       url: https://github.com/samber/awesome-prometheus-alerts/raw/master/dist/rules/host-and-hardware/node-exporter.yml
       skipAlerts:

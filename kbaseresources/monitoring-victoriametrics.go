@@ -25,13 +25,6 @@ type VictoriaMetrics struct {
 
 // https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single
 func (props *VictoriaMetrics) Render(scope kgen.Scope) {
-	vcts := []k8sapp.ApplicationPersistentVolume{}
-	pvs := []k8sapp.ApplicationPersistentVolume{}
-	if props.PersistentVolumeName != "" {
-		pvs = []k8sapp.ApplicationPersistentVolume{{Name: "victoriametrics", VolumeName: props.PersistentVolumeName, MountName: "server-volume", MountPath: "/storage"}}
-	} else {
-		vcts = []k8sapp.ApplicationPersistentVolume{{Name: "server-volume", RequestsStorage: "16Gi", MountName: "server-volume", MountPath: "/storage"}}
-	}
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
 		DeploymentUpdateStrategy: appsv1.DeploymentStrategy{Type: appsv1.RecreateDeploymentStrategyType},
 		Name:                     "victoriametrics",
@@ -53,10 +46,11 @@ func (props *VictoriaMetrics) Render(scope kgen.Scope) {
 			LivenessProbe:  &corev1.Probe{FailureThreshold: 10, InitialDelaySeconds: 30, PeriodSeconds: 30, TimeoutSeconds: 5, ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Port: intstr.FromString("http"), Path: "/health"}}},
 			Resources:      props.Resources,
 		}},
-		Security:                        &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
-		PersistentVolumes:               pvs,
-		StatefulSetVolumeClaimTemplates: vcts,
-		Tolerations:                     props.Tolerations,
+		Security: &k8sapp.ApplicationSecurity{User: 65534, Group: 65534, FSGroup: 65534},
+		PersistentVolumes: []k8sapp.ApplicationPersistentVolume{
+			{Name: "victoriametrics", VolumeName: props.PersistentVolumeName, RequestsStorage: "16Gi", MountName: "server-volume", MountPath: "/storage"},
+		},
+		Tolerations: props.Tolerations,
 		Homepage: &k8sapp.ApplicationHomepage{
 			Name:        "VictoriaMetrics",
 			Description: "Metrics storage",
