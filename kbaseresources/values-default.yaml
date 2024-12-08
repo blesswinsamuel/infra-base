@@ -84,7 +84,7 @@ postgres:
   metrics:
     image:
       repository: docker.io/bitnami/postgres-exporter
-      tag: 0.16.0-debian-12-r1
+      tag: 0.16.0-debian-12-r2
   database: null
   username: null
   resources:
@@ -253,7 +253,7 @@ grafana:
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.28.0
+      tag: 1.28.1
   authProxyEnabled: true
   anonymousAuthEnabled: false
   ingress:
@@ -364,7 +364,7 @@ vmalert:
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.28.0
+      tag: 1.28.1
   ingress:
     enabled: true
     subDomain: "vmalert"
@@ -455,7 +455,7 @@ victoriametrics:
 loki:
   image:
     repository: grafana/loki
-    tag: "3.3.0"
+    tag: "3.3.1"
   storage: local
   _alerting_rules:
     loki:
@@ -524,7 +524,7 @@ coredns:
 mailpit:
   image:
     repository: axllent/mailpit
-    tag: v1.21.5
+    tag: v1.21.6
 
 ### utils ###
 
