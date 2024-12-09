@@ -3,11 +3,11 @@ module github.com/blesswinsamuel/infra-base/pg-backuper
 go 1.22.2
 
 require (
-	github.com/go-co-op/gocron/v2 v2.12.1
-	github.com/goccy/go-yaml v1.12.0
+	github.com/go-co-op/gocron/v2 v2.12.4
+	github.com/goccy/go-yaml v1.15.8
 	github.com/google/uuid v1.6.0
-	github.com/minio/minio-go/v7 v7.0.79
-	github.com/prometheus/client_golang v1.20.3
+	github.com/minio/minio-go/v7 v7.0.81
+	github.com/prometheus/client_golang v1.20.5
 	github.com/rs/zerolog v1.33.0
 	github.com/urfave/cli/v2 v2.27.5
 )
@@ -17,7 +17,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/fatih/color v1.10.0 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/jonboulle/clockwork v0.4.0 // indirect
@@ -39,6 +38,5 @@ require (
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
