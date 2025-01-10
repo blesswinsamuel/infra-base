@@ -33,13 +33,13 @@ metallb:
   helm:
     repo: https://metallb.github.io/metallb
     chart: metallb
-    version: "0.14.8"
+    version: "0.14.9"
 
 cilium:
   helm:
     repo: https://helm.cilium.io
     chart: cilium
-    version: "1.16.4"
+    version: "1.16.5"
 
 traefik:
   helm:
@@ -84,7 +84,7 @@ postgres:
   metrics:
     image:
       repository: docker.io/bitnami/postgres-exporter
-      tag: 0.16.0-debian-12-r1
+      tag: 0.16.0-debian-12-r3
   database: null
   username: null
   resources:
@@ -121,7 +121,7 @@ postgres:
 redis:
   image:
     repository: bitnami/redis
-    tag: 7.4.1
+    tag: 7.4.2
   metrics:
     image:
       repository: bitnami/redis-exporter
@@ -144,7 +144,7 @@ redis:
 authelia:
   image:
     repository: ghcr.io/authelia/authelia
-    tag: "4.38.17"
+    tag: "4.38.18"
   ingress:
     subDomain: authelia
   ldap:
@@ -455,7 +455,7 @@ victoriametrics:
 loki:
   image:
     repository: grafana/loki
-    tag: "3.3.0"
+    tag: "3.3.2"
   storage: local
   _alerting_rules:
     loki:
@@ -482,12 +482,12 @@ kube-git-ops:
 reloader:
   image:
     repository: ghcr.io/stakater/reloader
-    tag: "v1.2.0"
+    tag: "v1.2.1"
 kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
     chart: kubernetes-dashboard
-    version: "7.10.0"
+    version: "7.10.1"
   ingress:
     enabled: true
     subDomain: kubernetes-dashboard
@@ -524,7 +524,7 @@ coredns:
 mailpit:
   image:
     repository: axllent/mailpit
-    tag: v1.21.5
+    tag: v1.21.8
 
 ### utils ###
 
