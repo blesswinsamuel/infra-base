@@ -4,7 +4,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.10.7"
+    version: "0.12.1"
 
 external-secrets-store:
   tokenSecretName: doppler-token-auth-api
@@ -45,7 +45,7 @@ traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "33.0.0"
+    version: "33.2.1"
   dashboardIngress:
     enabled: false
     subDomain: traefik
@@ -125,7 +125,7 @@ redis:
   metrics:
     image:
       repository: bitnami/redis-exporter
-      tag: 1.66.0
+      tag: 1.67.0
   resources:
     limits:
       cpu: 500m
@@ -188,7 +188,7 @@ traefik-forward-auth:
 vector:
   image:
     repository: timberio/vector
-    tag: 0.42.0-distroless-libc
+    tag: 0.43.1-distroless-libc
   syslogServer:
     enabled: false
   _grafana_dashboards:
@@ -249,11 +249,11 @@ kube-state-metrics:
 grafana:
   image:
     repository: grafana/grafana
-    tag: 11.3.1
+    tag: 11.4.0
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.28.0
+      tag: 1.29.0
   authProxyEnabled: true
   anonymousAuthEnabled: false
   ingress:
@@ -340,7 +340,7 @@ alerting-rules:
 vmagent:
   image:
     repository: victoriametrics/vmagent
-    tag: "v1.106.1"
+    tag: "v1.109.0"
   ingress:
     enabled: true
     subDomain: "vmagent"
@@ -360,11 +360,11 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.106.1
+    tag: v1.109.0
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
-      tag: 1.28.0
+      tag: 1.29.0
   ingress:
     enabled: true
     subDomain: "vmalert"
@@ -431,7 +431,7 @@ node-exporter:
 victoriametrics:
   image:
     repository: victoriametrics/victoria-metrics
-    tag: v1.106.1
+    tag: v1.109.0
   ingress:
     enabled: true
     subDomain: "victoriametrics"
