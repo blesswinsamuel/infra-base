@@ -470,8 +470,8 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 					Tls:   *ingress.TLS,
 				})
 			}
-			if len(ingressHosts) > 0 && len(networkPolicy.Ingress.AllowFromAppRefs["traefik"]) == 0 {
-				networkPolicy.Ingress.AllowFromAppRefs["traefik"] = []intstr.IntOrString{intstr.FromString(port.Name)}
+			if len(port.Ingresses) > 0 {
+				networkPolicy.Ingress.AllowFromAppRefs["traefik"] = append(networkPolicy.Ingress.AllowFromAppRefs["traefik"], intstr.FromString(port.Name))
 			}
 			if prometheusScrape := port.PrometheusScrape; prometheusScrape != nil {
 				if serviceAnnotations[serviceName] == nil {
