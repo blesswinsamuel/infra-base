@@ -101,6 +101,7 @@ type NetworkPolicyIngress struct {
 	AllowFromApps          []NetworkPolicyPeer
 	AllowFromIPs           map[string][]intstr.IntOrString
 	AllowFromAllNamespaces []intstr.IntOrString
+	ExtraRules             []networkingv1.NetworkPolicyIngressRule
 }
 
 type NetworkPolicyPeer struct {
@@ -122,6 +123,7 @@ type NetworkPolicyEgress struct {
 	AllowToAllInternet   []int
 	AllowToAllNamespaces bool
 	AllowToIPs           []NetworkPolicyEgressIP
+	ExtraRules           []networkingv1.NetworkPolicyEgressRule
 }
 
 type NetworkPolicy struct {
@@ -243,7 +245,8 @@ func NewNetworkPolicy(scope kgen.Scope, props *NetworkPolicy) kgen.ApiObject {
 		}
 		egressRules = append(egressRules, egressRule)
 	}
-
+	ingressRules = append(ingressRules, props.Ingress.ExtraRules...)
+	egressRules = append(egressRules, props.Egress.ExtraRules...)
 	return scope.AddApiObject(&networkingv1.NetworkPolicy{
 		ObjectMeta: v1.ObjectMeta{
 			Name: props.Name,
