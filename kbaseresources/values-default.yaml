@@ -188,7 +188,7 @@ traefik-forward-auth:
 vector:
   image:
     repository: timberio/vector
-    tag: 0.43.1-distroless-libc
+    tag: 0.44.0-distroless-libc
   syslogServer:
     enabled: false
   _grafana_dashboards:
@@ -377,7 +377,7 @@ vmalert:
 alertmanager:
   image:
     repository: quay.io/prometheus/alertmanager
-    tag: "v0.27.0"
+    tag: "v0.28.0"
   ingress:
     enabled: true
     subDomain: "alertmanager"
