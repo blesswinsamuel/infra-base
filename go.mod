@@ -4,18 +4,18 @@ go 1.23.4
 
 require (
 	github.com/blesswinsamuel/kgen v0.0.7
-	github.com/cert-manager/cert-manager v1.16.2
+	github.com/cert-manager/cert-manager v1.16.3
 	github.com/external-secrets/external-secrets v0.12.1
-	github.com/goccy/go-yaml v1.15.13
+	github.com/goccy/go-yaml v1.15.15
 	github.com/muesli/reflow v0.3.0
 	github.com/rs/zerolog v1.33.0
-	github.com/traefik/traefik/v3 v3.3.1
+	github.com/traefik/traefik/v3 v3.3.2
 	go.universe.tf/metallb v0.14.9
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da
-	k8s.io/api v0.32.0
-	k8s.io/apiextensions-apiserver v0.32.0
-	k8s.io/apimachinery v0.32.0
+	k8s.io/api v0.32.1
+	k8s.io/apiextensions-apiserver v0.32.1
+	k8s.io/apimachinery v0.32.1
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
 )
 
@@ -100,7 +100,7 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/client-go v0.32.0 // indirect
+	k8s.io/client-go v0.32.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241212222426-2c72e554b1e7 // indirect
 	sigs.k8s.io/controller-runtime v0.19.3 // indirect

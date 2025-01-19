@@ -4,9 +4,9 @@ go 1.22.2
 
 require (
 	github.com/go-co-op/gocron/v2 v2.14.2
-	github.com/goccy/go-yaml v1.15.13
+	github.com/goccy/go-yaml v1.15.15
 	github.com/google/uuid v1.6.0
-	github.com/minio/minio-go/v7 v7.0.83
+	github.com/minio/minio-go/v7 v7.0.84
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rs/zerolog v1.33.0
 	github.com/urfave/cli/v2 v2.27.5
