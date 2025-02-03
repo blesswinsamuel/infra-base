@@ -428,6 +428,9 @@ node-exporter:
         - HostCpuIsUnderutilized
         - HostSystemdServiceCrashed # duplicate of NodeSystemdServiceFailed
         - HostClockNotSynchronising # duplicate of NodeClockNotSynchronising
+      alertReplacements:
+        HostCpuHighIowait:
+          "for: 0m": "for: 5m" # to fix noisy alerts
 victoriametrics:
   image:
     repository: victoriametrics/victoria-metrics

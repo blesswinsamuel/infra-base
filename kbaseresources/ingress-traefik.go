@@ -6,7 +6,9 @@ import (
 	"github.com/blesswinsamuel/kgen"
 	"github.com/traefik/traefik/v3/pkg/config/dynamic"
 	traefikv1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type TraefikProps struct {
@@ -141,34 +143,20 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 				// also see https://www.authelia.com/integration/kubernetes/introduction/#external-traffic-policy
 			},
 		},
-		"extraObjects": []map[string]any{
-			{
-				"apiVersion": "v1",
-				"kind":       "Service",
-				"metadata": map[string]any{
-					"name": "traefik-api",
-				},
-				"spec": map[string]any{
-					"type": "ClusterIP",
-					"selector": map[string]any{
-						"app.kubernetes.io/name":     "traefik",
-						"app.kubernetes.io/instance": "traefik-ingress",
-					},
-					"ports": []map[string]any{
-						{
-							"port":       8080,
-							"name":       "traefik",
-							"targetPort": 9000,
-							"protocol":   "TCP",
-						},
-					},
-				},
-			},
-		},
 		"logs": map[string]any{
 			"general": map[string]any{"format": "json"},
 		},
 	}
+	scope.AddApiObject(&corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: scope.ID() + "-api"},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{Name: "traefik", Port: 8080, TargetPort: intstr.FromInt(8080)},
+			},
+			Selector: map[string]string{"app.kubernetes.io/name": "traefik", "app.kubernetes.io/instance": "traefik-ingress"},
+		},
+	})
+
 	if props.DefaultTlsStore != "" {
 		values["tlsStore"] = map[string]any{
 			"default": map[string]any{
