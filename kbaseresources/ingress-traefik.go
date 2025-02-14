@@ -41,6 +41,7 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 	}
 
 	values := map[string]interface{}{
+		// "hostNetwork": true,
 		"deployment": map[string]any{
 			// 	"podAnnotations": map[string]any{
 			// 		"prometheus.io/port":   "8082",
@@ -133,6 +134,9 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 				// # works only from traefik v3
 				// # asDefault: true
 				"middlewares": props.DefaultMiddlewares,
+			},
+			"metrics": map[string]any{
+				"port": 8082,
 			},
 		},
 		"service": map[string]any{
