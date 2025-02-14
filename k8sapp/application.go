@@ -176,6 +176,7 @@ type ContainerPort struct {
 	Name                 string
 	Port                 int
 	ServicePort          int
+	NodePort             int32
 	ServiceName          string
 	DisableService       bool
 	DisableContainerPort bool
@@ -456,6 +457,7 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 				Port:       port.GetServicePort(),
 				TargetPort: intstr.FromString(port.Name),
 				Protocol:   port.Protocol,
+				NodePort:   port.NodePort,
 			})
 			if port.Ingress != nil {
 				port.Ingresses = append(port.Ingresses, *port.Ingress)
@@ -600,12 +602,17 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 			if slices.Contains(props.HeadlessServiceNames, serviceName) {
 				clusterIP = "None"
 			}
+			var serviceType corev1.ServiceType
+			if strings.HasSuffix(serviceName, "-np") {
+				serviceType = corev1.ServiceTypeNodePort
+			}
 			scope.AddApiObject(&corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        serviceName,
 					Annotations: serviceAnnotations[serviceName],
 				},
 				Spec: corev1.ServiceSpec{
+					Type:      serviceType,
 					ClusterIP: clusterIP,
 					Selector:  commonLabels,
 					Ports:     servicePorts[serviceName],
