@@ -20,7 +20,7 @@ cert-manager:
     version: "v1.17.1"
   _grafana_dashboards:
     cert-manager:
-      url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/cert-manager.json
+      url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/dashboards/cert-manager.json
       folder: Ingress
 cert-issuer:
   # namespace: ""
@@ -62,7 +62,7 @@ traefik:
     #   title: Traefik Kubernetes (official)
     #   folder: Ingress
     traefik:
-      url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/traefik.json
+      url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/dashboards/traefik.json
       title: Traefik
       folder: Ingress
     # - url: https://grafana.com/api/dashboards/17501/revisions/1/download
@@ -100,7 +100,7 @@ postgres:
       title: Postgres (official)
       folder: Databases
     postgres:
-      url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/postgres.json
+      url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/dashboards/postgres.json
       title: Postgres
       folder: Databases
   _alerting_rules:
@@ -409,11 +409,6 @@ node-exporter:
       folder: Monitoring
       replacements:
         '"000000001"': '"${DS_PROMETHEUS}"'
-    node-exporter-2:
-      url: https://github.com/starsliao/Prometheus/raw/master/node_exporter/node-exporter-for-prometheus-dashboard-en.json
-      gnet_id: 11074
-      title: Node Exporter 2
-      folder: Monitoring
   _alerting_rules:
     node-exporter-official:
       url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/nodeExporter-prometheusRule.yaml
@@ -429,6 +424,8 @@ node-exporter:
         - HostSystemdServiceCrashed # duplicate of NodeSystemdServiceFailed
         - HostClockNotSynchronising # duplicate of NodeClockNotSynchronising
       alertReplacements:
+        HostContextSwitchingHigh:
+          " > 2": " > 3"
         HostCpuHighIowait:
           "for: 0m": "for: 5m" # to fix noisy alerts
 victoriametrics:
@@ -454,7 +451,7 @@ victoriametrics:
       folder: Monitoring
   _alerting_rules:
     victoriametrics:
-      url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/deployment/docker/alerts.yml
+      url: https://github.com/VictoriaMetrics/VictoriaMetrics/raw/master/deployment/docker/rules/alerts.yml
 loki:
   image:
     repository: grafana/loki
