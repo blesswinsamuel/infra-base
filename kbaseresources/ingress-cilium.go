@@ -16,23 +16,44 @@ type CiliumProps struct {
 // https://docs.cilium.io/en/stable/helm-reference/
 func (props *CiliumProps) Render(scope kgen.Scope) {
 	// https://github.com/cilium/cilium/tree/main/install/kubernetes/cilium
+	// https://blogs.learningdevops.com/the-complete-guide-to-setting-up-cilium-on-k3s-with-kubernetes-gateway-api-8f78adcddb4d
+	// https://github.com/cilium/cilium/blob/main/install/kubernetes/cilium/values.yaml
 	k8sapp.NewHelm(scope, &k8sapp.HelmProps{
 		ChartInfo:   props.HelmChartInfo,
 		ReleaseName: "cilium",
 		Values: map[string]any{
 			// "installCRDs": "true",
-			"routingMode":           "native",
-			"ipv4NativeRoutingCIDR": "10.0.0.0/8",
-			"autoDirectNodeRoutes":  true,
+			"nodeIPAM": map[string]any{
+				"enabled": true,
+			},
+			"autoDirectNodeRoutes": true,
+			"defaultLBServiceIPAM": "nodeipam",
+
+			// "routingMode":           "native",
+			// "ipv4NativeRoutingCIDR": "10.42.0.0/16",
 			"ipam": map[string]any{
 				"mode": "kubernetes",
 				"operator": map[string]any{
-					"clusterPoolIPv4PodCIDRList": []string{"10.0.0.0/8"},
+					"clusterPoolIPv4PodCIDRList": []string{"10.42.0.0/16"},
 				},
 			},
 			"operator": map[string]any{
-				"replicas": 1,
+				"replicas":          1,
+				"rollOutPods":       true,
+				"rollOutCiliumPods": true,
 			},
+			"nodePort": map[string]any{
+				"enabled": true,
+			},
+			// "gatewayAPI": map[string]any{
+			// 	"enabled": true,
+			// },
+			// "securityContext": map[string]any{
+			// 	"privileged": true,
+			// },
+			// "externalIPs": map[string]any{
+			// 	"enabled": true,
+			// },
 			// "hubble": map[string]any{
 			// 	"tls": map[string]any{
 			// 		"enabled": false,

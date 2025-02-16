@@ -31,6 +31,7 @@ type TraefikProps struct {
 	Plugins                    []string `json:"plugins"`
 	DisableHttpToHttpsRedirect bool     `json:"disableHttpToHttpsRedirect"`
 	DefaultTlsStore            string   `json:"defaultTlsStore"`
+	// ExternalIPs                []string `json:"externalIPs"`
 	// HostPathMountForLogs bool     `json:"hostPathMountForLogs"`
 }
 
@@ -142,6 +143,7 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 		"service": map[string]any{
 			"type":           props.ServiceType,
 			"ipFamilyPolicy": "PreferDualStack",
+			// "externalIPs":    props.ExternalIPs,
 			"spec": map[string]any{
 				"externalTrafficPolicy": infrahelpers.If(props.ServiceType == "LoadBalancer", "Local", ""), // So that traefik gets the real IP - https://github.com/k3s-io/k3s/discussions/2997#discussioncomment-413904
 				// also see https://www.authelia.com/integration/kubernetes/introduction/#external-traffic-policy
@@ -151,6 +153,11 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 			"general": map[string]any{"format": "json"},
 		},
 	}
+	// if len(props.ExternalIPs) > 0 {
+	// 	values["service"].(map[string]any)["annotations"] = map[string]any{
+	// 		"lbipam.cilium.io/ips": strings.Join(props.ExternalIPs, ","),
+	// 	}
+	// }
 	scope.AddApiObject(&corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Name: scope.ID() + "-api"},
 		Spec: corev1.ServiceSpec{
