@@ -132,18 +132,22 @@ func lockFile(url string, lockedUrl string) {
 
 func getGithubBranchSha(org string, repo string, branch string) string {
 	// Get the sha of the branch
+	ll := log.With().Str("org", org).Str("repo", repo).Str("branch", branch).Logger()
 	branchUrl := "https://api.github.com/repos/" + org + "/" + repo + "/branches/" + branch
 	resp, err := http.Get(branchUrl)
 	if err != nil {
-		log.Panic().Err(err).Msg("getGithubBranchSha http.Get failed")
+		ll.Panic().Err(err).Msg("getGithubBranchSha http.Get failed")
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		log.Panic().Str("status", resp.Status).Msg("getGithubBranchSha status code not 200")
+		ratelimitRemaining := resp.Header.Get("X-Ratelimit-Remaining")
+		ratelimitUsed := resp.Header.Get("X-Ratelimit-Used")
+		ratelimitReset := resp.Header.Get("X-Ratelimit-Reset")
+		ll.Panic().Str("status", resp.Status).Str("ratelimitRemaining", ratelimitRemaining).Str("ratelimitUsed", ratelimitUsed).Str("ratelimitReset", ratelimitReset).Msg("getGithubBranchSha status code not 200")
 	}
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Panic().Err(err).Msg("getGithubBranchSha ReadAll failed")
+		ll.Panic().Err(err).Msg("getGithubBranchSha ReadAll failed")
 	}
 	branchData := infrahelpers.FromJSONString[map[string]any](string(data))
 	return branchData["commit"].(map[string]any)["sha"].(string)
