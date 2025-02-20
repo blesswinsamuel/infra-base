@@ -84,7 +84,7 @@ postgres:
   metrics:
     image:
       repository: docker.io/bitnami/postgres-exporter
-      tag: 0.16.0-debian-12-r3
+      tag: 0.16.0-debian-12-r11
   database: null
   username: null
   resources:
@@ -144,7 +144,7 @@ redis:
 authelia:
   image:
     repository: ghcr.io/authelia/authelia
-    tag: "4.38.18"
+    tag: "4.38.19"
   ingress:
     subDomain: authelia
   ldap:
@@ -205,7 +205,7 @@ crowdsec-firewall-bouncer:
 crowdsec:
   image:
     repository: crowdsecurity/crowdsec
-    tag: v1.6.4
+    tag: v1.6.5
   notifiers:
     - slack
     # - telegram
@@ -490,7 +490,7 @@ kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
     chart: kubernetes-dashboard
-    version: "7.10.1"
+    version: "7.10.4"
   ingress:
     enabled: true
     subDomain: kubernetes-dashboard
