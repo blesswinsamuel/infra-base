@@ -122,7 +122,7 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 			"web": map[string]any{
 				// "expose":           map[string]any{"default": true},
 				// "exposedPort":      80,
-				"redirectTo":       map[string]any{"port": "websecure"},
+				"redirections":     map[string]any{"entryPoint": map[string]any{"to": "websecure", "scheme": "https", "permanent": true}},
 				"forwardedHeaders": map[string]any{"trustedIPs": props.TrustedIPs},
 				"proxyProtocol":    map[string]any{"trustedIPs": props.TrustedIPs},
 			},

@@ -1,6 +1,6 @@
 module github.com/blesswinsamuel/infra-base
 
-go 1.23.6
+go 1.24.0
 
 toolchain go1.24.0
 
@@ -8,7 +8,7 @@ require (
 	github.com/blesswinsamuel/kgen v0.0.7
 	github.com/cert-manager/cert-manager v1.17.1
 	github.com/external-secrets/external-secrets v0.14.2
-	github.com/goccy/go-yaml v1.15.23
+	github.com/goccy/go-yaml v1.15.13
 	github.com/muesli/reflow v0.3.0
 	github.com/rs/zerolog v1.33.0
 	github.com/traefik/traefik/v3 v3.3.3

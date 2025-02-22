@@ -45,7 +45,7 @@ traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "33.2.1"
+    version: "34.4.0"
   dashboardIngress:
     enabled: false
     subDomain: traefik
