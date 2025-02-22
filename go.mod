@@ -2,10 +2,8 @@ module github.com/blesswinsamuel/infra-base
 
 go 1.24.0
 
-toolchain go1.24.0
-
 require (
-	github.com/blesswinsamuel/kgen v0.0.7
+	github.com/blesswinsamuel/kgen v0.0.8
 	github.com/cert-manager/cert-manager v1.17.1
 	github.com/external-secrets/external-secrets v0.14.2
 	github.com/goccy/go-yaml v1.15.13
