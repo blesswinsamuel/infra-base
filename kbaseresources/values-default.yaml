@@ -188,7 +188,7 @@ traefik-forward-auth:
 vector:
   image:
     repository: timberio/vector
-    tag: 0.44.0-distroless-libc
+    tag: 0.45.0-distroless-libc
   syslogServer:
     enabled: false
   _grafana_dashboards:
@@ -524,7 +524,7 @@ coredns:
 mailpit:
   image:
     repository: axllent/mailpit
-    tag: v1.22.3
+    tag: v1.23.0
 
 ### utils ###
 
