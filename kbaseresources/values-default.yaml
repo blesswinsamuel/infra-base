@@ -4,7 +4,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.14.2"
+    version: "0.14.3"
 
 external-secrets-store:
   tokenSecretName: doppler-token-auth-api
@@ -45,7 +45,7 @@ traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "34.4.0"
+    version: "34.4.1"
   dashboardIngress:
     enabled: false
     subDomain: traefik
@@ -84,7 +84,7 @@ postgres:
   metrics:
     image:
       repository: docker.io/bitnami/postgres-exporter
-      tag: 0.17.0-debian-12-r0
+      tag: 0.17.1-debian-12-r1
   resources:
     limits:
       cpu: 1000m
@@ -375,7 +375,7 @@ vmalert:
 alertmanager:
   image:
     repository: quay.io/prometheus/alertmanager
-    tag: "v0.28.0"
+    tag: "v0.28.1"
   ingress:
     enabled: true
     subDomain: "alertmanager"
