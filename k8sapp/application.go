@@ -627,7 +627,7 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 		var ingressAnnotations map[string]string
 		if props.Homepage != nil {
 			ingressAnnotations = GetHomepageAnnotations(props.Homepage)
-			if len(networkPolicy.Ingress.AllowFromAppRefs["homepage"]) == 0 {
+			if len(networkPolicy.Ingress.AllowFromAppRefs["homepage"]) == 0 && (GetGlobals(scope).AppRefs["homepage"] != NameNamespacePort{}) {
 				ports := []intstr.IntOrString{}
 				for _, port := range ingressHosts {
 					for _, path := range port.Paths {

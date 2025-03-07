@@ -1,6 +1,9 @@
 package k8sapp
 
-import "github.com/blesswinsamuel/kgen"
+import (
+	"github.com/blesswinsamuel/infra-base/infrahelpers"
+	"github.com/blesswinsamuel/kgen"
+)
 
 type ValuesGlobalCert struct {
 	CertIssuerName string `json:"certIssuerName"`
@@ -30,7 +33,7 @@ type ValuesGlobal struct {
 		IP   string `json:"ip"`
 		Port int    `json:"port"`
 	} `json:"kubeApiServer"`
-	AppRefs map[string]NameNamespacePort `json:"appRefs"`
+	AppRefs infrahelpers.MergeableMap[string, NameNamespacePort] `json:"appRefs"`
 }
 
 var defaultValuesGlobal = ValuesGlobal{

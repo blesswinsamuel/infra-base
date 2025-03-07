@@ -92,11 +92,12 @@ type Authelia struct {
 	} `json:"smtp"`
 	Database struct {
 		Postgres struct {
-			Host     *string `json:"host"`
-			Port     *int    `json:"port"`
-			Database *string `json:"database"`
-			Username *string `json:"username"`
-			Schema   *string `json:"schema"`
+			Host        *string `json:"host"`
+			Port        *int    `json:"port"`
+			Database    *string `json:"database"`
+			Username    *string `json:"username"`
+			Schema      *string `json:"schema"`
+			PasswordRef *string `json:"passwordRef"`
 		} `json:"postgres"`
 		Redis struct {
 			Host *string `json:"host"`
@@ -119,6 +120,7 @@ func (props *Authelia) Render(scope kgen.Scope) {
 	if props.IncludeForwardAuthMiddleware {
 		ingressMiddlewares = append(ingressMiddlewares, k8sapp.NameNamespace{Name: "forwardauth-authelia", Namespace: scope.Namespace()})
 	}
+	globals := k8sapp.GetGlobals(scope)
 	ingressMiddlewares = append(ingressMiddlewares, k8sapp.NameNamespace{Name: "chain-authelia", Namespace: scope.Namespace()})
 	appProps := &k8sapp.ApplicationProps{
 		Name:               "authelia",
@@ -155,11 +157,18 @@ func (props *Authelia) Render(scope kgen.Scope) {
 		},
 		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
 			Egress: k8sapp.NetworkPolicyEgress{
-				AllowToAppRefs: []string{"postgres", "redis", "lldap", "mailpit"},
+				AllowToAppRefs: infrahelpers.MergeLists(
+					[]string{"postgres", "redis"},
+					infrahelpers.Ternary(props.AuthMode == "ldap", []string{"lldap"}, nil),
+					infrahelpers.Ternary(globals.AppRefs["mailpit"] != k8sapp.NameNamespacePort{}, []string{"mailpit"}, nil),
+				),
 				AllowToIPs: []k8sapp.NetworkPolicyEgressIP{
 					{CidrIPBlocks: []string{"162.159.200.1/32", "162.159.200.123/32"}, Ports: []int{123}, Protocol: corev1.ProtocolUDP}, // for ntp UDP to time.cloudflare.com
 				},
-				AllowToAllInternet: infrahelpers.Ternary(props.Assets != nil, []int{80, 443}, nil), // for downloading assets
+				AllowToAllInternet: infrahelpers.MergeLists(
+					infrahelpers.Ternary(props.Assets != nil, []int{80, 443}, nil), // for downloading assets
+					[]int{587}, // for smtp
+				),
 			},
 		},
 	}
@@ -313,7 +322,6 @@ func (props *Authelia) Render(scope kgen.Scope) {
 		"STORAGE_ENCRYPTION_KEY": "AUTHELIA_STORAGE_ENCRYPTION_KEY",
 		"POSTGRES_PASSWORD":      "POSTGRES_PASSWORD_AUTHELIA",
 	}
-	globals := k8sapp.GetGlobals(scope)
 	smtpSettings := autheliaConfig["notifier"].(map[string]any)["smtp"].(map[string]any)
 	if mailpit, ok := globals.AppRefs["mailpit"]; ok {
 		smtpSettings["address"] = "smtp://" + mailpit.Name + "." + mailpit.Namespace + ".svc.cluster.local.:1025"
@@ -335,6 +343,9 @@ func (props *Authelia) Render(scope kgen.Scope) {
 		externalSecretRefs["SMTP_HOST"] = "SMTP_HOST"
 		externalSecretRefs["SMTP_PORT"] = "SMTP_PORT"
 		externalSecretRefs["SMTP_USERNAME"] = "SMTP_USERNAME"
+	}
+	if props.Database.Postgres.PasswordRef != nil {
+		externalSecretRefs["POSTGRES_PASSWORD"] = *props.Database.Postgres.PasswordRef
 	}
 	if props.OIDC.Enabled {
 		for i, client := range props.OIDC.Clients.V {

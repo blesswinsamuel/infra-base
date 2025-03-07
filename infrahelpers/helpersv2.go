@@ -35,7 +35,7 @@ func (m *MergeableMap[K, V]) MergeMap(other map[K]V) {
 func (m *MergeableMap[K, V]) UnmarshalYAML(ctx context.Context, data []byte) error {
 	// workaround to allow merging of maps
 	var goMap map[K]V
-	if err := yaml.UnmarshalContext(ctx, data, &goMap, yaml.Strict()); err != nil {
+	if err := yaml.UnmarshalContext(ctx, data, &goMap, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
 		return err
 	}
 	m.MergeMap(goMap)

@@ -64,11 +64,11 @@ type OrderedMap[K comparable, V any] struct {
 
 func (m *OrderedMap[K, V]) UnmarshalYAML(ctx context.Context, data []byte) error {
 	newMap := infrahelpers.MergeableMap[K, V](m.Map)
-	if err := yaml.UnmarshalContext(ctx, data, &newMap); err != nil {
+	if err := yaml.UnmarshalContext(ctx, data, &newMap, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
 		return err
 	}
 	var orderedMapItems yaml.MapSlice
-	if err := yaml.UnmarshalContext(ctx, data, &orderedMapItems); err != nil {
+	if err := yaml.UnmarshalContext(ctx, data, &orderedMapItems, yaml.Strict(), yaml.UseJSONUnmarshaler()); err != nil {
 		return err
 	}
 	if m.Map == nil {

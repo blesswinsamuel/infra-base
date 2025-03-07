@@ -28,8 +28,6 @@ type Postgres struct {
 		ImageInfo k8sapp.ImageInfo `json:"image"`
 	} `json:"metrics"`
 	ImagePullPolicy        corev1.PullPolicy `json:"imagePullPolicy"`
-	Database               string            `json:"database"`
-	Username               string            `json:"username"`
 	SharedPreloadLibraries []string          `json:"sharedPreloadLibraries"`
 	LoadBalancer           struct {
 		Enabled bool `json:"enabled"`
@@ -63,10 +61,10 @@ func (props *Postgres) Render(scope kgen.Scope) {
 				},
 				EnvFromSecretRef: []string{scope.ID() + "-passwords"},
 				LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{
-					"/bin/sh", "-c", fmt.Sprintf(`exec pg_isready -U "%s" -d "dbname=%s" -h 127.0.0.1 -p 5432`, props.Username, props.Database),
+					"/bin/sh", "-c", fmt.Sprintf(`exec pg_isready -U "%s" -d "dbname=%s" -h 127.0.0.1 -p 5432`, "postgres", "postgres"),
 				}}}, FailureThreshold: 6, InitialDelaySeconds: 30, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
 				ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{
-					"/bin/sh", "-c", "-e", fmt.Sprintf(`exec pg_isready -U "%s" -d "dbname=%s" -h 127.0.0.1 -p 5432`, props.Username, props.Database),
+					"/bin/sh", "-c", "-e", fmt.Sprintf(`exec pg_isready -U "%s" -d "dbname=%s" -h 127.0.0.1 -p 5432`, "postgres", "postgres"),
 				}}}, FailureThreshold: 6, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
 				Resources: *props.Resources,
 				ExtraVolumeMounts: []corev1.VolumeMount{
@@ -217,7 +215,7 @@ func (props *Postgres) Render(scope kgen.Scope) {
 							"url":    "postgres.database.svc.cluster.local:5432",
 							"access": "proxy",
 							// TODO: use readonly user, use secret
-							"user": props.Username,
+							"user": "postgres",
 							"secureJsonData": map[string]any{
 								"password": "{{ .password }}",
 							},

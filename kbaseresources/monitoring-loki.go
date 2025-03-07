@@ -1,6 +1,7 @@
 package kbaseresources
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
@@ -46,8 +47,12 @@ func (props *LokiProps) Render(scope kgen.Scope) {
 			},
 		},
 		"compactor": map[string]any{
-			"retention_enabled":    true,
-			"delete_request_store": "filesystem", // ?
+			// "working_directory":             "/data/retention",
+			"retention_enabled":             true,
+			"retention_delete_delay":        "2h",
+			"compaction_interval":           "10m",
+			"retention_delete_worker_count": 150,
+			"delete_request_store":          "filesystem",
 		},
 		"frontend": map[string]any{
 			"scheduler_address": "",
@@ -60,10 +65,12 @@ func (props *LokiProps) Render(scope kgen.Scope) {
 			"mode": "ring",
 		},
 		"limits_config": map[string]any{
-			"max_cache_freshness_per_query": "10m",
-			"reject_old_samples":            true,
-			"reject_old_samples_max_age":    "168h",
-			"split_queries_by_interval":     "15m",
+			"retention_period":   fmt.Sprintf("%dh", 90*24),
+			"max_query_lookback": fmt.Sprintf("%dh", 90*24),
+			// "max_cache_freshness_per_query": "10m",
+			// "reject_old_samples":            true,
+			// "reject_old_samples_max_age":    "168h",
+			// "split_queries_by_interval":     "15m",
 		},
 		"memberlist": map[string]any{
 			"join_members": []string{

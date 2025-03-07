@@ -38,7 +38,7 @@
 {{/* https://github.com/prometheus/alertmanager/blob/ca5089d33eabaf03638a083d9a84f08c6de1acfb/template/default.tmpl#L115-L124 */}}
 {{/* https://gist.github.com/jidckii/5ac5f8f20368b56de72af70222509b7b */}}
 {{ define "__alertmanagerURL" }}{{ .ExternalURL }}/#/alerts?receiver={{ .Receiver | urlquery }}{{ end }}
-{{ define "__severityEmoji" }}{{ if eq . "warning" }}⚠️{{ else if eq . "critical" }}🚨{{ else }}{{ . }}{{ end }}{{ end }}
+{{ define "__severityEmoji" }}{{ if eq . "warning" }}⚠️{{ else if eq . "critical" }}🚨{{ else if eq . "info" }}ℹ️{{ else }}{{ . }}{{ end }}{{ end }}
 {{ define "__alertStatusEmoji" }}{{ if eq . "firing" }}🔥{{ else if eq . "resolved" }}✅{{ else }}🪪{{ end }}{{ end }}
 
 {{- define "telegram.message.alert.list" -}}
