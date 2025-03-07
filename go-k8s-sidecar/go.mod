@@ -2,7 +2,7 @@ module github.com/blesswinsamuel/go-k8s-sidecar
 
 go 1.23.0
 
-toolchain go1.24.0
+toolchain go1.24.1
 
 require (
 	github.com/rs/zerolog v1.33.0
