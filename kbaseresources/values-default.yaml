@@ -123,7 +123,7 @@ redis:
   metrics:
     image:
       repository: bitnami/redis-exporter
-      tag: 1.67.0
+      tag: 1.68.0
   resources:
     limits:
       cpu: 500m
@@ -186,7 +186,7 @@ traefik-forward-auth:
 vector:
   image:
     repository: timberio/vector
-    tag: 0.44.0-distroless-libc
+    tag: 0.45.0-distroless-libc
   syslogServer:
     enabled: false
   _grafana_dashboards:
@@ -338,7 +338,7 @@ alerting-rules:
 vmagent:
   image:
     repository: victoriametrics/vmagent
-    tag: "v1.112.0"
+    tag: "v1.113.0"
   ingress:
     enabled: true
     subDomain: "vmagent"
@@ -358,7 +358,7 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.112.0
+    tag: v1.113.0
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
@@ -429,7 +429,7 @@ node-exporter:
 victoriametrics:
   image:
     repository: victoriametrics/victoria-metrics
-    tag: v1.112.0
+    tag: v1.113.0
   ingress:
     enabled: true
     subDomain: "victoriametrics"
@@ -485,7 +485,7 @@ kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
     chart: kubernetes-dashboard
-    version: "7.10.4"
+    version: "7.11.1"
   ingress:
     enabled: true
     subDomain: kubernetes-dashboard
@@ -522,7 +522,7 @@ coredns:
 mailpit:
   image:
     repository: axllent/mailpit
-    tag: v1.22.3
+    tag: v1.23.1
 
 ### utils ###
 
