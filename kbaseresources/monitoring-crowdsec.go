@@ -28,6 +28,7 @@ type Crowdsec struct {
 	Notifiers                  []string                  `json:"notifiers"`
 	PersistentVolumeName       string                    `json:"persistentVolumeName"`
 	Tolerations                []corev1.Toleration       `json:"tolerations"`
+	SlackChannel               string                    `json:"slackChannel"`
 	// HelmChartInfo k8sapp.ChartInfo `json:"helm"`
 }
 
@@ -314,7 +315,7 @@ fi;
 `),
 
 						"webhook":  "${SLACK_API_URL}",
-						"channel":  "#crowdsec",
+						"channel":  props.SlackChannel,
 						"username": "CrowdSec",
 						"icon_url": "https://avatars.githubusercontent.com/u/63284097?s=200&v=4",
 					}),

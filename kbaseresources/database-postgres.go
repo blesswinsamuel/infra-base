@@ -62,10 +62,10 @@ func (props *Postgres) Render(scope kgen.Scope) {
 				EnvFromSecretRef: []string{scope.ID() + "-passwords"},
 				LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{
 					"/bin/sh", "-c", fmt.Sprintf(`exec pg_isready -U "%s" -d "dbname=%s" -h 127.0.0.1 -p 5432`, "postgres", "postgres"),
-				}}}, FailureThreshold: 6, InitialDelaySeconds: 30, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
+				}}}, FailureThreshold: 6, InitialDelaySeconds: 30, PeriodSeconds: 20, SuccessThreshold: 1, TimeoutSeconds: 5},
 				ReadinessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{
 					"/bin/sh", "-c", "-e", fmt.Sprintf(`exec pg_isready -U "%s" -d "dbname=%s" -h 127.0.0.1 -p 5432`, "postgres", "postgres"),
-				}}}, FailureThreshold: 6, InitialDelaySeconds: 5, PeriodSeconds: 10, SuccessThreshold: 1, TimeoutSeconds: 5},
+				}}}, FailureThreshold: 6, InitialDelaySeconds: 5, PeriodSeconds: 20, SuccessThreshold: 1, TimeoutSeconds: 5},
 				Resources: *props.Resources,
 				ExtraVolumeMounts: []corev1.VolumeMount{
 					{Name: "empty-dir", MountPath: "/tmp", SubPath: "tmp-dir"},

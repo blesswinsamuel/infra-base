@@ -204,6 +204,7 @@ crowdsec:
   image:
     repository: crowdsecurity/crowdsec
     tag: v1.6.5
+  slackChannel: "#crowdsec"
   notifiers:
     - slack
     # - telegram
@@ -395,6 +396,9 @@ alertmanager:
       url: https://github.com/prometheus-operator/kube-prometheus/raw/main/manifests/alertmanager-prometheusRule.yaml
       replacements:
         'job="alertmanager-main"': 'job="alertmanager"'
+      alertReplacements:
+        AlertmanagerFailedToSendAlerts:
+          "for: 5m": "for: 15m" # to fix noisy alerts
 node-exporter:
   image:
     repository: quay.io/prometheus/node-exporter
