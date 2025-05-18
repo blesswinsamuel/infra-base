@@ -4,7 +4,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.14.2"
+    version: "0.17.0"
 
 external-secrets-store:
   tokenSecretName: doppler-token-auth-api
@@ -45,7 +45,7 @@ traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "34.4.0"
+    version: "34.5.0"
   dashboardIngress:
     enabled: false
     subDomain: traefik
@@ -123,7 +123,7 @@ redis:
   metrics:
     image:
       repository: bitnami/redis-exporter
-      tag: 1.67.0
+      tag: 1.72.1
   resources:
     limits:
       cpu: 500m
@@ -142,7 +142,7 @@ redis:
 authelia:
   image:
     repository: ghcr.io/authelia/authelia
-    tag: "4.38.19"
+    tag: "4.39.3"
   ingress:
     subDomain: authelia
   ldap:
@@ -186,7 +186,7 @@ traefik-forward-auth:
 vector:
   image:
     repository: timberio/vector
-    tag: 0.44.0-distroless-libc
+    tag: 0.46.1-distroless-libc
   syslogServer:
     enabled: false
   _grafana_dashboards:
@@ -248,7 +248,7 @@ kube-state-metrics:
 grafana:
   image:
     repository: grafana/grafana
-    tag: 11.5.2
+    tag: 11.6.1
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
@@ -339,7 +339,7 @@ alerting-rules:
 vmagent:
   image:
     repository: victoriametrics/vmagent
-    tag: "v1.112.0"
+    tag: "v1.117.1"
   ingress:
     enabled: true
     subDomain: "vmagent"
@@ -359,7 +359,7 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.112.0
+    tag: v1.117.1
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
@@ -438,7 +438,7 @@ node-exporter:
 victoriametrics:
   image:
     repository: victoriametrics/victoria-metrics
-    tag: v1.112.0
+    tag: v1.117.1
   ingress:
     enabled: true
     subDomain: "victoriametrics"
@@ -462,7 +462,7 @@ victoriametrics:
 loki:
   image:
     repository: grafana/loki
-    tag: "3.4.2"
+    tag: "3.5.0"
   storage: local
   _alerting_rules:
     loki:
@@ -489,12 +489,12 @@ kube-git-ops:
 reloader:
   image:
     repository: ghcr.io/stakater/reloader
-    tag: "v1.3.0"
+    tag: "v1.4.2"
 kubernetes-dashboard:
   helm:
     repo: https://kubernetes.github.io/dashboard/
     chart: kubernetes-dashboard
-    version: "7.10.4"
+    version: "7.12.0"
   ingress:
     enabled: true
     subDomain: kubernetes-dashboard
@@ -510,7 +510,7 @@ backup-job:
   postgres:
     image:
       repository: postgres
-      tag: "16.8"
+      tag: "16.9"
     host: "postgres.database.svc.cluster.local"
 pg-backuper:
   image:
@@ -531,7 +531,7 @@ coredns:
 mailpit:
   image:
     repository: axllent/mailpit
-    tag: v1.22.3
+    tag: v1.25.0
 
 ### utils ###
 
