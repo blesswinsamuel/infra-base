@@ -45,7 +45,7 @@ traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "34.5.0"
+    version: "35.2.0"
   dashboardIngress:
     enabled: false
     subDomain: traefik
@@ -80,7 +80,7 @@ postgres:
     # 2023-03-18 16:30:09.021 GMT [1] FATAL:  database files are incompatible with server
     # 2023-03-18 16:30:09.021 GMT [1] DETAIL:  The data directory was initialized by PostgreSQL version 14, which is not compatible with this version 15.2.
     repository: bitnami/postgresql
-    tag: 16.6.0
+    tag: 17.5.0
   metrics:
     image:
       repository: docker.io/bitnami/postgres-exporter
@@ -119,7 +119,7 @@ postgres:
 redis:
   image:
     repository: bitnami/redis
-    tag: 7.4.3
+    tag: 8.0.1
   metrics:
     image:
       repository: bitnami/redis-exporter
@@ -248,7 +248,7 @@ kube-state-metrics:
 grafana:
   image:
     repository: grafana/grafana
-    tag: 11.6.1
+    tag: 12.0.0
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
@@ -510,7 +510,7 @@ backup-job:
   postgres:
     image:
       repository: postgres
-      tag: "16.9"
+      tag: "17.5"
     host: "postgres.database.svc.cluster.local"
 pg-backuper:
   image:
