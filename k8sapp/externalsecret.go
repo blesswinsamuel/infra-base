@@ -5,7 +5,7 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/kgen"
-	externalsecretsv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	externalsecretsv1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1"
 	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,10 +28,10 @@ type ExternalSecretProps struct {
 }
 
 func NewExternalSecret(scope kgen.Scope, props *ExternalSecretProps) kgen.ApiObject {
-	var data []externalsecretsv1beta1.ExternalSecretData
+	var data []externalsecretsv1.ExternalSecretData
 	globals := GetGlobals(scope)
 	for k, v := range props.RemoteRefs {
-		var remoteRef externalsecretsv1beta1.ExternalSecretDataRemoteRef
+		var remoteRef externalsecretsv1.ExternalSecretDataRemoteRef
 		var ref string = v
 		vParts := strings.Split(v, "/")
 		switch globals.ExternalSecret.SecretsProvider {
@@ -49,7 +49,7 @@ func NewExternalSecret(scope kgen.Scope, props *ExternalSecretProps) kgen.ApiObj
 				panic("Invalid 1Password remote ref: " + v)
 			}
 			ref = vParts[1]
-			remoteRef = externalsecretsv1beta1.ExternalSecretDataRemoteRef{Key: "Kubernetes " + clusternamespace, Property: ref}
+			remoteRef = externalsecretsv1.ExternalSecretDataRemoteRef{Key: "Kubernetes " + clusternamespace, Property: ref}
 		case "doppler":
 			if len(vParts) == 1 {
 				ref = vParts[0]
@@ -58,21 +58,21 @@ func NewExternalSecret(scope kgen.Scope, props *ExternalSecretProps) kgen.ApiObj
 			} else {
 				panic("Invalid Doppler remote ref: " + v)
 			}
-			remoteRef = externalsecretsv1beta1.ExternalSecretDataRemoteRef{Key: ref}
+			remoteRef = externalsecretsv1.ExternalSecretDataRemoteRef{Key: ref}
 		}
-		data = append(data, externalsecretsv1beta1.ExternalSecretData{
+		data = append(data, externalsecretsv1.ExternalSecretData{
 			SecretKey: k,
 			RemoteRef: remoteRef,
 		})
 	}
-	slices.SortFunc(data, func(a externalsecretsv1beta1.ExternalSecretData, b externalsecretsv1beta1.ExternalSecretData) int {
+	slices.SortFunc(data, func(a externalsecretsv1.ExternalSecretData, b externalsecretsv1.ExternalSecretData) int {
 		return strings.Compare(a.SecretKey, b.SecretKey)
 	})
-	externalsecret := externalsecretsv1beta1.ExternalSecret{
+	externalsecret := externalsecretsv1.ExternalSecret{
 		ObjectMeta: metav1.ObjectMeta{Name: props.Name}, // , Namespace: infrahelpers.StrPtrIfNonEmpty(props.Namespace)
-		Spec: externalsecretsv1beta1.ExternalSecretSpec{
+		Spec: externalsecretsv1.ExternalSecretSpec{
 			RefreshInterval: infrahelpers.ToK8sDuration(infrahelpers.UseOrDefault(props.RefreshInterval, globals.ExternalSecret.RefreshInterval)),
-			SecretStoreRef: externalsecretsv1beta1.SecretStoreRef{
+			SecretStoreRef: externalsecretsv1.SecretStoreRef{
 				Name: infrahelpers.UseOrDefault(props.SecretStore.Name, globals.ExternalSecret.SecretStoreName),
 				Kind: infrahelpers.UseOrDefault(props.SecretStore.Kind, globals.ExternalSecret.SecretStoreKind),
 			},
@@ -80,9 +80,9 @@ func NewExternalSecret(scope kgen.Scope, props *ExternalSecretProps) kgen.ApiObj
 		},
 	}
 	if len(props.Template) > 0 {
-		externalsecret.Spec.Target.Template = &externalsecretsv1beta1.ExternalSecretTemplate{
+		externalsecret.Spec.Target.Template = &externalsecretsv1.ExternalSecretTemplate{
 			Type: corev1.SecretType(props.SecretType),
-			Metadata: externalsecretsv1beta1.ExternalSecretTemplateMetadata{
+			Metadata: externalsecretsv1.ExternalSecretTemplateMetadata{
 				Labels: props.SecretLabels,
 			},
 			Data: props.Template,

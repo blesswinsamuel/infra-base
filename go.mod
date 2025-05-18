@@ -6,17 +6,17 @@ require (
 	github.com/blesswinsamuel/kgen v0.0.8
 	github.com/cert-manager/cert-manager v1.17.2
 	github.com/external-secrets/external-secrets v0.17.0
-	github.com/goccy/go-yaml v1.17.1
+	github.com/goccy/go-yaml v1.15.13
 	github.com/muesli/reflow v0.3.0
 	github.com/rs/zerolog v1.34.0
 	github.com/traefik/traefik/v3 v3.4.0
 	go.universe.tf/metallb v0.14.9
-	golang.org/x/exp ce4c2cf36ca6
+	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da
 	k8s.io/api v0.33.1
 	k8s.io/apiextensions-apiserver v0.33.1
 	k8s.io/apimachinery v0.33.1
-	k8s.io/utils 0f33e8f1c979
+	k8s.io/utils v0.0.0-20250502105355-0f33e8f1c979
 )
 
 require (
