@@ -85,6 +85,7 @@ func (props *VmagentProps) Render(scope kgen.Scope) {
 				AllowToAppRefs: []string{"victoriametrics"},
 				AllowToIPs: []k8sapp.NetworkPolicyEgressIP{
 					{CidrIPBlocks: []string{k8sapp.GetGlobals(scope).KubeApiServer.IP}, Ports: []int{9100}}, // node exporter
+					{CidrIPBlocks: []string{k8sapp.GetGlobals(scope).KubeApiServer.IP}, Ports: []int{8123}}, // home assistant (should be host ip, but kube server IP is same as host ip for now)
 				},
 				AllowToKubeAPIServer: true,
 				AllowToAllNamespaces: true,

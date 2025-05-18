@@ -61,9 +61,9 @@
   <i>{{ .Name }}</i>: <code>{{ .Value }}</code>
 {{- end }}
 {{- end }}
-{{- if $alert.GeneratorURL }}
+{{/*{{- if $alert.GeneratorURL }}
 📈 <a href="{{ $alert.GeneratorURL }}">Graph</a> 📈
-{{- end }}
+{{- end }}*/}}
 {{- else }}
 {{ template "__alertStatusEmoji" $alert.Status }} {{ $alert.Labels.alertname }} {{ template "__severityEmoji" $alert.Labels.severity }}
 {{- if $alert.Annotations.summary }}
@@ -78,5 +78,6 @@
 <b>{{ if eq .Status "firing" }}🔥{{ else if eq .Status "resolved" }}✅{{ end }} {{.Status | toUpper}}</b> ({{ .Alerts | len }})
 {{- template "telegram.message.alert.list" .Alerts }}
 ---
-💊 <a href="{{ template "__alertmanagerURL" . }}">Alertmanager</a> 💊
+📢 <a href="{{ template "__alertmanagerURL" . }}">Alertmanager</a> 📢
+📈 <a href="{{ .ExternalURL | reReplaceAll "alertmanager" "grafana" }}/alerting/list?search=state:firing">Grafana</a> 📈
 {{- end -}}

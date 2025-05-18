@@ -8,12 +8,21 @@ import (
 
 	"github.com/blesswinsamuel/infra-base/infrahelpers"
 	"github.com/blesswinsamuel/kgen"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
+)
+
+type ApplicationKind string
+
+const (
+	ApplicationKindDeployment  ApplicationKind = "Deployment"
+	ApplicationKindStatefulSet                 = "StatefulSet"
+	ApplicationKindDaemonSet                   = "DaemonSet"
 )
 
 type ImageInfo struct {
@@ -33,8 +42,12 @@ func (i *ImageInfo) ToMap() map[string]interface{} {
 }
 
 type ApplicationProps struct {
-	Kind                          string
-	Name                          string
+	// Name is the name of the application. This is optional. If not provided, the name will be derived from the scope.
+	Name string
+	// Kind is the kind of the application. This is optional. If not provided, it will default to Deployment.
+	// Valid values are Deployment, StatefulSet, and DaemonSet.
+	Kind ApplicationKind
+
 	ServiceAccountName            string
 	Replicas                      *int32
 	CreateServiceAccount          bool
@@ -155,21 +168,32 @@ type ApplicationSecret struct {
 }
 
 type ApplicationContainer struct {
-	Name              string
-	Image             ImageInfo
-	ImagePullPolicy   corev1.PullPolicy
-	Command           []string
-	Env               map[string]string
-	EnvFromSecretRef  []string
-	ExtraEnvs         []corev1.EnvVar
-	Args              []string
-	Ports             []ContainerPort
+	Name            string
+	Image           ImageInfo
+	ImagePullPolicy corev1.PullPolicy
+
+	Env              map[string]string
+	EnvFromSecretRef []string
+	ExtraEnvs        []corev1.EnvVar
+
+	Command []string
+	Args    []string
+
+	SecurityContext *corev1.SecurityContext
+	LivenessProbe   *corev1.Probe
+	ReadinessProbe  *corev1.Probe
+	StartupProbe    *corev1.Probe
+	Resources       corev1.ResourceRequirements
+
+	// ExtraVolumeMounts are additional volume mounts to be added to the container.
+	//
+	// Deprecated: use VolumeMounts instead
 	ExtraVolumeMounts []corev1.VolumeMount
-	SecurityContext   *corev1.SecurityContext
-	LivenessProbe     *corev1.Probe
-	ReadinessProbe    *corev1.Probe
-	StartupProbe      *corev1.Probe
-	Resources         corev1.ResourceRequirements
+	// VolumeMounts are the volume mounts to be added to the container.
+	VolumeMounts []corev1.VolumeMount
+
+	// Deprecated
+	Ports []ContainerPort
 }
 
 type ContainerPort struct {
@@ -204,14 +228,17 @@ type ApplicationPrometheusScrape struct {
 }
 
 func NewApplication(scope kgen.Scope, props *ApplicationProps) {
-	if props.Kind == "" {
-		props.Kind = "Deployment"
-	}
 	if props.Name == "" {
 		props.Name = scope.ID()
 	}
+	if props.Kind == "" {
+		props.Kind = ApplicationKindDeployment
+	}
 	commonLabels := map[string]string{"app.kubernetes.io/name": props.Name}
-	podAnnotations := infrahelpers.CopyMap(props.PodAnnotations)
+	podAnnotations := maps.Clone(props.PodAnnotations)
+	if podAnnotations == nil {
+		podAnnotations = map[string]string{}
+	}
 	var volumes []corev1.Volume
 	containerVolumeMountsMap := map[string][]corev1.VolumeMount{}
 	allContainerNames := []string{}
@@ -513,7 +540,10 @@ func NewApplication(scope kgen.Scope, props *ApplicationProps) {
 			watchTheseSecretsAndReload = append(watchTheseSecretsAndReload, vol.Secret.SecretName)
 		}
 	}
-	appAnnotations := infrahelpers.CopyMap(props.AppAnnotations)
+	appAnnotations := maps.Clone(props.AppAnnotations)
+	if appAnnotations == nil {
+		appAnnotations = map[string]string{}
+	}
 	if len(watchTheseSecretsAndReload) > 0 {
 		appAnnotations["secret.reloader.stakater.com/reload"] = strings.Join(watchTheseSecretsAndReload, ",")
 	}

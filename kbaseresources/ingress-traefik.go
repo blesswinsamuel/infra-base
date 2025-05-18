@@ -113,7 +113,8 @@ func (props *TraefikProps) Render(scope kgen.Scope) {
 			"--api.insecure=true", // to expose the api for homepage dashboard via kubernetes service created below
 		},
 		"experimental": map[string]any{
-			"plugins": map[string]any{},
+			"plugins":              map[string]any{},
+			"abortOnPluginFailure": true,
 		},
 		"ports": map[string]any{
 			// "traefik": map[string]any{

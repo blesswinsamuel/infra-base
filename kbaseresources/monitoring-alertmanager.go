@@ -36,6 +36,7 @@ type AlertmanagerProps struct {
 		} `json:"telegram"`
 	} `json:"config"`
 	Tolerations []corev1.Toleration `json:"tolerations"`
+	LogLevel    string              `json:"logLevel"`
 }
 
 // https://github.com/prometheus-community/helm-charts/blob/main/charts/alertmanager
@@ -52,12 +53,14 @@ func (props *AlertmanagerProps) Render(scope kgen.Scope) {
 		Containers: []k8sapp.ApplicationContainer{{
 			Name:  "alertmanager",
 			Image: props.Image,
-			Args: []string{
-				"--storage.path=/alertmanager",
-				"--config.file=/etc/alertmanager/alertmanager.yml",
-				"--web.external-url=https://" + props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope),
-				// "--log.level=debug",
-			},
+			Args: infrahelpers.MergeLists(
+				[]string{
+					"--storage.path=/alertmanager",
+					"--config.file=/etc/alertmanager/alertmanager.yml",
+					"--web.external-url=https://" + props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope),
+				},
+				infrahelpers.Ternary(props.LogLevel != "", []string{"--log.level=" + props.LogLevel}, []string{}),
+			),
 			ExtraEnvs: []corev1.EnvVar{{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{APIVersion: "v1", FieldPath: "status.podIP"}}}},
 			Ports: []k8sapp.ContainerPort{
 				{Name: "http", Port: 9093, Ingress: &k8sapp.ApplicationIngress{Host: props.Ingress.SubDomain + "." + k8sapp.GetDomain(scope)}, PrometheusScrape: &k8sapp.ApplicationPrometheusScrape{}},

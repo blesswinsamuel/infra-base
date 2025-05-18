@@ -3,6 +3,7 @@ package infrahelpers
 import (
 	"bytes"
 	"encoding/json"
+	"maps"
 	"os"
 	"text/template"
 
@@ -33,11 +34,7 @@ func ToYamlString(v any) string {
 }
 
 func CopyMap[K comparable, V any](m map[K]V) map[K]V {
-	out := make(map[K]V)
-	for k, v := range m {
-		out[k] = v
-	}
-	return out
+	return maps.Clone(m)
 }
 
 func PtrIfNonEmpty[V comparable](s V) *V {

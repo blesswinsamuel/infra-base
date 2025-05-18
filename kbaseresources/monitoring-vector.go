@@ -9,9 +9,11 @@ import (
 	"github.com/blesswinsamuel/infra-base/k8sapp"
 	"github.com/muesli/reflow/dedent"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 type VectorProps struct {
@@ -187,15 +189,17 @@ if err != null {
 			},
 		}
 		sources["syslog_server_tcp"] = infrahelpers.MergeMaps(map[string]any{
-			"type":    "socket",
-			"address": "0.0.0.0:514",
-			"mode":    "tcp",
+			"type":     "socket",
+			"address":  "0.0.0.0:514",
+			"mode":     "tcp",
+			"port_key": "", // Overrides the name of the log field used to add the peer host’s port to each event. The value will be the peer host’s port i.e. 9000. By default, "port" is used. Set to "" to suppress this key.
 		}, syslogOpts)
 		sources["syslog_server_udp"] = infrahelpers.MergeMaps(map[string]any{
 			"type":       "socket",
 			"address":    "0.0.0.0:514",
 			"max_length": 102400,
 			"mode":       "udp",
+			"port_key":   "",
 		}, syslogOpts)
 
 		transforms["syslog_transform"] = map[string]any{
@@ -302,6 +306,19 @@ if err != null {
 			},
 		},
 		NetworkPolicy: &k8sapp.ApplicationNetworkPolicy{
+			Ingress: k8sapp.NetworkPolicyIngress{
+				// AllowFromIPs: map[string][]intstr.IntOrString{"0.0.0.0/0": {intstr.FromString("syslog-tcp"), intstr.FromString("syslog-udp")}},
+				// AllowFromAllNamespaces: []intstr.IntOrString{intstr.FromString("syslog-tcp"), intstr.FromString("syslog-udp")},
+				ExtraRules: []networkingv1.NetworkPolicyIngressRule{
+					{
+						From: []networkingv1.NetworkPolicyPeer{{IPBlock: &networkingv1.IPBlock{CIDR: "0.0.0.0/0"}}},
+						Ports: []networkingv1.NetworkPolicyPort{
+							{Port: ptr.To(intstr.FromString("syslog-tcp")), Protocol: ptr.To(corev1.ProtocolTCP)},
+							{Port: ptr.To(intstr.FromString("syslog-udp")), Protocol: ptr.To(corev1.ProtocolUDP)},
+						},
+					},
+				},
+			},
 			Egress: k8sapp.NetworkPolicyEgress{
 				AllowToAppRefs:       []string{"loki"},
 				AllowToKubeAPIServer: true,
@@ -309,8 +326,8 @@ if err != null {
 		},
 	}
 	if props.SyslogServer.Enabled {
-		applicationProps.Containers[0].Ports = append(applicationProps.Containers[0].Ports, k8sapp.ContainerPort{Name: "syslog-server-t", Port: 514, Protocol: "TCP"})
-		applicationProps.Containers[0].Ports = append(applicationProps.Containers[0].Ports, k8sapp.ContainerPort{Name: "syslog-server-u", Port: 514, Protocol: "UDP"})
+		applicationProps.Containers[0].Ports = append(applicationProps.Containers[0].Ports, k8sapp.ContainerPort{Name: "syslog-tcp", Port: 514, Protocol: corev1.ProtocolTCP})
+		applicationProps.Containers[0].Ports = append(applicationProps.Containers[0].Ports, k8sapp.ContainerPort{Name: "syslog-udp", Port: 514, Protocol: corev1.ProtocolUDP})
 	}
 	k8sapp.NewApplication(scope, applicationProps)
 	scope.AddApiObject(&rbacv1.ClusterRoleBinding{

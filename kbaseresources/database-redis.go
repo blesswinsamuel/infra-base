@@ -23,7 +23,7 @@ type Redis struct {
 
 func (props *Redis) Render(scope kgen.Scope) {
 	k8sapp.NewApplication(scope, &k8sapp.ApplicationProps{
-		Kind:                         "StatefulSet",
+		Kind:                         k8sapp.ApplicationKindStatefulSet,
 		Name:                         "redis-master",
 		HeadlessServiceNames:         []string{"redis-headless"},
 		StatefulSetServiceName:       "redis-headless",

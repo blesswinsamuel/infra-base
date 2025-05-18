@@ -425,11 +425,16 @@ node-exporter:
         - HostCpuIsUnderutilized
         - HostSystemdServiceCrashed # duplicate of NodeSystemdServiceFailed
         - HostClockNotSynchronising # duplicate of NodeClockNotSynchronising
+        - HostKernelVersionDeviations # noisy
       alertReplacements:
         HostContextSwitchingHigh:
-          " > 2": " > 3"
+          " > 2": " > 5"
         HostCpuHighIowait:
           "for: 0m": "for: 5m" # to fix noisy alerts
+        HostDiskMayFillIn24Hours:
+          1h: 6h
+        HostInodesWillFillIn24Hours:
+          1h: 6h
 victoriametrics:
   image:
     repository: victoriametrics/victoria-metrics
