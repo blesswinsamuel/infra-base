@@ -24,7 +24,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog/log"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 type Database struct {
@@ -142,14 +142,14 @@ func (m *SchedulerMonitor) SendNotification(url string) error {
 }
 
 func main() {
-	app := &cli.App{
+	app := &cli.Command{
 		Name:  "pg-backuper",
 		Usage: "Backup PostgreSQL databases",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "config-file",
 				Value:   "config.yaml",
-				EnvVars: []string{"CONFIG_FILE"},
+				Sources: cli.EnvVars("CONFIG_FILE"),
 				Usage:   "Config file path",
 			},
 		},
@@ -168,14 +168,14 @@ func main() {
 						Usage: "Metrics port",
 					},
 				},
-				Action: func(cCtx *cli.Context) error {
-					cfg, err := parseConfig(cCtx.String("config-file"))
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					cfg, err := parseConfig(cmd.String("config-file"))
 					if err != nil {
 						return err
 					}
 					databases := cfg.Databases
-					if cCtx.IsSet("db") {
-						dbName := cCtx.String("db")
+					if cmd.IsSet("db") {
+						dbName := cmd.String("db")
 						db, ok := cfg.Databases[dbName]
 						if !ok {
 							return fmt.Errorf("database %s not found", dbName)
@@ -258,7 +258,7 @@ func main() {
 							}
 						}
 					}))
-					go http.ListenAndServe(":"+cCtx.String("metrics-port"), nil)
+					go http.ListenAndServe(":"+cmd.String("metrics-port"), nil)
 
 					cancelChan := make(chan os.Signal, 1)
 					signal.Notify(cancelChan, syscall.SIGTERM, syscall.SIGINT)
@@ -280,14 +280,14 @@ func main() {
 						Usage: "Database name",
 					},
 				},
-				Action: func(cCtx *cli.Context) error {
-					cfg, err := parseConfig(cCtx.String("config-file"))
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					cfg, err := parseConfig(cmd.String("config-file"))
 					if err != nil {
 						return err
 					}
 					databases := cfg.Databases
-					if cCtx.IsSet("db") {
-						dbName := cCtx.String("db")
+					if cmd.IsSet("db") {
+						dbName := cmd.String("db")
 						db, ok := cfg.Databases[dbName]
 						if !ok {
 							return fmt.Errorf("database %s not found", dbName)
@@ -312,7 +312,7 @@ func main() {
 			},
 		},
 	}
-	if err := app.Run(os.Args); err != nil {
+	if err := app.Run(context.Background(), os.Args); err != nil {
 		log.Fatal().Err(err).Msg("Failed to run app")
 	}
 }
