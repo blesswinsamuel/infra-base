@@ -6,7 +6,7 @@ require (
 	github.com/blesswinsamuel/kgen v0.0.8
 	github.com/cert-manager/cert-manager v1.17.2
 	github.com/external-secrets/external-secrets v0.17.0
-	github.com/goccy/go-yaml v1.15.13
+	github.com/goccy/go-yaml v1.17.1
 	github.com/muesli/reflow v0.3.0
 	github.com/rs/zerolog v1.34.0
 	github.com/traefik/traefik/v3 v3.4.0
