@@ -45,7 +45,7 @@ traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "35.2.0"
+    version: "35.4.0"
   dashboardIngress:
     enabled: false
     subDomain: traefik
@@ -123,7 +123,7 @@ redis:
   metrics:
     image:
       repository: bitnami/redis-exporter
-      tag: 1.72.1
+      tag: 1.73.0
   resources:
     limits:
       cpu: 500m
@@ -186,7 +186,7 @@ traefik-forward-auth:
 vector:
   image:
     repository: timberio/vector
-    tag: 0.46.1-distroless-libc
+    tag: 0.47.0-distroless-libc
   syslogServer:
     enabled: false
   _grafana_dashboards:
@@ -339,7 +339,7 @@ alerting-rules:
 vmagent:
   image:
     repository: victoriametrics/vmagent
-    tag: "v1.117.1"
+    tag: "v1.118.0"
   ingress:
     enabled: true
     subDomain: "vmagent"
@@ -359,7 +359,7 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.117.1
+    tag: v1.118.0
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
@@ -438,7 +438,7 @@ node-exporter:
 victoriametrics:
   image:
     repository: victoriametrics/victoria-metrics
-    tag: v1.117.1
+    tag: v1.118.0
   ingress:
     enabled: true
     subDomain: "victoriametrics"
@@ -501,12 +501,12 @@ kubernetes-dashboard:
 kopia:
   image:
     repository: kopia/kopia
-    tag: "0.19.0"
+    tag: "0.20.0"
 backup-job:
   kopia:
     image:
       repository: kopia/kopia
-      tag: "0.19.0"
+      tag: "0.20.0"
   postgres:
     image:
       repository: postgres
