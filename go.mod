@@ -5,7 +5,7 @@ go 1.24.2
 require (
 	github.com/blesswinsamuel/kgen v0.0.8
 	github.com/cert-manager/cert-manager v1.17.2
-	github.com/external-secrets/external-secrets v0.17.0
+	github.com/external-secrets/external-secrets v1.3.2
 	github.com/goccy/go-yaml v1.15.13
 	github.com/muesli/reflow v0.3.0
 	github.com/rs/zerolog v1.34.0
