@@ -4,7 +4,7 @@ external-secrets:
   helm:
     repo: https://charts.external-secrets.io
     chart: external-secrets
-    version: "0.17.0"
+    version: "0.20.4"
 
 external-secrets-store:
   tokenSecretName: doppler-token-auth-api
@@ -17,7 +17,7 @@ cert-manager:
   helm:
     repo: https://charts.jetstack.io
     chart: cert-manager
-    version: "v1.17.2"
+    version: "v1.21.1"
   _grafana_dashboards:
     cert-manager:
       url: https://github.com/blesswinsamuel/grafana-dashboards/raw/main/dashboards/dist/dashboards/cert-manager.json
@@ -33,19 +33,19 @@ metallb:
   helm:
     repo: https://metallb.github.io/metallb
     chart: metallb
-    version: "0.14.9"
+    version: "0.16.1"
 
 cilium:
   helm:
     repo: https://helm.cilium.io
     chart: cilium
-    version: "1.17.4"
+    version: "1.20.1"
 
 traefik:
   helm:
     repo: https://traefik.github.io/charts
     chart: traefik
-    version: "35.2.0"
+    version: "35.4.0"
   dashboardIngress:
     enabled: false
     subDomain: traefik
@@ -186,7 +186,7 @@ traefik-forward-auth:
 vector:
   image:
     repository: timberio/vector
-    tag: 0.46.1-distroless-libc
+    tag: 0.58.0-distroless-libc
   syslogServer:
     enabled: false
   _grafana_dashboards:
@@ -203,7 +203,7 @@ crowdsec-firewall-bouncer:
 crowdsec:
   image:
     repository: crowdsecurity/crowdsec
-    tag: v1.6.8
+    tag: v1.8.1
   slackChannel: "#crowdsec"
   notifiers:
     - slack
@@ -248,7 +248,7 @@ kube-state-metrics:
 grafana:
   image:
     repository: grafana/grafana
-    tag: 12.0.0
+    tag: 12.4.10
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
@@ -339,7 +339,7 @@ alerting-rules:
 vmagent:
   image:
     repository: victoriametrics/vmagent
-    tag: "v1.117.1"
+    tag: "v1.151.0"
   ingress:
     enabled: true
     subDomain: "vmagent"
@@ -359,7 +359,7 @@ vmagent:
 vmalert:
   image:
     repository: victoriametrics/vmalert
-    tag: v1.117.1
+    tag: v1.151.0
   sidecar:
     image:
       repository: kiwigrid/k8s-sidecar
@@ -376,7 +376,7 @@ vmalert:
 alertmanager:
   image:
     repository: quay.io/prometheus/alertmanager
-    tag: "v0.28.1"
+    tag: "v0.34.0"
   ingress:
     enabled: true
     subDomain: "alertmanager"
@@ -402,7 +402,7 @@ alertmanager:
 node-exporter:
   image:
     repository: quay.io/prometheus/node-exporter
-    tag: v1.9.1
+    tag: v1.12.1
   _grafana_dashboards:
     node-exporter:
       url: https://github.com/rfmoz/grafana-dashboards/raw/master/prometheus/node-exporter-full.json
@@ -438,7 +438,7 @@ node-exporter:
 victoriametrics:
   image:
     repository: victoriametrics/victoria-metrics
-    tag: v1.117.1
+    tag: v1.151.0
   ingress:
     enabled: true
     subDomain: "victoriametrics"
@@ -462,7 +462,7 @@ victoriametrics:
 loki:
   image:
     repository: grafana/loki
-    tag: "3.5.0"
+    tag: "3.7.7"
   storage: local
   _alerting_rules:
     loki:
@@ -501,16 +501,16 @@ kubernetes-dashboard:
 kopia:
   image:
     repository: kopia/kopia
-    tag: "0.19.0"
+    tag: "0.23.1"
 backup-job:
   kopia:
     image:
       repository: kopia/kopia
-      tag: "0.19.0"
+      tag: "0.23.1"
   postgres:
     image:
       repository: postgres
-      tag: "16.9"
+      tag: "16.15"
     host: "postgres.database.svc.cluster.local"
 pg-backuper:
   image:
@@ -520,7 +520,7 @@ pg-backuper:
 coredns:
   image:
     repository: "rancher/mirrored-coredns-coredns"
-    tag: "1.12.1"
+    tag: "1.14.7"
   clusterDomain: cluster.local
   clusterDNS: "10.43.0.10"
   clusterDNSList: ["10.43.0.10"]
@@ -531,7 +531,7 @@ coredns:
 mailpit:
   image:
     repository: axllent/mailpit
-    tag: v1.25.0
+    tag: v1.31.1
 
 ### utils ###
 
